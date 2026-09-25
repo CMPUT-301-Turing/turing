@@ -1,4 +1,6 @@
 package com.example.turing.ui.theme
 
-class Square (x: Int, y: Int) {
+import com.example.turing.Shape
+
+class Square (x: Int, y: Int): Shape(x,y) {
 }
