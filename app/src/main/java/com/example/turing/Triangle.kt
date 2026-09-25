@@ -1,4 +1,6 @@
 package com.example.turing
 
-class Triangle {
+import com.example.turing.Shape
+
+class Triangle(): Shape(x: Int, y: Int) {
 }
