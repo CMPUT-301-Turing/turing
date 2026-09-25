@@ -1,4 +1,4 @@
 package com.example.turing
 
-class Hexagon {
+class Hexagon(x:Int,y:Int): Shape(x,y) {
 }
