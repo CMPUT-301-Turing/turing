@@ -1,0 +1,10 @@
+package com.example.turing
+
+<<<<<<< HEAD
+abstract class Shape (var x: Int, var y: Int) {
+    val color: String = "blue"
+}
+=======
+abstract class Shape (var x: Int, var y: Int, val color: String = "$PUT_YOUR_CHOICE_OF_COLOR") {
+}
+>>>>>>> 842462c77426dff9b5285be2316eeb5722e8798d
