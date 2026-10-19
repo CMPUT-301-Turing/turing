@@ -32,8 +32,9 @@ This table maps every single assigned User story to its primary domain classes
 | `GeoLocationService`      |  Service        | `US 01.01.02`, `US 02.01.02`                                                                                                                                           |**Draft**|\
 | `ImageService`                   |  Service        | `US 01.07.03`, `US 02.01.02`, `US 03.03.01`, `US 03.06.01`                                                                                       |**Draft**|\
 | `CSVExporter`                     |  Utility          | `US 01.05.02`, `US 01.07.02`                                                                                                                                           |**Draft**|\
-| `DatabaseManager`            |  Persistence  | `US 01.08.01`, `US 03.01.01-03`                                                                                                                                     |**Draft**|
-
+| `DatabaseManager`            |  Persistence  | `US 01.08.01`, `US 03.01.01-03`                                                                                                                                     |**Draft**|\
+| `SearchFilterManager`   | Controller     | `US 01.01.01`, `US 01.01.02`, `US 01.01.03`                                                                                                                 |**Draft**|\
+| `AuditLog`                           | Service     | `US 03.08.01`, `US 03.12.01`                                                                                                                                                |**Draft**|
 
 ## 3.Design Choice & Decisions
 
@@ -55,4 +56,11 @@ This table maps every single assigned User story to its primary domain classes
  The user stories mention optional waitlist capacity caps `US 02.04.07`, entrants leaving the waitlist voluntarily `US 01.02.02`, and owners checking the list of entrants `US 02.09.01`. Giving `WaitingList` its own class keeps `Lottery` clean and focused on running the draw.
 
 
- 
+
+Here is the complete, finalized Markdown code. You can copy this entire block and paste it directly into your `crc_draft.md` file in your repository.
+
+
+## 4. CRC Cards (Draft — Core Classes)
+
+The classes below were identified in both initial object-oriented analyses. These cards incorporate the subsequent responsibility review. They remain **proposals for team review**, not finalized implementation decisions. Collaborators are included for meaningful *uses* or *has-a* relationships, not solely inheritance or database storage.
+
