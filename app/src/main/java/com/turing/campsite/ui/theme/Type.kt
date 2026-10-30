@@ -6,7 +6,12 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Set of Material typography styles to start with
+/**
+ * Material 3 typography used by [TuringTheme].
+ *
+ * Only `bodyLarge` is customised so far; the remaining styles fall back to
+ * Material defaults.
+ */
 val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,

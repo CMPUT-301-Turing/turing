@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.dokka)
 //    id("com.android.application")
     id("com.google.gms.google-services")
 }
@@ -37,6 +38,7 @@ android {
     buildFeatures {
         compose = true
     }
+    buildToolsVersion = "36.0.0"
 }
 
 dependencies {
@@ -48,6 +50,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation.runtime.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
@@ -57,4 +61,13 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(platform("com.google.firebase:firebase-bom:35.1.0"))
     implementation("com.google.firebase:firebase-analytics")
+}
+dokka {
+    moduleName.set("Turing Campsite")
+    dokkaSourceSets.configureEach {
+        includes.from("Module.md")
+    }
+    pluginsConfiguration.html {
+        footerMessage.set("CMPUT 301 · Team Turing")
+    }
 }

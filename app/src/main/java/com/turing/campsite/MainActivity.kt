@@ -14,6 +14,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.turing.campsite.ui.theme.TuringTheme
 
+/**
+ * Single activity that hosts the whole Compose UI.
+ *
+ * Enables edge-to-edge drawing and renders the app content inside [TuringTheme].
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +36,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Placeholder greeting shown while the real screens are being built.
+ *
+ * @param name Name inserted into the greeting text.
+ * @param modifier Modifier applied to the underlying [Text].
+ */
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(
@@ -39,6 +50,7 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
     )
 }
 
+/** Android Studio preview of [Greeting] wrapped in [TuringTheme]. */
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
@@ -48,10 +60,16 @@ fun GreetingPreview() {
 }
 
 
+/** Primary colour of the dark Material 3 scheme. */
 val Purple80 = Color(0xFFD0BCFF)
+/** Secondary colour of the dark Material 3 scheme. */
 val PurpleGrey80 = Color(0xFFCCC2DC)
+/** Tertiary colour of the dark Material 3 scheme. */
 val Pink80 = Color(0xFFEFB8C8)
 
+/** Primary colour of the light Material 3 scheme. */
 val Purple40 = Color(0xFF6650a4)
+/** Secondary colour of the light Material 3 scheme. */
 val PurpleGrey40 = Color(0xFF625b71)
+/** Tertiary colour of the light Material 3 scheme. */
 val Pink40 = Color(0xFF7D5260)

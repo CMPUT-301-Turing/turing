@@ -38,6 +38,16 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+/**
+ * Applies the app-wide Material 3 theme to [content].
+ *
+ * On Android 12 and newer the colour scheme comes from the user's wallpaper when
+ * [dynamicColor] is true; otherwise the static light or dark scheme is used.
+ *
+ * @param darkTheme Whether to use the dark colour scheme. Defaults to the system setting.
+ * @param dynamicColor Whether to use Material You dynamic colours where supported.
+ * @param content The UI to render inside the theme.
+ */
 @Composable
 fun TuringTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
