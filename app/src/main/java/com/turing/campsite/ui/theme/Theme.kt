@@ -1,4 +1,4 @@
-package com.example.turing.ui.theme
+package com.turing.campsite.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -9,12 +9,12 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import com.example.turing.Pink40
-import com.example.turing.Pink80
-import com.example.turing.Purple40
-import com.example.turing.Purple80
-import com.example.turing.PurpleGrey40
-import com.example.turing.PurpleGrey80
+import com.turing.campsite.Pink40
+import com.turing.campsite.Pink80
+import com.turing.campsite.Purple40
+import com.turing.campsite.Purple80
+import com.turing.campsite.PurpleGrey40
+import com.turing.campsite.PurpleGrey80
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,

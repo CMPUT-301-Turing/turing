@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1092635390681",
+    "project_id": "campsite-app-turing",
+    "storage_bucket": "campsite-app-turing.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1092635390681:android:62480ed900b06f26f084c8",
+        "android_client_info": {
+          "package_name": "com.turing.campsite"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLjdKT-8IBaONsJDZY_BOkEIFMEps-_gU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

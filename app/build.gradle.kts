@@ -1,10 +1,12 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+//    id("com.android.application")
+    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.example.turing"
+    namespace = "com.turing.campsite"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -12,7 +14,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.turing"
+        applicationId = "com.turing.campsite"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -53,4 +55,6 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    implementation(platform("com.google.firebase:firebase-bom:35.1.0"))
+    implementation("com.google.firebase:firebase-analytics")
 }

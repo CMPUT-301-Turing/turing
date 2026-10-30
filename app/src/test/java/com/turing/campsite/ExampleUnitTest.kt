@@ -1,4 +1,4 @@
-package com.example.turing
+package com.turing.campsite
 
 import org.junit.Test
 
