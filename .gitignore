@@ -1,6 +1,5 @@
 # Gradle
 .gradle/
-/build/
 /captures
 .externalNativeBuild
 .cxx
@@ -9,12 +8,6 @@
 *.iml
 /.idea/
 /local.properties
-
-# Build outputs and signing
-*.apk
-*.aab
-*.keystore
-*.jks
 
 # OS
 .DS_Store
