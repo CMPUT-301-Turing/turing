@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:ns1="http://schemas.android.com/tools" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+<resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <attr format="color" name="animationBackgroundColor"/>
     <attr format="enum" name="finishPrimaryWithPlaceholder">
         
@@ -151,6 +151,7 @@
     <item name="accessibility_custom_action_7" type="id"/>
     <item name="accessibility_custom_action_8" type="id"/>
     <item name="accessibility_custom_action_9" type="id"/>
+    <item name="androidx_compose_ui_view_compose_view_context" type="id"/>
     <item name="androidx_compose_ui_view_composition_context" type="id"/>
     <item name="androidx_window_activity_scope" type="id"/>
     <item name="auto_clear_focus_behavior_tag" type="id"/>
@@ -239,7 +240,7 @@
     <string name="common_signin_button_text">Sign in</string>
     <string name="common_signin_button_text_long">Sign in with Google</string>
     <string name="default_error_message">"Invalid input"</string>
-    <string name="default_popup_window_title" ns1:ignore="ExtraTranslation">"Pop-Up Window"</string>
+    <string name="default_popup_window_title" tools:ignore="ExtraTranslation">"Pop-Up Window"</string>
     <string name="dropdown_menu">"Dropdown menu"</string>
     <string name="gcm_defaultSenderId" translatable="false">1092635390681</string>
     <string name="google_api_key" translatable="false">AIzaSyDLjdKT-8IBaONsJDZY_BOkEIFMEps-_gU</string>
@@ -318,7 +319,6 @@
     <string name="m3c_tooltip_pane_description">Tooltip</string>
     <string name="m3c_wide_navigation_rail_close_rail">"Close rail"</string>
     <string name="m3c_wide_navigation_rail_pane_title">"Navigation rail"</string>
-    <string name="mc2_snackbar_pane_title">Alert</string>
     <string name="navigation_menu">"Navigation menu"</string>
     <string name="not_selected">Not selected</string>
     <string name="project_id" translatable="false">campsite-app-turing</string>
@@ -340,7 +340,7 @@
     </style>
     <style name="EdgeToEdgeFloatingDialogTheme" parent="android:Theme.DeviceDefault.Dialog">
         <item name="android:windowAnimationStyle">@null</item>
-        <item name="android:windowLayoutInDisplayCutoutMode" ns1:targetApi="27">@integer/m3c_window_layout_in_display_cutout_mode</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="27">@integer/m3c_window_layout_in_display_cutout_mode</item>
         <item name="android:windowClipToOutline">false</item>
         <item name="android:windowIsFloating">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>

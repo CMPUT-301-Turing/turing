@@ -25,37 +25,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TuringTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                TuringCampsiteApp()
             }
         }
-    }
-}
-
-/**
- * Placeholder greeting shown while the real screens are being built.
- *
- * @param name Name inserted into the greeting text.
- * @param modifier Modifier applied to the underlying [Text].
- */
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-/** Android Studio preview of [Greeting] wrapped in [TuringTheme]. */
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TuringTheme {
-        Greeting("Android")
     }
 }
 

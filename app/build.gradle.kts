@@ -8,16 +8,12 @@ plugins {
 
 android {
     namespace = "com.turing.campsite"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.turing.campsite"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
@@ -38,7 +34,6 @@ android {
     buildFeatures {
         compose = true
     }
-    buildToolsVersion = "36.0.0"
 }
 
 dependencies {
@@ -61,7 +56,6 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(platform("com.google.firebase:firebase-bom:35.1.0"))
     implementation("com.google.firebase:firebase-analytics")
-    implementation("androidx.navigation:navigation-compose:2.9.8")
 }
 dokka {
     moduleName.set("Turing Campsite")
