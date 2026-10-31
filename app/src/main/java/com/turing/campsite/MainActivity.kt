@@ -31,6 +31,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+val PrimaryColor = Color(0xFF354F45)
+val CardColor = Color(0xFFFBFAF6)
+val BackgroundColor = Color(0xFFF5F3EA)
+val BorderColor = Color(0xFFD7DACA)
 
 /** Primary colour of the dark Material 3 scheme. */
 val Purple80 = Color(0xFFD0BCFF)

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.turing.campsite.app-mergeDebugResources-49:/values-v30/values-v30.xml",
+            "outputFile": "com.turing.campsite.app-mergeDebugResources-51:/values-v30/values-v30.xml",
             "map": [
                 {
                     "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\e3c36f995772e51438133fd543affe88\\transformed\\material3\\res\\values-v30\\values-v30.xml",

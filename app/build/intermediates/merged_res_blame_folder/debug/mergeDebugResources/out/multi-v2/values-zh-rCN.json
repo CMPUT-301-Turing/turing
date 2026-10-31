@@ -1,27 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.turing.campsite.app-mergeDebugResources-49:/values-zh-rCN/values-zh-rCN.xml",
+            "outputFile": "com.turing.campsite.app-mergeDebugResources-51:/values-zh-rCN/values-zh-rCN.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\03ef408870137008605f86964817cf0f\\transformed\\foundation\\res\\values-zh-rCN\\values-zh-rCN.xml",
-                    "from": {
-                        "startLines": "2,3,4",
-                        "startColumns": "4,4,4",
-                        "startOffsets": "55,155,236",
-                        "endColumns": "99,80,76",
-                        "endOffsets": "150,231,308"
-                    },
-                    "to": {
-                        "startLines": "2,115,116",
-                        "startColumns": "4,4,4",
-                        "startOffsets": "107,10754,10835",
-                        "endColumns": "99,80,76",
-                        "endOffsets": "202,10830,10907"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\9f2e067764eca4d3030305b031014dc6\\transformed\\ui\\res\\values-zh-rCN\\values-zh-rCN.xml",
+                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\e68cdef6932ed312aaf2f5c2cacebbe9\\transformed\\ui\\res\\values-zh-rCN\\values-zh-rCN.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -69,6 +52,23 @@
                         "startOffsets": "3334,3438,3541,3645,3747,3839,3927,4031,4139,4242,4357,4439,4535,4619,4708,4814,4928,5029,5139,5247,5355,5471,5578,5679,5783,5889,5974,6069,6174,6283,6373,6471,6569,6679,6794,6894,6985,7058,7148,7237,7330,7424,7516,7599,7681,7766,7858,7948,8028,8120,8202,8300,8394,8487,8582,8666,8762,8858,8955,9063,9143,9247,9347,9439,9529,9628",
                         "endColumns": "103,102,103,101,91,87,103,107,102,114,81,95,83,88,105,113,100,109,107,107,115,106,100,103,105,84,94,104,108,89,97,97,109,114,99,90,72,89,88,92,93,91,82,81,84,91,89,79,91,81,97,93,92,94,83,95,95,96,107,79,103,99,91,89,98,99",
                         "endOffsets": "3433,3536,3640,3742,3834,3922,4026,4134,4237,4352,4434,4530,4614,4703,4809,4923,5024,5134,5242,5350,5466,5573,5674,5778,5884,5969,6064,6169,6278,6368,6466,6564,6674,6789,6889,6980,7053,7143,7232,7325,7419,7511,7594,7676,7761,7853,7943,8023,8115,8197,8295,8389,8482,8577,8661,8757,8853,8950,9058,9138,9242,9342,9434,9524,9623,9723"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\0d93de424684ce7ac6be561b8e09bba6\\transformed\\foundation\\res\\values-zh-rCN\\values-zh-rCN.xml",
+                    "from": {
+                        "startLines": "2,3,4",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "55,155,236",
+                        "endColumns": "99,80,76",
+                        "endOffsets": "150,231,308"
+                    },
+                    "to": {
+                        "startLines": "2,115,116",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "107,10754,10835",
+                        "endColumns": "99,80,76",
+                        "endOffsets": "202,10830,10907"
                     }
                 },
                 {

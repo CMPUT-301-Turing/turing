@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.turing.campsite.app-mergeDebugResources-49:/values-pt-rPT/values-pt-rPT.xml",
+            "outputFile": "com.turing.campsite.app-mergeDebugResources-51:/values-pt-rPT/values-pt-rPT.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\9f2e067764eca4d3030305b031014dc6\\transformed\\ui\\res\\values-pt-rPT\\values-pt-rPT.xml",
+                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\e68cdef6932ed312aaf2f5c2cacebbe9\\transformed\\ui\\res\\values-pt-rPT\\values-pt-rPT.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -21,7 +21,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\03ef408870137008605f86964817cf0f\\transformed\\foundation\\res\\values-pt-rPT\\values-pt-rPT.xml",
+                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\0d93de424684ce7ac6be561b8e09bba6\\transformed\\foundation\\res\\values-pt-rPT\\values-pt-rPT.xml",
                     "from": {
                         "startLines": "2,3,4",
                         "startColumns": "4,4,4",

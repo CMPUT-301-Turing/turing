@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.turing.campsite.app-mergeDebugResources-49:/values-km/values-km.xml",
+            "outputFile": "com.turing.campsite.app-mergeDebugResources-51:/values-km/values-km.xml",
             "map": [
                 {
                     "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\15b2c6e4419f11b02d74a983016f8f06\\transformed\\core-1.19.0\\res\\values-km\\values-km.xml",
@@ -21,7 +21,24 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\9f2e067764eca4d3030305b031014dc6\\transformed\\ui\\res\\values-km\\values-km.xml",
+                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\0d93de424684ce7ac6be561b8e09bba6\\transformed\\foundation\\res\\values-km\\values-km.xml",
+                    "from": {
+                        "startLines": "2,3,4",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "55,169,260",
+                        "endColumns": "113,90,91",
+                        "endOffsets": "164,255,347"
+                    },
+                    "to": {
+                        "startLines": "2,115,116",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "107,12241,12332",
+                        "endColumns": "113,90,91",
+                        "endOffsets": "216,12327,12419"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\e68cdef6932ed312aaf2f5c2cacebbe9\\transformed\\ui\\res\\values-km\\values-km.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -52,23 +69,6 @@
                         "startOffsets": "3891,4009,4128,4234,4350,4452,4558,4681,4825,4953,5105,5196,5296,5396,5506,5630,5755,5860,5986,6112,6240,6402,6524,6638,6751,6874,6975,7075,7201,7340,7444,7549,7661,7786,7914,8031,8139,8215,8312,8408,8516,8621,8724,8812,8900,8992,9093,9189,9269,9373,9457,9557,9659,9755,9864,9951,10056,10154,10265,10382,10462,10603,10737,10844,10944,11046",
                         "endColumns": "117,118,105,115,101,105,122,143,127,151,90,99,99,109,123,124,104,125,125,127,161,121,113,112,122,100,99,125,138,103,104,111,124,127,116,107,75,96,95,107,104,102,87,87,91,100,95,79,103,83,99,101,95,108,86,104,97,110,116,79,140,133,106,99,101,103",
                         "endOffsets": "4004,4123,4229,4345,4447,4553,4676,4820,4948,5100,5191,5291,5391,5501,5625,5750,5855,5981,6107,6235,6397,6519,6633,6746,6869,6970,7070,7196,7335,7439,7544,7656,7781,7909,8026,8134,8210,8307,8403,8511,8616,8719,8807,8895,8987,9088,9184,9264,9368,9452,9552,9654,9750,9859,9946,10051,10149,10260,10377,10457,10598,10732,10839,10939,11041,11145"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\03ef408870137008605f86964817cf0f\\transformed\\foundation\\res\\values-km\\values-km.xml",
-                    "from": {
-                        "startLines": "2,3,4",
-                        "startColumns": "4,4,4",
-                        "startOffsets": "55,169,260",
-                        "endColumns": "113,90,91",
-                        "endOffsets": "164,255,347"
-                    },
-                    "to": {
-                        "startLines": "2,115,116",
-                        "startColumns": "4,4,4",
-                        "startOffsets": "107,12241,12332",
-                        "endColumns": "113,90,91",
-                        "endOffsets": "216,12327,12419"
                     }
                 },
                 {

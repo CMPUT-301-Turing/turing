@@ -1,23 +1,23 @@
 {
     "logs": [
         {
-            "outputFile": "com.turing.campsite.app-mergeDebugResources-49:/values-af/values-af.xml",
+            "outputFile": "com.turing.campsite.app-mergeDebugResources-51:/values-af/values-af.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\03ef408870137008605f86964817cf0f\\transformed\\foundation\\res\\values-af\\values-af.xml",
+                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\e68cdef6932ed312aaf2f5c2cacebbe9\\transformed\\ui\\res\\values-af\\values-af.xml",
                     "from": {
-                        "startLines": "2,3,4",
-                        "startColumns": "4,4,4",
-                        "startOffsets": "55,158,245",
-                        "endColumns": "102,86,84",
-                        "endOffsets": "153,240,325"
+                        "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "107,202,298,385,482,583,669,745,836,926,1012,1090,1171,1242,1331,1406,1477,1548,1629,1699",
+                        "endColumns": "94,95,86,96,100,85,75,90,89,85,77,80,70,88,74,70,70,80,69,123",
+                        "endOffsets": "197,293,380,477,578,664,740,831,921,1007,1085,1166,1237,1326,1401,1472,1543,1624,1694,1818"
                     },
                     "to": {
-                        "startLines": "2,115,116",
-                        "startColumns": "4,4,4",
-                        "startOffsets": "107,12113,12200",
-                        "endColumns": "102,86,84",
-                        "endOffsets": "205,12195,12280"
+                        "startLines": "3,11,12,31,32,33,34,35,102,103,104,105,106,107,108,109,110,112,113,114",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "210,1037,1133,3416,3513,3614,3700,3776,11025,11115,11201,11279,11360,11431,11520,11595,11666,11838,11919,11989",
+                        "endColumns": "94,95,86,96,100,85,75,90,89,85,77,80,70,88,74,70,70,80,69,123",
+                        "endOffsets": "300,1128,1215,3508,3609,3695,3771,3862,11110,11196,11274,11355,11426,11515,11590,11661,11732,11914,11984,12108"
                     }
                 },
                 {
@@ -72,6 +72,23 @@
                     }
                 },
                 {
+                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\0d93de424684ce7ac6be561b8e09bba6\\transformed\\foundation\\res\\values-af\\values-af.xml",
+                    "from": {
+                        "startLines": "2,3,4",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "55,158,245",
+                        "endColumns": "102,86,84",
+                        "endOffsets": "153,240,325"
+                    },
+                    "to": {
+                        "startLines": "2,115,116",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "107,12113,12200",
+                        "endColumns": "102,86,84",
+                        "endOffsets": "205,12195,12280"
+                    }
+                },
+                {
                     "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\15b2c6e4419f11b02d74a983016f8f06\\transformed\\core-1.19.0\\res\\values-af\\values-af.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
@@ -86,23 +103,6 @@
                         "startOffsets": "305,403,505,603,701,808,917,11737",
                         "endColumns": "97,101,97,97,106,108,119,100",
                         "endOffsets": "398,500,598,696,803,912,1032,11833"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\9f2e067764eca4d3030305b031014dc6\\transformed\\ui\\res\\values-af\\values-af.xml",
-                    "from": {
-                        "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21",
-                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
-                        "startOffsets": "107,202,298,385,482,583,669,745,836,926,1012,1090,1171,1242,1331,1406,1477,1548,1629,1699",
-                        "endColumns": "94,95,86,96,100,85,75,90,89,85,77,80,70,88,74,70,70,80,69,123",
-                        "endOffsets": "197,293,380,477,578,664,740,831,921,1007,1085,1166,1237,1326,1401,1472,1543,1624,1694,1818"
-                    },
-                    "to": {
-                        "startLines": "3,11,12,31,32,33,34,35,102,103,104,105,106,107,108,109,110,112,113,114",
-                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
-                        "startOffsets": "210,1037,1133,3416,3513,3614,3700,3776,11025,11115,11201,11279,11360,11431,11520,11595,11666,11838,11919,11989",
-                        "endColumns": "94,95,86,96,100,85,75,90,89,85,77,80,70,88,74,70,70,80,69,123",
-                        "endOffsets": "300,1128,1215,3508,3609,3695,3771,3862,11110,11196,11274,11355,11426,11515,11590,11661,11732,11914,11984,12108"
                     }
                 }
             ]

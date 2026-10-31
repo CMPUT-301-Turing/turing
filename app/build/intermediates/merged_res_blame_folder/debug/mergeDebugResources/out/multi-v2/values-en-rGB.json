@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.turing.campsite.app-mergeDebugResources-49:/values-en-rGB/values-en-rGB.xml",
+            "outputFile": "com.turing.campsite.app-mergeDebugResources-51:/values-en-rGB/values-en-rGB.xml",
             "map": [
                 {
                     "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\15b2c6e4419f11b02d74a983016f8f06\\transformed\\core-1.19.0\\res\\values-en-rGB\\values-en-rGB.xml",
@@ -21,7 +21,24 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\9f2e067764eca4d3030305b031014dc6\\transformed\\ui\\res\\values-en-rGB\\values-en-rGB.xml",
+                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\0d93de424684ce7ac6be561b8e09bba6\\transformed\\foundation\\res\\values-en-rGB\\values-en-rGB.xml",
+                    "from": {
+                        "startLines": "2,3,4",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "55,159,245",
+                        "endColumns": "103,85,84",
+                        "endOffsets": "154,240,325"
+                    },
+                    "to": {
+                        "startLines": "2,115,116",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "107,11967,12053",
+                        "endColumns": "103,85,84",
+                        "endOffsets": "206,12048,12133"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\e68cdef6932ed312aaf2f5c2cacebbe9\\transformed\\ui\\res\\values-en-rGB\\values-en-rGB.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -69,23 +86,6 @@
                         "startOffsets": "3810,3928,4044,4155,4269,4368,4463,4575,4711,4827,4963,5047,5146,5237,5334,5453,5578,5682,5809,5932,6060,6221,6342,6458,6581,6706,6798,6896,7013,7137,7234,7336,7438,7568,7707,7813,7912,7990,8086,8180,8285,8390,8491,8578,8665,8753,8855,8951,9033,9132,9216,9317,9418,9518,9617,9705,9811,9912,10016,10136,10218,10353,10480,10580,10675,10780",
                         "endColumns": "117,115,110,113,98,94,111,135,115,135,83,98,90,96,118,124,103,126,122,127,160,120,115,122,124,91,97,116,123,96,101,101,129,138,105,98,77,95,93,104,104,100,86,86,87,101,95,81,98,83,100,100,99,98,87,105,100,103,119,81,134,126,99,94,104,109",
                         "endOffsets": "3923,4039,4150,4264,4363,4458,4570,4706,4822,4958,5042,5141,5232,5329,5448,5573,5677,5804,5927,6055,6216,6337,6453,6576,6701,6793,6891,7008,7132,7229,7331,7433,7563,7702,7808,7907,7985,8081,8175,8280,8385,8486,8573,8660,8748,8850,8946,9028,9127,9211,9312,9413,9513,9612,9700,9806,9907,10011,10131,10213,10348,10475,10575,10670,10775,10885"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\03ef408870137008605f86964817cf0f\\transformed\\foundation\\res\\values-en-rGB\\values-en-rGB.xml",
-                    "from": {
-                        "startLines": "2,3,4",
-                        "startColumns": "4,4,4",
-                        "startOffsets": "55,159,245",
-                        "endColumns": "103,85,84",
-                        "endOffsets": "154,240,325"
-                    },
-                    "to": {
-                        "startLines": "2,115,116",
-                        "startColumns": "4,4,4",
-                        "startOffsets": "107,11967,12053",
-                        "endColumns": "103,85,84",
-                        "endOffsets": "206,12048,12133"
                     }
                 },
                 {

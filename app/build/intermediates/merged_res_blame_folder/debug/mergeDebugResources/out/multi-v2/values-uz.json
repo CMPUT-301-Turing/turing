@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.turing.campsite.app-mergeDebugResources-49:/values-uz/values-uz.xml",
+            "outputFile": "com.turing.campsite.app-mergeDebugResources-51:/values-uz/values-uz.xml",
             "map": [
                 {
                     "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\f7cf9470b464335691f74b1771c07f43\\transformed\\play-services-base-18.5.0\\res\\values-uz\\values.xml",
@@ -38,23 +38,6 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\03ef408870137008605f86964817cf0f\\transformed\\foundation\\res\\values-uz\\values-uz.xml",
-                    "from": {
-                        "startLines": "2,3,4",
-                        "startColumns": "4,4,4",
-                        "startOffsets": "55,169,280",
-                        "endColumns": "113,110,100",
-                        "endOffsets": "164,275,376"
-                    },
-                    "to": {
-                        "startLines": "2,115,116",
-                        "startColumns": "4,4,4",
-                        "startOffsets": "107,12293,12404",
-                        "endColumns": "113,110,100",
-                        "endOffsets": "216,12399,12500"
-                    }
-                },
-                {
                     "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\15b2c6e4419f11b02d74a983016f8f06\\transformed\\core-1.19.0\\res\\values-uz\\values-uz.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
@@ -72,7 +55,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\9f2e067764eca4d3030305b031014dc6\\transformed\\ui\\res\\values-uz\\values-uz.xml",
+                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\e68cdef6932ed312aaf2f5c2cacebbe9\\transformed\\ui\\res\\values-uz\\values-uz.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -103,6 +86,23 @@
                         "startOffsets": "3968,4085,4200,4314,4428,4525,4623,4738,4871,4980,5122,5206,5310,5404,5502,5616,5737,5846,5971,6094,6224,6392,6517,6638,6762,6883,6978,7076,7193,7319,7423,7533,7640,7763,7891,8004,8108,8192,8288,8382,8512,8625,8736,8824,8910,8999,9100,9201,9281,9383,9467,9567,9671,9767,9866,9954,10062,10162,10265,10404,10484,10626,10756,10872,10975,11084",
                         "endColumns": "116,114,113,113,96,97,114,132,108,141,83,103,93,97,113,120,108,124,122,129,167,124,120,123,120,94,97,116,125,103,109,106,122,127,112,103,83,95,93,129,112,110,87,85,88,100,100,79,101,83,99,103,95,98,87,107,99,102,138,79,141,129,115,102,108,112",
                         "endOffsets": "4080,4195,4309,4423,4520,4618,4733,4866,4975,5117,5201,5305,5399,5497,5611,5732,5841,5966,6089,6219,6387,6512,6633,6757,6878,6973,7071,7188,7314,7418,7528,7635,7758,7886,7999,8103,8187,8283,8377,8507,8620,8731,8819,8905,8994,9095,9196,9276,9378,9462,9562,9666,9762,9861,9949,10057,10157,10260,10399,10479,10621,10751,10867,10970,11079,11192"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\0d93de424684ce7ac6be561b8e09bba6\\transformed\\foundation\\res\\values-uz\\values-uz.xml",
+                    "from": {
+                        "startLines": "2,3,4",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "55,169,280",
+                        "endColumns": "113,110,100",
+                        "endOffsets": "164,275,376"
+                    },
+                    "to": {
+                        "startLines": "2,115,116",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "107,12293,12404",
+                        "endColumns": "113,110,100",
+                        "endOffsets": "216,12399,12500"
                     }
                 }
             ]
