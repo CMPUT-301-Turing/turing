@@ -1,0 +1,21 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+$dokka.location:com.turing.campsite.ui.theme////PointingToDeclaration/-turing -campsite/com.turing.campsite.ui.theme/index.html
+$dokka.location:com.turing.campsite.ui.theme//TuringTheme/#kotlin.Boolean#kotlin.Boolean#kotlin.Function0[kotlin.Unit]/PointingToDeclaration/-turing -campsite/com.turing.campsite.ui.theme/-turing-theme.html
+$dokka.location:com.turing.campsite.ui.theme//Typography/#/PointingToDeclaration/-turing -campsite/com.turing.campsite.ui.theme/-typography.html
+$dokka.location:com.turing.campsite////PointingToDeclaration/-turing -campsite/com.turing.campsite/index.html
+$dokka.location:com.turing.campsite//AdminHomeScreen/#<ERROR CLASS> ERROR CLASS: Symbol not found for NavController/PointingToDeclaration/-turing -campsite/com.turing.campsite/-admin-home-screen.html
+$dokka.location:com.turing.campsite//CampsiteApp/#/PointingToDeclaration/-turing -campsite/com.turing.campsite/-campsite-app.html
+$dokka.location:com.turing.campsite//Greeting/#kotlin.String#androidx.compose.ui.Modifier/PointingToDeclaration/-turing -campsite/com.turing.campsite/-greeting.html
+$dokka.location:com.turing.campsite//GreetingPreview/#/PointingToDeclaration/-turing -campsite/com.turing.campsite/-greeting-preview.html
+$dokka.location:com.turing.campsite//LoginScreen/#<ERROR CLASS> ERROR CLASS: Symbol not found for NavController/PointingToDeclaration/-turing -campsite/com.turing.campsite/-login-screen.html
+$dokka.location:com.turing.campsite//Pink40/#/PointingToDeclaration/-turing -campsite/com.turing.campsite/-pink40.html
+$dokka.location:com.turing.campsite//Pink80/#/PointingToDeclaration/-turing -campsite/com.turing.campsite/-pink80.html
+$dokka.location:com.turing.campsite//Purple40/#/PointingToDeclaration/-turing -campsite/com.turing.campsite/-purple40.html
+$dokka.location:com.turing.campsite//Purple80/#/PointingToDeclaration/-turing -campsite/com.turing.campsite/-purple80.html
+$dokka.location:com.turing.campsite//PurpleGrey40/#/PointingToDeclaration/-turing -campsite/com.turing.campsite/-purple-grey40.html
+$dokka.location:com.turing.campsite//PurpleGrey80/#/PointingToDeclaration/-turing -campsite/com.turing.campsite/-purple-grey80.html
+$dokka.location:com.turing.campsite/MainActivity///PointingToDeclaration/-turing -campsite/com.turing.campsite/-main-activity/index.html
+$dokka.location:com.turing.campsite/MainActivity/MainActivity/#/PointingToDeclaration/-turing -campsite/com.turing.campsite/-main-activity/-main-activity.html
+com.turing.campsite
+com.turing.campsite.ui.theme

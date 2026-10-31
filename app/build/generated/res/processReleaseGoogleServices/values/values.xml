@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gcm_defaultSenderId" translatable="false">1092635390681</string>
+    <string name="google_api_key" translatable="false">AIzaSyDLjdKT-8IBaONsJDZY_BOkEIFMEps-_gU</string>
+    <string name="google_app_id" translatable="false">1:1092635390681:android:62480ed900b06f26f084c8</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDLjdKT-8IBaONsJDZY_BOkEIFMEps-_gU</string>
+    <string name="google_storage_bucket" translatable="false">campsite-app-turing.firebasestorage.app</string>
+    <string name="project_id" translatable="false">campsite-app-turing</string>
+</resources>
