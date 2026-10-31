@@ -1,25 +1,8 @@
 {
     "logs": [
         {
-            "outputFile": "com.turing.campsite.app-mergeDebugResources-49:/values-en-rIN/values-en-rIN.xml",
+            "outputFile": "com.turing.campsite.app-mergeDebugResources-51:/values-en-rIN/values-en-rIN.xml",
             "map": [
-                {
-                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\9f2e067764eca4d3030305b031014dc6\\transformed\\ui\\res\\values-en-rIN\\values-en-rIN.xml",
-                    "from": {
-                        "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21",
-                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
-                        "startOffsets": "107,203,295,377,471,570,657,739,828,917,1001,1079,1161,1234,1318,1394,1466,1536,1613,1679",
-                        "endColumns": "95,91,81,93,98,86,81,88,88,83,77,81,72,83,75,71,69,76,65,124",
-                        "endOffsets": "198,290,372,466,565,652,734,823,912,996,1074,1156,1229,1313,1389,1461,1531,1608,1674,1799"
-                    },
-                    "to": {
-                        "startLines": "3,11,12,13,14,15,16,17,84,85,86,87,88,89,90,91,92,94,95,96",
-                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
-                        "startOffsets": "211,1026,1118,1200,1294,1393,1480,1562,8731,8820,8904,8982,9064,9137,9221,9297,9369,9540,9617,9683",
-                        "endColumns": "95,91,81,93,98,86,81,88,88,83,77,81,72,83,75,71,69,76,65,124",
-                        "endOffsets": "302,1113,1195,1289,1388,1475,1557,1646,8815,8899,8977,9059,9132,9216,9292,9364,9434,9612,9678,9803"
-                    }
-                },
                 {
                     "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\15b2c6e4419f11b02d74a983016f8f06\\transformed\\core-1.19.0\\res\\values-en-rIN\\values-en-rIN.xml",
                     "from": {
@@ -38,7 +21,24 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\03ef408870137008605f86964817cf0f\\transformed\\foundation\\res\\values-en-rIN\\values-en-rIN.xml",
+                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\e68cdef6932ed312aaf2f5c2cacebbe9\\transformed\\ui\\res\\values-en-rIN\\values-en-rIN.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "107,203,295,377,471,570,657,739,828,917,1001,1079,1161,1234,1318,1394,1466,1536,1613,1679",
+                        "endColumns": "95,91,81,93,98,86,81,88,88,83,77,81,72,83,75,71,69,76,65,124",
+                        "endOffsets": "198,290,372,466,565,652,734,823,912,996,1074,1156,1229,1313,1389,1461,1531,1608,1674,1799"
+                    },
+                    "to": {
+                        "startLines": "3,11,12,13,14,15,16,17,84,85,86,87,88,89,90,91,92,94,95,96",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "211,1026,1118,1200,1294,1393,1480,1562,8731,8820,8904,8982,9064,9137,9221,9297,9369,9540,9617,9683",
+                        "endColumns": "95,91,81,93,98,86,81,88,88,83,77,81,72,83,75,71,69,76,65,124",
+                        "endOffsets": "302,1113,1195,1289,1388,1475,1557,1646,8815,8899,8977,9059,9132,9216,9292,9364,9434,9612,9678,9803"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\isaac\\.gradle\\caches\\9.4.1\\transforms\\0d93de424684ce7ac6be561b8e09bba6\\transformed\\foundation\\res\\values-en-rIN\\values-en-rIN.xml",
                     "from": {
                         "startLines": "2,3,4",
                         "startColumns": "4,4,4",

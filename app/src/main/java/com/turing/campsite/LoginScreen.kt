@@ -17,7 +17,13 @@ fun LoginScreen(navController: NavController){
     ){
         Text(text= "login screen")
         Row(){
-            Button(onClick={navController.popBackStack()}) { Text("text")}
+            Button(
+                onClick={
+                    navController.navigate("AdminHome")
+                }
+            ) {
+                Text("admin screen")
+            }
 
         }
     }
