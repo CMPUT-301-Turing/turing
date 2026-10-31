@@ -1,4 +1,4 @@
-package com.turing.campsite
+package com.turing.campsite.ui.home
 
 import androidx.navigation.NavController
 
