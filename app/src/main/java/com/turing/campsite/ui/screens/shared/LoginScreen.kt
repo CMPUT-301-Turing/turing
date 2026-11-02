@@ -1,0 +1,41 @@
+package com.turing.campsite.ui.screens.shared
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.compose.runtime.Composable
+import com.turing.campsite.navigation.Routes
+
+@Composable
+fun LoginScreen(navController: NavController){
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp)
+    ){
+        Text(text= "login screen")
+        Row(){
+            Button(
+                onClick={
+                    navController.navigate("AdminHome")
+                }
+            ) {
+                Text("admin screen")
+            }
+
+        }
+
+        Button(
+            onClick = {
+                navController.navigate(Routes.ENTRANT_HOME)
+            }
+        ) {
+            Text("Entrant Screen")
+        }
+    }
+
+}

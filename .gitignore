@@ -1,13 +1,30 @@
-# Gradle
+# Gradle build outputs and caches
 .gradle/
-/captures
-.externalNativeBuild
-.cxx
+**/build/
+.kotlin/
 
 # Android Studio / IntelliJ
+.idea/
 *.iml
-/.idea/
-/local.properties
+local.properties
 
-# OS
+# Android generated files
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+
+# Signing files (do not commit private keys)
+*.jks
+*.keystore
+
+# Operating system files
 .DS_Store
+Thumbs.db
+
+# Temporary files
+*.log
+*.tmp
+*.swp
+*~
