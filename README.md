@@ -3,6 +3,7 @@
 **CMPUT 301 | University of Alberta | Fall 2026**
 
 
+
 ## Project Structure
 
 ```text
@@ -10,9 +11,24 @@ turing/
 ├── app/
 │   ├── src/
 │   │   ├── main/
-│   │   │   ├── java/com/example/turing/
+│   │   │   ├── java/com/turing/campsite/
 │   │   │   │   ├── MainActivity.kt
+│   │   │   │   ├── TuringCampsiteApp.kt
+│   │   │   │   ├── navigation/
+│   │   │   │   │   ├── Routes.kt
+│   │   │   │   │   ├── AppScaffold.kt
+│   │   │   │   │   ├── EntrantNavigation.kt
 │   │   │   │   └── ui/
+│   │   │   │       ├── components/
+│   │   │   │       ├── screens/
+│   │   │   │       │   ├── entrant/
+│   │   │   │       │   │   ├── EntrantHomeScreen.kt
+│   │   │   │       │   │   ├── EntrantProfileScreen.kt
+│   │   │   │       │   │   └── ...
+│   │   │   │       │   ├── owner/
+│   │   │   │       │   ├── admin/
+│   │   │   │       │   └── shared/
+│   │   │   │       └── theme/
 │   │   │   ├── res/
 │   │   │   └── AndroidManifest.xml
 │   │   ├── test/
@@ -31,6 +47,17 @@ turing/
 ```
 
 *Simplified structure showing the main files and directories.*
+
+### Application Organization
+
+- **MainActivity.kt:** Android application entry point.
+- **TuringCampsiteApp.kt:** Initializes the shared navigation controller and registers navigation graphs.
+- **navigation/:** Defines routes, role-specific navigation, and shared application scaffolding.
+- **ui/screens/:** Contains individual screens organized by entrant, owner, admin, and shared functionality.
+- **ui/components/:** Contains reusable UI elements, including navigation bars and campsite, reservation, lottery, and notification cards.
+- **ui/theme/:** Contains application styling and theme definitions.
+- **doc/:** Contains project documentation and design materials.
+```
 
 
 Open the project in **Android Studio**, sync Gradle, and run
