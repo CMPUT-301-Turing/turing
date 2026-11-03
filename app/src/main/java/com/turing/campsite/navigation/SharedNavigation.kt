@@ -1,9 +1,9 @@
-
 package com.turing.campsite.navigation
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 import com.turing.campsite.ui.screens.shared.LoginScreen
 import com.turing.campsite.ui.screens.shared.RegisterScreen
@@ -11,6 +11,7 @@ import com.turing.campsite.ui.screens.shared.LogOutScreen
 import com.turing.campsite.ui.screens.shared.UserProfileScreen
 import com.turing.campsite.ui.screens.shared.UserEditProfileScreen
 import com.turing.campsite.ui.screens.shared.UserView
+import com.turing.campsite.auth.LoginViewModel
 
 /**
  * Registers shared navigation destinations.
@@ -23,7 +24,15 @@ fun NavGraphBuilder.sharedGraph(
 ) {
     // Authentication
     composable(Routes.LOGIN) {
-        LoginScreen(navController)
+        val loginViewModel: LoginViewModel = viewModel()
+
+        LoginScreen(
+            navController = navController,
+            loginState = loginViewModel.loginState,
+            onRetry = {
+                loginViewModel.identifyDevice()
+            }
+        )
     }
 
     composable(Routes.REGISTER) {
