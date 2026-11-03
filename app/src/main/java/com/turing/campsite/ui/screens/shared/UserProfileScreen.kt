@@ -1,13 +1,14 @@
-
-package com.turing.campsite.ui.screens.entrant
+package com.turing.campsite.ui.screens.shared
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Article
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.DeleteOutline
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,8 +27,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 import com.turing.campsite.PrimaryColor
 
 private val PageBackground = Color(0xFFF6F4ED)
@@ -37,15 +41,48 @@ private val DeleteColor = Color(0xFFB45345)
 private val DeleteBorder = Color(0xFFE8CFC8)
 
 /**
- * Entrant profile screen.
+ * The currently selected view for a user.
+ *
+ * This controls the UI presentation, not the
+ * user's authentication or account permissions.
+ */
+enum class UserView {
+    ENTRANT,
+    OWNER
+}
+
+/**
+ * Shared profile screen for entrants and campsite owners.
  *
  * Displays temporary profile information and settings.
- * Shared bottom navigation is managed by AppScaffold.
+ *
+ * The current view determines which role the user
+ * can switch to and whether a back button is shown.
+ *
+ * Navigation is handled through callbacks.
  */
 @Composable
-fun EntrantProfileScreen(
-    onEditProfileClick: () -> Unit
+fun UserProfileScreen(
+    currentView: UserView,
+    onEditProfileClick: () -> Unit,
+    onSwitchViewClick: () -> Unit,
+    onBackClick: () -> Unit
 ) {
+    val switchTitle: String
+    val switchDescription: String
+
+    when (currentView) {
+        UserView.ENTRANT -> {
+            switchTitle = "Switch to campsite owner view"
+            switchDescription = "Manage your campsites in the owner view."
+        }
+
+        UserView.OWNER -> {
+            switchTitle = "Switch to entrant view"
+            switchDescription = "Browse and reserve campsites in the entrant view."
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -55,12 +92,34 @@ fun EntrantProfileScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Header
-        Text(
-            text = "Your profile",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = PrimaryColor
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Owner view has no bottom navigation bar,
+            // so provide a back button.
+            if (currentView == UserView.OWNER) {
+                IconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back to owner home",
+                        modifier = Modifier.size(22.dp),
+                        tint = PrimaryColor
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+
+            Text(
+                text = "Your profile",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = PrimaryColor
+            )
+        }
 
         Text(
             text = "A little space for you.",
@@ -116,7 +175,7 @@ fun EntrantProfileScreen(
                     )
                 }
 
-                // Edit profile button (visual placeholder)
+                // Edit profile button
                 Surface(
                     onClick = onEditProfileClick,
                     modifier = Modifier
@@ -161,10 +220,12 @@ fun EntrantProfileScreen(
             icon = Icons.Outlined.NotificationsNone
         )
 
+        // Switch between entrant and owner views
         ProfileOption(
-            title = "Switch to campsite owner view",
-            description = "Manage your campsites in the owner view.",
-            icon = Icons.Outlined.SwapHoriz
+            title = switchTitle,
+            description = switchDescription,
+            icon = Icons.Outlined.SwapHoriz,
+            onClick = onSwitchViewClick
         )
 
         ProfileOption(
@@ -216,17 +277,25 @@ private fun ProfileField(
 /**
  * Displays a profile settings option.
  *
- * Currently visual only; callbacks can be added later.
+ * The onClick callback is optional so that features
+ * without implementations can remain visual placeholders.
  */
 @Composable
 private fun ProfileOption(
     title: String,
     description: String,
     icon: ImageVector,
-    destructive: Boolean = false
+    destructive: Boolean = false,
+    onClick: (() -> Unit)? = null
 ) {
     val contentColor = if (destructive) DeleteColor else PrimaryColor
     val borderColor = if (destructive) DeleteBorder else CardBorder
+
+    val clickModifier = if (onClick != null) {
+        Modifier.clickable(onClick = onClick)
+    } else {
+        Modifier
+    }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(5.dp)
@@ -234,7 +303,8 @@ private fun ProfileOption(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(42.dp),
+                .height(42.dp)
+                .then(clickModifier),
             shape = RoundedCornerShape(9.dp),
             color = if (destructive) PageBackground else CardBackground,
             border = BorderStroke(1.dp, borderColor)
@@ -282,9 +352,9 @@ private fun ProfileOption(
             fontSize = 11.sp,
             color = SecondaryText,
             textAlign = if (destructive) {
-                androidx.compose.ui.text.style.TextAlign.Center
+                TextAlign.Center
             } else {
-                androidx.compose.ui.text.style.TextAlign.Start
+                TextAlign.Start
             }
         )
     }

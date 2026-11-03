@@ -5,13 +5,13 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 
 import com.turing.campsite.ui.screens.entrant.EntrantHomeScreen
-import com.turing.campsite.ui.screens.entrant.EntrantProfileScreen
-import com.turing.campsite.ui.screens.entrant.EntrantEditProfileScreen
 import com.turing.campsite.ui.screens.entrant.EntrantCampsiteListScreen
 import com.turing.campsite.ui.screens.entrant.EntrantSelectCampsiteScreen
 import com.turing.campsite.ui.screens.entrant.EntrantQRCodeScreen
 import com.turing.campsite.ui.screens.entrant.EntrantNotificationScreen
 import com.turing.campsite.ui.screens.entrant.EntrantAcceptReservationScreen
+import android.net.Uri
+import com.turing.campsite.ui.screens.entrant.EntrantCampsiteDetailsScreen
 
 /**
  * Registers all entrant navigation destinations.
@@ -20,21 +20,29 @@ fun NavGraphBuilder.entrantGraph(
     navController: NavHostController
 ) {
     composable(Routes.ENTRANT_HOME) {
-        EntrantHomeScreen()
-    }
-
-    composable(Routes.ENTRANT_PROFILE) {
-        EntrantProfileScreen(
-            onEditProfileClick = {
-                navController.navigate(Routes.ENTRANT_EDIT_PROFILE)
+        EntrantHomeScreen(
+            onCampsiteClick = { campsiteName ->
+                navController.navigate(
+                    "${Routes.ENTRANT_CAMPSITE_DETAILS}/${Uri.encode(campsiteName)}"
+                )
             }
         )
     }
 
-    composable(Routes.ENTRANT_EDIT_PROFILE) {
-        EntrantEditProfileScreen(
+    composable(
+        "${Routes.ENTRANT_CAMPSITE_DETAILS}/{campsiteName}"
+    ) { backStackEntry ->
+
+        val campsiteName =
+            backStackEntry.arguments?.getString("campsiteName").orEmpty()
+
+        EntrantCampsiteDetailsScreen(
+            campsiteName = campsiteName,
             onBackClick = {
                 navController.popBackStack()
+            },
+            onEnterLotteryClick = {
+                // TODO: Connect to lottery entry flow.
             }
         )
     }

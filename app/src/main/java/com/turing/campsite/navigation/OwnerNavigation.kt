@@ -23,46 +23,128 @@ fun NavGraphBuilder.ownerGraph(
     navController: NavHostController
 ) {
     composable(Routes.OWNER_HOME) {
-        OwnerHomeScreen(navController)
+        OwnerHomeScreen(
+            onNotificationsClick = {
+                navController.navigate(Routes.OWNER_NOTIFICATION)
+            },
+            onProfileClick = {
+                navController.navigate(Routes.OWNER_PROFILE)
+            },
+            onRegisterCampsiteClick = {
+                navController.navigate(Routes.OWNER_REGISTER_NEW_CAMPSITE)
+            },
+            onCreateLotteryClick = {
+                navController.navigate(Routes.OWNER_CREATE_LOTTERY)
+            },
+            onCampsiteClick = {
+                navController.navigate(Routes.OWNER_CAMPSITE_FULL_DETAIL)
+            }
+        )
     }
 
     composable(Routes.OWNER_REGISTER_NEW_CAMPSITE) {
-        OwnerRegisterNewCampsiteScreen(navController)
-    }
-
-    composable(Routes.OWNER_CAMPSITE_FULL_DETAIL) {
-        OwnerCampsiteFullDetailScreen(navController)
-    }
-
-    composable(Routes.OWNER_CAMPSITE_HISTORY) {
-        OwnerCampsiteHistoryScreen(navController)
-    }
-
-    composable(Routes.OWNER_MESSAGE) {
-        OwnerMessageScreen(navController)
-    }
-
-    composable(Routes.OWNER_LOTTERY_DETAILS) {
-        OwnerLotteryDetailsScreen(navController)
-    }
-
-    composable(Routes.OWNER_EDIT_LOTTERY) {
-        OwnerEditLotteryScreen(navController)
-    }
-
-    composable(Routes.OWNER_CREATE_LOTTERY) {
-        OwnerCreateLotteryScreen(navController)
-    }
-
-    composable(Routes.OWNER_CAMPSITE_QR_CODE) {
-        OwnerCampsiteQRCodeScreen(navController)
+        OwnerRegisterNewCampsiteScreen(
+            onBackClick = {
+                navController.popBackStack()
+            }
+        )
     }
 
     composable(Routes.OWNER_EDIT_CAMPSITE) {
-        OwnerEditCampsiteScreen(navController)
+        OwnerEditCampsiteScreen(
+            onBackClick = {
+                navController.popBackStack()
+            }
+        )
+    }
+
+    composable(Routes.OWNER_CAMPSITE_FULL_DETAIL) {
+        OwnerCampsiteFullDetailScreen(
+            onBackClick = {
+                navController.popBackStack()
+            },
+            onEditClick = {
+                navController.navigate(Routes.OWNER_EDIT_CAMPSITE)
+            },
+            onQRCodeClick = {
+                navController.navigate(Routes.OWNER_CAMPSITE_QR_CODE)
+            },
+            onEditLotteryClick = {
+                navController.navigate(Routes.OWNER_EDIT_LOTTERY)
+            },
+            onLotteryClick = {
+                navController.navigate(Routes.OWNER_LOTTERY_DETAILS)
+            },
+            onReservationsClick = {
+                navController.navigate(Routes.OWNER_CAMPSITE_HISTORY)
+            }
+        )
+    }
+
+    composable(Routes.OWNER_CAMPSITE_HISTORY) {
+        OwnerCampsiteHistoryScreen(
+            onBackClick = {
+                navController.popBackStack()
+            },
+            onMessageClick = { reservationId ->
+                navController.navigate(Routes.OWNER_MESSAGE)
+            },
+            onRejectClick = { reservationId ->
+                // TODO: Implement reservation rejection and refund.
+            }
+        )
+    }
+
+    composable(Routes.OWNER_MESSAGE) {
+        OwnerMessageScreen(
+            onBackClick = {
+                navController.popBackStack()
+            }
+        )
+    }
+
+    composable(Routes.OWNER_LOTTERY_DETAILS) {
+        OwnerLotteryDetailsScreen(
+            onBackClick = {
+                navController.popBackStack()
+            },
+            onSendNotificationClick = {
+                navController.navigate(Routes.OWNER_NOTIFICATION)
+            }
+        )
+    }
+
+    // Create Lottery
+    composable(Routes.OWNER_CREATE_LOTTERY) {
+        OwnerCreateLotteryScreen(
+            onBackClick = {
+                navController.popBackStack()
+            }
+        )
+    }
+
+    // Edit Lottery
+    composable(Routes.OWNER_EDIT_LOTTERY) {
+        OwnerEditLotteryScreen(
+            onBackClick = {
+                navController.popBackStack()
+            }
+        )
+    }
+
+    composable(Routes.OWNER_CAMPSITE_QR_CODE) {
+        OwnerCampsiteQRCodeScreen(
+            onBackClick = {
+                navController.popBackStack()
+            }
+        )
     }
 
     composable(Routes.OWNER_NOTIFICATION) {
-        OwnerNotificationScreen(navController)
+        OwnerNotificationScreen(
+            onBackClick = {
+                navController.popBackStack()
+            }
+        )
     }
 }

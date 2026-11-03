@@ -36,6 +36,14 @@ fun LoginScreen(navController: NavController){
         ) {
             Text("Entrant Screen")
         }
+
+        Button(
+            onClick = {
+                navController.navigate(Routes.OWNER_HOME)
+            }
+        ) {
+            Text("Owner Screen")
+        }
     }
 
 }

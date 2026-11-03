@@ -1,5 +1,4 @@
-
-package com.turing.campsite.ui.screens.entrant
+package com.turing.campsite.ui.screens.shared
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -36,7 +35,7 @@ private val SecondaryText = Color(0xFF7A8079)
  * is implemented.
  */
 @Composable
-fun EntrantEditProfileScreen(
+fun UserEditProfileScreen(
     onBackClick: () -> Unit
 ) {
     var username by rememberSaveable {
