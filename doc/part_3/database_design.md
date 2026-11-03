@@ -13,8 +13,11 @@ first, then the code.
    supports queries on several fields, and is what the course examples use.
 2. **One `users` collection with a `roles` field** instead of separate entrant,
    owner and admin collections. `User` is the base class in the CRC design, and
-   US 03.11.01 says an admin can also be an owner or entrant, so a user needs
-   more than one role.
+   a user needs more than one role: in the UI and the storyboard a regular
+   user is both an entrant and an owner, and switches between the entrant
+   view and the owner view. A new user therefore gets `roles = [ENTRANT, OWNER]`.
+   `ADMIN` is added on top for admin accounts, which US 03.11.01 says can still
+   act as an owner or entrant.
 3. **Device-based identity through Firebase Anonymous Auth** (US 01.09.01).
    On first launch the app signs in anonymously and gets a `uid`. That `uid` is
    the document id in `users`. No username or password anywhere.
