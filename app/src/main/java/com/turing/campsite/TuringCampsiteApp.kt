@@ -4,16 +4,31 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 @Composable
 fun TuringCampsiteApp() {
     val navController = rememberNavController()
 
+    var loginState: LoginUiState by remember {
+        mutableStateOf(
+            LoginUiState.Error("Unable to identify device")
+        )
+    }
+
     NavHost(
         navController = navController,
         startDestination = "Login"
     ) {
-        composable("Login") {LoginScreen(navController)}
+        composable("Login") {LoginScreen(
+            navController = navController,
+            loginState = loginState,
+            onRetry = {
+                loginState = LoginUiState.Loading
+            })}
         composable("Register") {RegisterScreen(navController)}
         composable("LogOut") {LogOutScreen(navController)}
 
