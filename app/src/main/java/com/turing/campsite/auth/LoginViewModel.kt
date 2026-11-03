@@ -11,7 +11,7 @@ class LoginViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
-    private val deviceAuthManager =
+    private var deviceIdProvider: DeviceIdProvider =
         DeviceAuthManager(application.applicationContext)
 
     var loginState: LoginUiState by mutableStateOf(
@@ -27,7 +27,7 @@ class LoginViewModel(
         loginState = LoginUiState.Loading
 
         loginState = try {
-            val deviceId = deviceAuthManager.getDeviceId()
+            val deviceId = deviceIdProvider.getDeviceId()
 
             if (deviceId.isBlank()) {
                 LoginUiState.Error("Device identifier is empty")
@@ -39,5 +39,11 @@ class LoginViewModel(
                 "Unable to identify device"
             )
         }
+    }
+
+    internal fun setDeviceIdProviderForTesting(
+        provider: DeviceIdProvider
+    ) {
+        deviceIdProvider = provider
     }
 }

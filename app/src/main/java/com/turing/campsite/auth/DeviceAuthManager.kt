@@ -5,8 +5,8 @@ import android.provider.Settings
 
 class DeviceAuthManager(
     private val context: Context
-) {
-    fun getDeviceId(): String {
+) : DeviceIdProvider {
+    override fun getDeviceId(): String {
         val deviceId = Settings.Secure.getString(
             context.contentResolver,
             Settings.Secure.ANDROID_ID
