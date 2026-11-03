@@ -1,4 +1,3 @@
-
 package com.turing.campsite.ui.components
 
 import androidx.compose.foundation.BorderStroke
@@ -15,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Terrain
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.clickable
 
 import com.turing.campsite.PrimaryColor
 
@@ -34,9 +35,13 @@ private val CardBackground = Color(0xFFFCFBF7)
 private val CardBorder = Color(0xFFDFE2D8)
 private val ChipBackground = Color(0xFFE8EFE3)
 private val SecondaryText = Color(0xFF7A8079)
+private val DeleteColor = Color(0xFFB45345)
 
 /**
  * Temporary campsite data used to populate campsite cards.
+ *
+ * The default status preserves existing entrant and admin
+ * campsite cards that do not explicitly provide a status.
  */
 data class CampsitePreview(
     val name: String,
@@ -45,16 +50,38 @@ data class CampsitePreview(
     val peoplePerPitch: String,
     val maxPeople: String,
     val rating: String,
-    val imageColor: Color
+    val imageColor: Color,
+    val statusLabel: String = "Active now"
 )
 
 /**
  * Displays a preview of one campsite.
+ *
+ * An optional delete icon can be displayed for administrators.
+ * Deletion functionality will be added later.
  */
 @Composable
-fun CampsiteCard(campsite: CampsitePreview) {
+fun CampsiteCard(
+    campsite: CampsitePreview,
+    showDeleteButton: Boolean = false,
+    onClick: (() -> Unit)? = null
+) {
+    val statusColor = if (campsite.statusLabel == "Inactive") {
+        SecondaryText
+    } else {
+        PrimaryColor
+    }
+
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable(onClick = onClick)
+                } else {
+                    Modifier
+                }
+            ),
         shape = RoundedCornerShape(10.dp),
         color = CardBackground,
         border = BorderStroke(1.dp, CardBorder)
@@ -87,22 +114,38 @@ fun CampsiteCard(campsite: CampsitePreview) {
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
-                // Active status
+                // Campsite status and optional admin delete icon
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .background(PrimaryColor, CircleShape)
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .background(statusColor, CircleShape)
+                        )
 
-                    Text(
-                        text = "Active now",
-                        fontSize = 10.sp,
-                        color = PrimaryColor
-                    )
+                        Text(
+                            text = campsite.statusLabel,
+                            fontSize = 10.sp,
+                            color = statusColor
+                        )
+                    }
+
+                    // Admin delete icon (visual placeholder)
+                    if (showDeleteButton) {
+                        Icon(
+                            imageVector = Icons.Outlined.DeleteOutline,
+                            contentDescription = "Delete campsite",
+                            modifier = Modifier.size(20.dp),
+                            tint = DeleteColor
+                        )
+                    }
                 }
 
                 Text(

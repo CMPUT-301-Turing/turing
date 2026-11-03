@@ -67,7 +67,9 @@ private val sampleCampsites = listOf(
  * Shared bottom navigation is managed by AppScaffold.
  */
 @Composable
-fun EntrantHomeScreen() {
+fun EntrantHomeScreen(
+    onCampsiteClick: (String) -> Unit
+) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -189,8 +191,16 @@ fun EntrantHomeScreen() {
         }
 
         // Campsite cards
-        items(sampleCampsites) { campsite ->
-            CampsiteCard(campsite)
+        items(
+            items = sampleCampsites,
+            key = { it.name }
+        ) { campsite ->
+            CampsiteCard(
+                campsite = campsite,
+                onClick = {
+                    onCampsiteClick(campsite.name)
+                }
+            )
         }
     }
 }
