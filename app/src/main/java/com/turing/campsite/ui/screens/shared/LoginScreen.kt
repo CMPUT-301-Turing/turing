@@ -1,4 +1,3 @@
-
 package com.turing.campsite.ui.screens.shared
 
 import androidx.compose.foundation.layout.Arrangement
@@ -11,10 +10,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -33,7 +28,7 @@ sealed interface LoginUiState {
 @Composable
 fun LoginScreen(
     navController: NavController,
-    loginState: LoginUiState = LoginUiState.Loading,
+    loginState: LoginUiState,
     onRetry: () -> Unit = {}
 ) {
     Column(
