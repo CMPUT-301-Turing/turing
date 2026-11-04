@@ -11,8 +11,10 @@ composeBom = "2026.02.01"
 dokka = "2.2.0"
 navigationRuntimeKtx = "2.10.2"
 navigationCompose = "2.10.2"
+coroutinesPlayServices = "1.11.0"
 
 [libraries]
+kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutinesPlayServices" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

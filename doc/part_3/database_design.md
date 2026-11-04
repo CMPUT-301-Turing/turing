@@ -244,8 +244,16 @@ Rules for this layer:
   `ACTIVE`. The lower-case values in the tables above are shorthand.
 - Repository functions are `suspend` and return the model, a list, or throw.
   Screens call them from a `ViewModel`, never from a composable directly.
-- Every repository takes `FirebaseFirestore` in its constructor so tests can
-  pass a fake.
+- Each repository gets its collection from `FirebaseFirestore.getInstance()`.
+  Model classes contain no Firebase calls, so they are the part covered by
+  unit tests.
+- Every class and public function has a KDoc comment in the style from Lab 6:
+  a one-line summary, a short paragraph, then `@property` tags on classes and
+  `@param` / `@return` tags on functions. `./gradlew dokkaGenerateHtml` builds
+  the HTML docs from these comments.
+- Unit tests live in `app/src/test` and follow the Lab 6 layout: a `@Before
+  setUp()` that builds a fresh object, and one test per behaviour named
+  `function_case_result`, for example `isRegistrationOpen_afterEnd_false`.
 
 ## 5. Security rules (first version)
 
