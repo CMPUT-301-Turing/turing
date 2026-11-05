@@ -5,18 +5,28 @@ service cloud.firestore {
     function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
     function isAdmin() {
       return signedIn()
-        && 'admin' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles;
-    }
 
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+
+        // keep uppercase to match User.kt
+        && 'ADMIN' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles;
+    }
     match /users/{uid} {
       allow read: if signedIn();
-      allow create, update: if isSelf(uid);
+      allow create: if isSelf(uid);
+
+
+      allow update: if (request.resource.data.roles == resource.data.roles && isSelf(uid)) || isAdmin();
+
       allow delete: if isSelf(uid) || isAdmin();
     }
 
     match /campsites/{id} {
       allow read: if signedIn();
-      allow create: if signedIn();
+
+
+      allow create: if request.resource.data.ownerId == request.auth.uid && signedIn();
+
       allow update, delete: if signedIn()
         && (resource.data.ownerId == request.auth.uid || isAdmin());
       match /reviews/{reviewId} {
@@ -27,7 +37,10 @@ service cloud.firestore {
 
     match /lotteries/{id} {
       allow read: if signedIn();
-      allow create: if signedIn();
+
+
+      allow create: if request.resource.data.ownerId == request.auth.uid && signedIn();
+
       allow update, delete: if signedIn()
         && (resource.data.ownerId == request.auth.uid || isAdmin());
       match /entries/{entrantId} {
@@ -45,8 +58,11 @@ service cloud.firestore {
     }
 
     match /notifications/{id} {
-      allow read: if signedIn() && resource.data.toUserId == request.auth.uid || isAdmin();
-      allow create: if signedIn();
+      allow read: if (signedIn() && resource.data.toUserId == request.auth.uid) || isAdmin();
+
+
+      allow create: if request.resource.data.fromUserId == request.auth.uid && signedIn();
+
       allow update: if signedIn() && resource.data.toUserId == request.auth.uid;
     }
 
@@ -55,7 +71,9 @@ service cloud.firestore {
         && (resource.data.fromUserId == request.auth.uid
             || resource.data.toUserId == request.auth.uid
             || isAdmin());
-      allow create: if signedIn();
+
+
+      allow create: if request.resource.data.fromUserId == request.auth.uid && signedIn();
     }
   }
 }
