@@ -94,15 +94,18 @@ private val sampleCampsites = listOf(
 /**
  * Admin browse campsites screen.
  *
- * Displays a static list of campsites using the shared
+ * Displays a list of campsites using the shared
  * CampsiteCard component with an admin delete button.
+ * The campsites to show are passed in. Sample campsites
+ * are used when none are given.
  *
  * Search and deletion are visual placeholders.
  * Back navigation is handled through a callback.
  */
 @Composable
 fun AdminBrowseCampsiteScreen(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    campsites: List<Campsite> = sampleCampsites
 ) {
     Column(
         modifier = Modifier
@@ -184,7 +187,7 @@ fun AdminBrowseCampsiteScreen(
             )
 
             Text(
-                text = "${sampleCampsites.size} campsites",
+                text = "${campsites.size} campsites",
                 fontSize = 11.sp,
                 color = SecondaryText
             )
