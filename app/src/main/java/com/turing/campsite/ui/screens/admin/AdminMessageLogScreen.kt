@@ -20,7 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -39,6 +38,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.turing.campsite.ui.components.matchesSearch
+import com.turing.campsite.ui.components.SearchBar
 import com.turing.campsite.PrimaryColor
 import com.turing.campsite.ui.components.FilterChip
 import com.turing.campsite.data.model.Message
@@ -125,7 +127,12 @@ fun AdminMessageLogScreen(
         mutableStateOf(MessageLogFilter.ALL)
     }
 
-    val visibleLogs = sampleMessageLogs
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+
+    // Messages whose sender, receiver or text contains what was typed.
+    val visibleLogs = sampleMessageLogs.filter {
+        matchesSearch(searchQuery, it.fromUserId, it.toUserId, it.body)
+    }
 
     Column(
         modifier = Modifier
@@ -182,34 +189,12 @@ fun AdminMessageLogScreen(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Search bar (visual placeholder)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(10.dp),
-            color = CardBackground,
-            border = BorderStroke(1.dp, CardBorder)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Search,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = PrimaryColor
-                )
-
-                Text(
-                    text = "Search sender or receiver",
-                    fontSize = 12.sp,
-                    color = SecondaryText
-                )
-            }
-        }
+        // Search bar
+        SearchBar(
+            query = searchQuery,
+            onQueryChange = { searchQuery = it },
+            placeholder = "Search sender or receiver"
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 

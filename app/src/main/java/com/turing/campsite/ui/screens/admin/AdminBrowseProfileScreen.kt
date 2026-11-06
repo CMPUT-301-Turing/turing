@@ -20,7 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.DeleteOutline
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -33,6 +32,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import com.turing.campsite.ui.components.matchesSearch
+import com.turing.campsite.ui.components.SearchBar
 import com.turing.campsite.PrimaryColor
 import com.turing.campsite.data.model.User
 import com.turing.campsite.data.model.UserRole
@@ -93,6 +98,13 @@ fun AdminBrowseProfilesScreen(
     onBackClick: () -> Unit,
     profiles: List<User> = sampleProfiles
 ) {
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+
+    // Profiles whose name or email contains what was typed.
+    val shownProfiles = profiles.filter {
+        matchesSearch(searchQuery, it.name, it.email)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -128,34 +140,12 @@ fun AdminBrowseProfilesScreen(
 
         Spacer(modifier = Modifier.height(26.dp))
 
-        // Search bar (visual placeholder)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(10.dp),
-            color = CardBackground,
-            border = BorderStroke(1.dp, CardBorder)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Search,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = PrimaryColor
-                )
-
-                Text(
-                    text = "Search by name or email",
-                    fontSize = 12.sp,
-                    color = SecondaryText
-                )
-            }
-        }
+        // Search bar
+        SearchBar(
+            query = searchQuery,
+            onQueryChange = { searchQuery = it },
+            placeholder = "Search by name or email"
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -173,7 +163,7 @@ fun AdminBrowseProfilesScreen(
             )
 
             Text(
-                text = "${profiles.size} profiles",
+                text = "${shownProfiles.size} profiles",
                 fontSize = 11.sp,
                 color = SecondaryText
             )
@@ -187,7 +177,7 @@ fun AdminBrowseProfilesScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(
-                items = profiles,
+                items = shownProfiles,
                 key = { it.id }
             ) { profile ->
                 AdminProfileCard(profile)

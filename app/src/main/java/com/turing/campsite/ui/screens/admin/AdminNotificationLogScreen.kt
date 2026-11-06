@@ -28,7 +28,6 @@ import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.EventAvailable
 import androidx.compose.material.icons.outlined.EventBusy
 import androidx.compose.material.icons.outlined.NotificationsNone
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -46,6 +45,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.turing.campsite.ui.components.matchesSearch
+import com.turing.campsite.ui.components.SearchBar
 import com.turing.campsite.PrimaryColor
 import com.turing.campsite.ui.components.FilterChip
 import com.turing.campsite.data.model.Notification
@@ -139,7 +141,7 @@ private fun formatDate(timestamp: Timestamp?): String {
  *
  * Displays a read-only notification audit log.
  * Category filtering is implemented with sample data.
- * Search and database integration are placeholders.
+ * Database integration is a placeholder.
  */
 @Composable
 fun AdminNotificationLogScreen(
@@ -149,7 +151,12 @@ fun AdminNotificationLogScreen(
         mutableStateOf(NotificationLogFilter.ALL)
     }
 
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+
+    // Notifications that pass the filter and whose receiver, title or text contains what was typed.
     val visibleLogs = sampleNotificationLogs.filter { notification ->
+        matchesSearch(searchQuery, notification.toUserId, notification.title, notification.body)
+    }.filter { notification ->
         when (selectedFilter) {
             NotificationLogFilter.ALL -> true
 
@@ -222,34 +229,12 @@ fun AdminNotificationLogScreen(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Search bar (visual placeholder)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(10.dp),
-            color = CardBackground,
-            border = BorderStroke(1.dp, CardBorder)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Search,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = PrimaryColor
-                )
-
-                Text(
-                    text = "Search by name or email",
-                    fontSize = 12.sp,
-                    color = SecondaryText
-                )
-            }
-        }
+        // Search bar
+        SearchBar(
+            query = searchQuery,
+            onQueryChange = { searchQuery = it },
+            placeholder = "Search by name or email"
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 

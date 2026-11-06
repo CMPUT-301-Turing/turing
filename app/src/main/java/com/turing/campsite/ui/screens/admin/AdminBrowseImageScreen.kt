@@ -16,7 +16,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.PersonOutline
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Terrain
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,6 +35,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.turing.campsite.ui.components.matchesSearch
+import com.turing.campsite.ui.components.SearchBar
 import com.turing.campsite.PrimaryColor
 import com.turing.campsite.ui.components.FilterChip
 
@@ -139,7 +141,12 @@ fun AdminBrowseImageScreen(
         mutableStateOf(setOf<String>())
     }
 
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+
+    // Images that pass the filter and whose uploader or type contains what was typed.
     val visibleImages = sampleImages.filter { image ->
+        matchesSearch(searchQuery, image.uploader, image.type.name)
+    }.filter { image ->
         when (selectedFilter) {
             ImageFilter.ALL -> true
             ImageFilter.CAMPSITES -> image.type == ImageType.CAMPSITE
@@ -186,34 +193,12 @@ fun AdminBrowseImageScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Search bar (visual placeholder)
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(44.dp),
-                shape = RoundedCornerShape(9.dp),
-                color = CardBackground,
-                border = BorderStroke(1.dp, CardBorder)
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Search,
-                        contentDescription = null,
-                        modifier = Modifier.size(19.dp),
-                        tint = PrimaryColor
-                    )
-
-                    Text(
-                        text = "Search by uploader or type",
-                        fontSize = 12.sp,
-                        color = SecondaryText
-                    )
-                }
-            }
+            // Search bar
+            SearchBar(
+                query = searchQuery,
+                onQueryChange = { searchQuery = it },
+                placeholder = "Search by uploader or type"
+            )
 
             Spacer(modifier = Modifier.height(14.dp))
 

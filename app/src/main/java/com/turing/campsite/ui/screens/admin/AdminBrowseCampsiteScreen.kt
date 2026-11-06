@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -30,6 +29,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import com.turing.campsite.ui.components.matchesSearch
+import com.turing.campsite.ui.components.SearchBar
 import com.turing.campsite.PrimaryColor
 import com.turing.campsite.ui.components.CampsiteCard
 import com.turing.campsite.data.model.Campsite
@@ -99,7 +104,7 @@ private val sampleCampsites = listOf(
  * The campsites to show are passed in. Sample campsites
  * are used when none are given.
  *
- * Search and deletion are visual placeholders.
+ * Deletion is a visual placeholder.
  * Back navigation is handled through a callback.
  */
 @Composable
@@ -107,6 +112,13 @@ fun AdminBrowseCampsiteScreen(
     onBackClick: () -> Unit,
     campsites: List<Campsite> = sampleCampsites
 ) {
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+
+    // Campsites whose name or location contains what was typed.
+    val shownCampsites = campsites.filter {
+        matchesSearch(searchQuery, it.name, it.location)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -142,34 +154,12 @@ fun AdminBrowseCampsiteScreen(
 
         Spacer(modifier = Modifier.height(26.dp))
 
-        // Search bar (visual placeholder)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(10.dp),
-            color = CardBackground,
-            border = BorderStroke(1.dp, CardBorder)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Search,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = PrimaryColor
-                )
-
-                Text(
-                    text = "Search by name or location",
-                    fontSize = 12.sp,
-                    color = SecondaryText
-                )
-            }
-        }
+        // Search bar
+        SearchBar(
+            query = searchQuery,
+            onQueryChange = { searchQuery = it },
+            placeholder = "Search by name or location"
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -187,7 +177,7 @@ fun AdminBrowseCampsiteScreen(
             )
 
             Text(
-                text = "${campsites.size} campsites",
+                text = "${shownCampsites.size} campsites",
                 fontSize = 11.sp,
                 color = SecondaryText
             )
@@ -201,7 +191,7 @@ fun AdminBrowseCampsiteScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(
-                items = sampleCampsites,
+                items = shownCampsites, // the list passed in, filtered by the search
                 key = { it.id }
             ) { campsite ->
                 CampsiteCard(
