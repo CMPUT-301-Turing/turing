@@ -1,6 +1,6 @@
 package com.turing.campsite.ui.screens.entrant
 
-import androidx.compose.foundation.BorderStroke
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,10 +11,16 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Terrain
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,12 +43,20 @@ fun EntrantHomeScreen(
     onCampsiteClick: (String) -> Unit
 ) {
     val campsites = campsiteViewModel.campsites
+    var searchQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         campsiteViewModel.loadAll()
     }
 
+    // get active campsites
     val activeCampsites = campsites.filter { it.statusLabel.equals("Active", ignoreCase = true) }
+
+    // filter them based on search
+    val filteredCampsites = activeCampsites.filter {
+        it.name.contains(searchQuery, ignoreCase = true) ||
+                it.location.contains(searchQuery, ignoreCase = true)
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -88,41 +102,49 @@ fun EntrantHomeScreen(
 
                 Spacer(modifier = Modifier.height(28.dp))
 
+
+                // THE SEARCH BAR IS HERE xd
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Surface(
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
                         modifier = Modifier
                             .weight(1f)
-                            .height(48.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        color = CardBackground,
-                        border = BorderStroke(1.dp, CardBorder)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
+                            .height(56.dp),
+                        placeholder = {
+                            Text(
+                                text = "Search campsites",
+                                fontSize = 12.sp,
+                                color = SecondaryText
+                            )
+                        },
+                        leadingIcon = {
                             Icon(
                                 imageVector = Icons.Outlined.Search,
                                 contentDescription = null,
                                 tint = SecondaryText,
                                 modifier = Modifier.size(20.dp)
                             )
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp),
+                        
+                        colors = OutlinedTextFieldDefaults.colors(
 
-                            Text(
-                                text = "Search campsites",
-                                fontSize = 12.sp,
-                                color = SecondaryText
-                            )
-                        }
-                    }
+                            focusedContainerColor = CardBackground,
+                            unfocusedContainerColor = CardBackground,
+
+                            focusedBorderColor = PrimaryColor,
+                            unfocusedBorderColor = CardBorder
+                        )
+                    )
 
                     Surface(
-                        modifier = Modifier.size(48.dp),
+                        modifier = Modifier.size(56.dp),
                         shape = RoundedCornerShape(10.dp),
                         color = PrimaryColor
                     ) {
@@ -151,7 +173,7 @@ fun EntrantHomeScreen(
                     )
 
                     Text(
-                        text = "${activeCampsites.size} campsites",
+                        text = "${filteredCampsites.size} campsites",
                         fontSize = 11.sp,
                         color = SecondaryText
                     )
@@ -161,8 +183,9 @@ fun EntrantHomeScreen(
             }
         }
 
+        // show the filtered list
         items(
-            items = activeCampsites,
+            items = filteredCampsites,
             key = { it.id }
         ) { campsite ->
             CampsiteCard(
