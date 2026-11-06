@@ -7,6 +7,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import org.junit.Assert.assertTrue
 
 
@@ -136,6 +137,9 @@ class OwnerCampsiteFullDetailScreenTest {
 
         }
 
+
+        // the link is at the bottom of the page, so scroll down to it first
+        composeTestRule.onNodeWithText("Lottery & Waitlist Details").performScrollTo()
 
         // click the button
         composeTestRule.onNodeWithText("Lottery & Waitlist Details").performClick()

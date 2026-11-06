@@ -90,7 +90,8 @@ private val sampleCampsites = listOf(
  * Displays the owner's campsites and actions for
  * registering campsites and creating lotteries.
  *
- * Data is currently static.
+ * The campsites to show are passed in. Sample campsites
+ * are used when none are given.
  * Navigation is handled through callbacks.
  */
 @Composable
@@ -99,7 +100,8 @@ fun OwnerHomeScreen(
     onProfileClick: () -> Unit,
     onRegisterCampsiteClick: () -> Unit,
     onCreateLotteryClick: () -> Unit,
-    onCampsiteClick: () -> Unit
+    onCampsiteClick: () -> Unit,
+    campsites: List<Campsite> = sampleCampsites
 ) {
     Column(
         modifier = Modifier
@@ -243,7 +245,7 @@ fun OwnerHomeScreen(
             )
 
             Text(
-                text = "${sampleCampsites.size} campsites",
+                text = "${campsites.size} campsites",
                 fontSize = 12.sp,
                 color = SecondaryText
             )
@@ -258,8 +260,9 @@ fun OwnerHomeScreen(
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             items(
-                items = sampleCampsites,
-                key = { it.id }
+                items = campsites,
+                // Sample campsites have no id, so their name is used instead.
+                key = { it.id.ifEmpty { it.name } }
             ) { campsite ->
                 CampsiteCard(
                     campsite = campsite,

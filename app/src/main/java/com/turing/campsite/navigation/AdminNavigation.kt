@@ -1,8 +1,14 @@
 package com.turing.campsite.navigation
 
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+
+import com.turing.campsite.ui.mapper.toProfilePreview
+import com.turing.campsite.ui.viewmodel.CampsiteViewModel
+import com.turing.campsite.ui.viewmodel.UserViewModel
 
 import com.turing.campsite.ui.screens.admin.AdminHomeScreen
 import com.turing.campsite.ui.screens.admin.AdminProfileScreen
@@ -59,18 +65,34 @@ fun NavGraphBuilder.adminGraph(
 
 // Browse all user profiles
     composable(Routes.ADMIN_BROWSE_PROFILE) {
+        // Every user document is read from the database.
+        val userViewModel: UserViewModel = viewModel()
+        LaunchedEffect(Unit) {
+            userViewModel.loadAll()
+        }
+        ErrorToast(userViewModel)
+
         AdminBrowseProfilesScreen(
             onBackClick = {
                 navController.popBackStack()
-            }
+            },
+            profiles = userViewModel.users.map { it.toProfilePreview() }
         )
     }
 
     composable(Routes.ADMIN_BROWSE_CAMPSITE) {
+        // Every campsite is read from the database, paused ones included.
+        val campsiteViewModel: CampsiteViewModel = viewModel()
+        LaunchedEffect(Unit) {
+            campsiteViewModel.loadAll()
+        }
+        ErrorToast(campsiteViewModel)
+
         AdminBrowseCampsiteScreen(
             onBackClick = {
                 navController.popBackStack()
-            }
+            },
+            campsites = campsiteViewModel.campsites
         )
     }
 
@@ -89,14 +111,6 @@ fun NavGraphBuilder.adminGraph(
 
     composable(Routes.ADMIN_BROWSE_IMAGE) {
         AdminBrowseImageScreen(
-            onBackClick = {
-                navController.popBackStack()
-            }
-        )
-    }
-
-    composable(Routes.ADMIN_BROWSE_PROFILE) {
-        AdminBrowseProfilesScreen(
             onBackClick = {
                 navController.popBackStack()
             }

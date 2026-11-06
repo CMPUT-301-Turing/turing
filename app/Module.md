@@ -33,3 +33,8 @@ through these classes; screens and view models never touch Firestore directly.
 
 One view model per repository. Screens read their lists from these and call
 their functions, so no composable calls a repository or Firestore directly.
+
+# Package com.turing.campsite.ui.mapper
+
+Small functions that turn a database model into the data a screen draws, and a
+filled form back into a model. Screens stay unaware of the database fields.
