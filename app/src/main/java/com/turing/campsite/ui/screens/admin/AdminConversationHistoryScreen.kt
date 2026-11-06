@@ -1,4 +1,3 @@
-
 package com.turing.campsite.ui.screens.admin
 
 import androidx.compose.foundation.BorderStroke
@@ -36,189 +35,55 @@ import androidx.compose.ui.unit.sp
 import com.turing.campsite.PrimaryColor
 import com.turing.campsite.ui.components.ConversationMessageBubble
 
+import com.turing.campsite.data.model.Message
+import com.google.firebase.Timestamp
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
 private val CardBorder = Color(0xFFDFE2D8)
 private val ChipBackground = Color(0xFFE8EFE3)
 private val SecondaryText = Color(0xFF7A8079)
 
-/**
- * Identifies the sender of a conversation message.
- */
-private enum class MessageSender {
-    OWNER,
-    ENTRANT
-}
-
-/**
- * Temporary message data.
- */
-private data class ConversationMessagePreview(
-    val sender: MessageSender,
-    val text: String,
-    val timestamp: String
-)
-
-/**
- * Temporary conversation data.
- */
-private data class ConversationPreview(
-    val owner: String,
-    val entrant: String,
-    val campsite: String,
-    val reservationDates: String,
-    val date: String,
-    val messages: List<ConversationMessagePreview>
-)
-
-/**
- * Sample conversations matching the IDs in AdminMessageLogScreen.
- */
-private val sampleConversations = mapOf(
-    "message-1" to ConversationPreview(
-        owner = "John Smith",
-        entrant = "Jane Doe",
-        campsite = "Banff Campsite",
-        reservationDates = "Oct 25–27",
-        date = "October 24, 2026",
-        messages = listOf(
-            ConversationMessagePreview(
-                sender = MessageSender.OWNER,
-                text = "Hi Jane, just confirming your check-in time for tomorrow. When will you arrive?",
-                timestamp = "09:10"
-            ),
-            ConversationMessagePreview(
-                sender = MessageSender.ENTRANT,
-                text = "Hi John! We plan to arrive at 3 PM. Is parking close to the pitch?",
-                timestamp = "09:14"
-            ),
-            ConversationMessagePreview(
-                sender = MessageSender.OWNER,
-                text = "Yes, parking is right beside pitch 12. I'll meet you at the gate at 3 PM.",
-                timestamp = "09:18"
-            ),
-            ConversationMessagePreview(
-                sender = MessageSender.ENTRANT,
-                text = "Perfect, see you at 3 PM tomorrow! Thanks for your help.",
-                timestamp = "09:24"
-            )
-        )
+private val sampleMessages = listOf(
+    Message(
+        id = "message-1",
+        body = "Hi Jane, just confirming your check-in time for tomorrow. When will you arrive?",
+        fromUserId = "owner-id",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 1200000))
     ),
-    "message-2" to ConversationPreview(
-        owner = "Maya Patel",
-        entrant = "Alex Morgan",
-        campsite = "Pinewood",
-        reservationDates = "Oct 26–28",
-        date = "October 24, 2026",
-        messages = listOf(
-            ConversationMessagePreview(
-                sender = MessageSender.ENTRANT,
-                text = "Hi, where can I find the gate code?",
-                timestamp = "08:45"
-            ),
-            ConversationMessagePreview(
-                sender = MessageSender.OWNER,
-                text = "The gate code is in your arrival guide.",
-                timestamp = "08:50"
-            )
-        )
+    Message(
+        id = "message-2",
+        body = "Hi John! We plan to arrive at 3 PM. Is parking close to the pitch?",
+        fromUserId = "entrant-id",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 1000000))
     ),
-    "message-3" to ConversationPreview(
-        owner = "Liam Wilson",
-        entrant = "Sophie Chen",
-        campsite = "Lake Louise",
-        reservationDates = "Oct 25–26",
-        date = "October 24, 2026",
-        messages = listOf(
-            ConversationMessagePreview(
-                sender = MessageSender.ENTRANT,
-                text = "Are we allowed to bring firewood?",
-                timestamp = "08:05"
-            ),
-            ConversationMessagePreview(
-                sender = MessageSender.OWNER,
-                text = "Yes, you can bring your own firewood.",
-                timestamp = "08:08"
-            ),
-            ConversationMessagePreview(
-                sender = MessageSender.ENTRANT,
-                text = "Thanks! We'll bring our own firewood.",
-                timestamp = "08:12"
-            )
-        )
+    Message(
+        id = "message-3",
+        body = "Yes, parking is right beside pitch 12. I'll meet you at the gate at 3 PM.",
+        fromUserId = "owner-id",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 800000))
     ),
-    "message-4" to ConversationPreview(
-        owner = "Emma Brooks",
-        entrant = "Noah Lee",
-        campsite = "Cedar Creek",
-        reservationDates = "Oct 24–26",
-        date = "October 24, 2026",
-        messages = listOf(
-            ConversationMessagePreview(
-                sender = MessageSender.ENTRANT,
-                text = "Is there parking near our pitch?",
-                timestamp = "07:40"
-            ),
-            ConversationMessagePreview(
-                sender = MessageSender.OWNER,
-                text = "Yes, parking is beside your reserved pitch.",
-                timestamp = "07:45"
-            )
-        )
-    ),
-    "message-5" to ConversationPreview(
-        owner = "Ava Nguyen",
-        entrant = "Ethan Reed",
-        campsite = "Jasper Ridge",
-        reservationDates = "Oct 10–12",
-        date = "October 24, 2026",
-        messages = listOf(
-            ConversationMessagePreview(
-                sender = MessageSender.ENTRANT,
-                text = "We had a great time at the campsite!",
-                timestamp = "07:15"
-            ),
-            ConversationMessagePreview(
-                sender = MessageSender.OWNER,
-                text = "Thank you again for staying with us!",
-                timestamp = "07:20"
-            )
-        )
-    ),
-    "message-6" to ConversationPreview(
-        owner = "Oliver Clark",
-        entrant = "Grace Kim",
-        campsite = "Forest Edge",
-        reservationDates = "Oct 4–6",
-        date = "October 24, 2026",
-        messages = listOf(
-            ConversationMessagePreview(
-                sender = MessageSender.ENTRANT,
-                text = "We really enjoyed our visit.",
-                timestamp = "06:50"
-            ),
-            ConversationMessagePreview(
-                sender = MessageSender.OWNER,
-                text = "Glad you enjoyed your stay.",
-                timestamp = "06:55"
-            )
-        )
+    Message(
+        id = "message-4",
+        body = "Perfect, see you at 3 PM tomorrow! Thanks for your help.",
+        fromUserId = "entrant-id",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 600000))
     )
 )
 
-/**
- * Displays the complete read-only conversation history.
- *
- * The conversation is selected using its ID.
- * Message bubbles are provided by a shared composable.
- */
+private fun formatTime(timestamp: Timestamp?): String {
+    if (timestamp == null) return ""
+    return SimpleDateFormat("HH:mm", Locale.getDefault()).format(timestamp.toDate())
+}
+
 @Composable
 fun AdminConversationHistoryScreen(
-    conversationId: String,
+    messages: List<Message> = sampleMessages,
     onBackClick: () -> Unit
 ) {
-    val conversation = sampleConversations[conversationId]
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -254,7 +119,7 @@ fun AdminConversationHistoryScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        if (conversation == null) {
+        if (messages.isEmpty()) {
             Text(
                 text = "Conversation not found.",
                 fontSize = 14.sp,
@@ -284,14 +149,14 @@ fun AdminConversationHistoryScreen(
                         verticalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
                         Text(
-                            text = "Owner: ${conversation.owner} →",
+                            text = "Owner: John Smith →",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = PrimaryColor
                         )
 
                         Text(
-                            text = "Entrant: ${conversation.entrant}",
+                            text = "Entrant: Jane Doe",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = PrimaryColor
@@ -304,7 +169,7 @@ fun AdminConversationHistoryScreen(
                             color = ChipBackground
                         ) {
                             Text(
-                                text = "${conversation.campsite} · ${conversation.reservationDates}",
+                                text = "Banff Campsite · Oct 25–27",
                                 modifier = Modifier.padding(
                                     horizontal = 7.dp,
                                     vertical = 4.dp
@@ -326,13 +191,13 @@ fun AdminConversationHistoryScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = conversation.date,
+                    text = "October 24, 2026",
                     fontSize = 13.sp,
                     color = PrimaryColor
                 )
 
                 Text(
-                    text = "${conversation.messages.size} messages",
+                    text = "${messages.size} messages",
                     fontSize = 11.sp,
                     color = SecondaryText
                 )
@@ -345,16 +210,16 @@ fun AdminConversationHistoryScreen(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                items(conversation.messages) { message ->
-                    val isEntrant = message.sender == MessageSender.ENTRANT
+                items(messages, key = { it.id }) { message ->
+                    val isEntrant = message.fromUserId != "owner-id"
 
                     ConversationMessageBubble(
-                        message = message.text,
-                        timestamp = message.timestamp,
+                        message = message.body,
+                        timestamp = formatTime(message.createdAt),
                         senderLabel = if (isEntrant) {
-                            "Entrant · ${conversation.entrant}"
+                            "Entrant · Jane Doe"
                         } else {
-                            "Owner · ${conversation.owner}"
+                            "Owner · John Smith"
                         },
                         alignRight = isEntrant
                     )

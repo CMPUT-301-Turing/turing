@@ -43,41 +43,51 @@ private val SecondaryText = Color(0xFF7A8079)
  * Temporary campsite data used by the admin browse screen.
  */
 private val sampleCampsites = listOf(
+
     Campsite(
+        id = "1",
         name = "Oak Hollow",
         location = "Brecon, Powys",
         description = "Woodland",
-        maxOccupancy = 2
+        maxOccupancy = 2,
+        ratingAverage = 0.0,
+        ratingCount = 0
     ),
     Campsite(
+        id = "2",
         name = "Pinewood Retreat",
         location = "New Forest, Hampshire",
         description = "Woodland",
         maxOccupancy = 7,
         ratingAverage = 4.8,
-        ratingCount = 10
+        ratingCount = 12
     ),
     Campsite(
+        id = "3",
         name = "Willowbank Meadow",
         location = "Bakewell, Peak District",
         description = "Riverside",
         maxOccupancy = 5,
         ratingAverage = 4.7,
-        ratingCount = 10
+        ratingCount = 8
     ),
     Campsite(
+        id = "4",
         name = "Heather Ridge",
         location = "Whitby, North Yorkshire",
         description = "Hill views",
-        maxOccupancy = 12
+        maxOccupancy = 12,
+        ratingAverage = 0.0,
+        ratingCount = 0
     ),
     Campsite(
+        id = "5",
         name = "Fellside Farm",
         location = "Keswick, Lake District",
         description = "Hill views",
         maxOccupancy = 10,
         ratingAverage = 4.6,
-        ratingCount = 10
+        ratingCount = 5
     )
 )
 
@@ -191,8 +201,8 @@ fun AdminBrowseCampsiteScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(
-                items = campsites,
-                key = { it.id.ifEmpty { it.name } }
+                items = sampleCampsites,
+                key = { it.id }
             ) { campsite ->
                 CampsiteCard(
                     campsite = campsite,

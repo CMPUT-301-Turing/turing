@@ -41,20 +41,17 @@ import androidx.compose.ui.unit.sp
 
 import com.turing.campsite.PrimaryColor
 import com.turing.campsite.ui.components.FilterChip
+import com.turing.campsite.data.model.Message
+import com.google.firebase.Timestamp
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
 private val CardBorder = Color(0xFFDFE2D8)
 private val SecondaryText = Color(0xFF7A8079)
 private val ChipBackground = Color(0xFFE8EFE3)
-
-/**
- * Reservation state associated with a conversation.
- */
-private enum class MessageReservationStatus {
-    ACTIVE,
-    INACTIVE
-}
 
 /**
  * Available message log filters.
@@ -66,84 +63,51 @@ private enum class MessageLogFilter(val label: String) {
 }
 
 /**
- * Temporary conversation information.
- */
-private data class MessageLogPreview(
-    val id: String,
-    val owner: String,
-    val entrant: String,
-    val campsite: String,
-    val reservationDates: String,
-    val lastMessage: String,
-    val timestamp: String,
-    val reservationStatus: MessageReservationStatus
-)
-
-/**
  * Sample conversations for the administrator's message log.
  */
 private val sampleMessageLogs = listOf(
-    MessageLogPreview(
+    Message(
         id = "message-1",
-        owner = "John Smith",
-        entrant = "Jane Doe",
-        campsite = "Banff Campsite",
-        reservationDates = "Oct 25–27",
-        lastMessage = "Perfect, see you at 3 PM tomorrow! Thanks for your help.",
-        timestamp = "09:24",
-        reservationStatus = MessageReservationStatus.ACTIVE
+        body = "Perfect, see you at 3 PM tomorrow! Thanks for your help.",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 3600000)),
+        fromUserId = "owner-1"
     ),
-    MessageLogPreview(
+    Message(
         id = "message-2",
-        owner = "Maya Patel",
-        entrant = "Alex Morgan",
-        campsite = "Pinewood",
-        reservationDates = "Oct 26–28",
-        lastMessage = "The gate code is in your arrival guide.",
-        timestamp = "08:50",
-        reservationStatus = MessageReservationStatus.ACTIVE
+        body = "The gate code is in your arrival guide.",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 7200000)),
+        fromUserId = "owner-2"
     ),
-    MessageLogPreview(
+    Message(
         id = "message-3",
-        owner = "Liam Wilson",
-        entrant = "Sophie Chen",
-        campsite = "Lake Louise",
-        reservationDates = "Oct 25–26",
-        lastMessage = "Thanks! We'll bring our own firewood.",
-        timestamp = "08:12",
-        reservationStatus = MessageReservationStatus.ACTIVE
+        body = "Thanks! We'll bring our own firewood.",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 10800000)),
+        fromUserId = "owner-3"
     ),
-    MessageLogPreview(
+    Message(
         id = "message-4",
-        owner = "Emma Brooks",
-        entrant = "Noah Lee",
-        campsite = "Cedar Creek",
-        reservationDates = "Oct 24–26",
-        lastMessage = "Yes, parking is beside your reserved pitch.",
-        timestamp = "07:45",
-        reservationStatus = MessageReservationStatus.ACTIVE
+        body = "Yes, parking is beside your reserved pitch.",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 14400000)),
+        fromUserId = "owner-4"
     ),
-    MessageLogPreview(
+    Message(
         id = "message-5",
-        owner = "Ava Nguyen",
-        entrant = "Ethan Reed",
-        campsite = "Jasper Ridge",
-        reservationDates = "Oct 10–12",
-        lastMessage = "Thank you again for staying with us!",
-        timestamp = "07:20",
-        reservationStatus = MessageReservationStatus.INACTIVE
+        body = "Thank you again for staying with us!",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 18000000)),
+        fromUserId = "owner-5"
     ),
-    MessageLogPreview(
+    Message(
         id = "message-6",
-        owner = "Oliver Clark",
-        entrant = "Grace Kim",
-        campsite = "Forest Edge",
-        reservationDates = "Oct 4–6",
-        lastMessage = "Glad you enjoyed your stay.",
-        timestamp = "06:55",
-        reservationStatus = MessageReservationStatus.INACTIVE
+        body = "Glad you enjoyed your stay.",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 21600000)),
+        fromUserId = "owner-6"
     )
 )
+
+private fun formatTime(timestamp: Timestamp?): String {
+    if (timestamp == null) return ""
+    return SimpleDateFormat("HH:mm", Locale.getDefault()).format(timestamp.toDate())
+}
 
 /**
  * Administrator's read-only message log.
@@ -161,17 +125,7 @@ fun AdminMessageLogScreen(
         mutableStateOf(MessageLogFilter.ALL)
     }
 
-    val visibleLogs = sampleMessageLogs.filter { message ->
-        when (selectedFilter) {
-            MessageLogFilter.ALL -> true
-
-            MessageLogFilter.ACTIVE ->
-                message.reservationStatus == MessageReservationStatus.ACTIVE
-
-            MessageLogFilter.INACTIVE ->
-                message.reservationStatus == MessageReservationStatus.INACTIVE
-        }
-    }
+    val visibleLogs = sampleMessageLogs
 
     Column(
         modifier = Modifier
@@ -322,7 +276,7 @@ fun AdminMessageLogScreen(
  */
 @Composable
 private fun MessageLogCard(
-    message: MessageLogPreview,
+    message: Message,
     onClick: () -> Unit
 ) {
     Surface(
@@ -355,7 +309,7 @@ private fun MessageLogCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Owner: ${message.owner} →",
+                        text = "Owner: John Smith →",
                         modifier = Modifier.weight(1f),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -367,14 +321,14 @@ private fun MessageLogCard(
                     Spacer(modifier = Modifier.width(6.dp))
 
                     Text(
-                        text = message.timestamp,
+                        text = formatTime(message.createdAt),
                         fontSize = 10.sp,
                         color = SecondaryText
                     )
                 }
 
                 Text(
-                    text = "Entrant: ${message.entrant}",
+                    text = "Entrant: Jane Doe",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = PrimaryColor
@@ -386,7 +340,7 @@ private fun MessageLogCard(
                     color = ChipBackground
                 ) {
                     Text(
-                        text = "${message.campsite} · ${message.reservationDates}",
+                        text = "Banff Campsite · Oct 25–27",
                         modifier = Modifier.padding(
                             horizontal = 6.dp,
                             vertical = 3.dp
@@ -398,7 +352,7 @@ private fun MessageLogCard(
 
                 // Most recent message
                 Text(
-                    text = message.lastMessage,
+                    text = message.body,
                     fontSize = 11.sp,
                     color = SecondaryText,
                     maxLines = 1,
@@ -408,4 +362,3 @@ private fun MessageLogCard(
         }
     }
 }
-
