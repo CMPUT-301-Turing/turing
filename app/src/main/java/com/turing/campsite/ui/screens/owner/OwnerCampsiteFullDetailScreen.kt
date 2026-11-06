@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.sp
 
 import com.turing.campsite.PrimaryColor
 
+import com.turing.campsite.data.model.Campsite
+
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
 private val CardBorder = Color(0xFFDFE2D8)
@@ -48,6 +50,15 @@ private val SecondaryText = Color(0xFF7A8079)
  * Sample booked dates for October 2026.
  */
 private val bookedDates = setOf(23, 24, 25, 30, 31)
+
+private val sampleCampsite = Campsite(
+    name = "Nikola Uletilovic",
+    location = "Dartmoor, Devon",
+    maxOccupancy = 10,
+    description = "Beautiful riverside cabin with a lot room for your friends.",
+    tags = listOf("Riverside", "Party Friendly", "Pets Allowed"),
+    rulesText = "Don't leave the doors unlocked"
+)
 
 /**
  * Detailed campsite information for the owner.
@@ -62,7 +73,8 @@ fun OwnerCampsiteFullDetailScreen(
     onQRCodeClick: () -> Unit,
     onEditLotteryClick: () -> Unit,
     onLotteryClick: () -> Unit,
-    onReservationsClick: () -> Unit
+    onReservationsClick: () -> Unit,
+    campsite: Campsite = sampleCampsite
 ) {
     Column(
         modifier = Modifier
@@ -104,7 +116,7 @@ fun OwnerCampsiteFullDetailScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            CampsiteHeroSection()
+            CampsiteHeroSection(campsite.name, campsite.location)
 
             Column(
                 modifier = Modifier.padding(
@@ -142,9 +154,9 @@ fun OwnerCampsiteFullDetailScreen(
 
                 BookedDatesSection()
 
-                CampsiteDetailsSection()
+                CampsiteDetailsSection(campsite.maxOccupancy, campsite.description, campsite.tags)
 
-                CampsiteRulesSection()
+                CampsiteRulesSection(campsite.rulesText)
 
                 CampsiteViewSection(
                     onLotteryClick = onLotteryClick,
@@ -164,7 +176,7 @@ fun OwnerCampsiteFullDetailScreen(
  * are loaded from storage.
  */
 @Composable
-private fun CampsiteHeroSection() {
+private fun CampsiteHeroSection(name: String, location: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -195,7 +207,7 @@ private fun CampsiteHeroSection() {
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Text(
-                text = "Riverbend Glade",
+                text = name,
                 fontSize = 25.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
@@ -213,7 +225,7 @@ private fun CampsiteHeroSection() {
                 )
 
                 Text(
-                    text = "Dartmoor, Devon",
+                    text = location,
                     fontSize = 12.sp,
                     color = Color.White
                 )
@@ -432,7 +444,7 @@ private fun BookedDatesSection() {
  * Campsite occupancy, description, and tags.
  */
 @Composable
-private fun CampsiteDetailsSection() {
+private fun CampsiteDetailsSection(maxOccupancy: Int, description: String, tags: List<String>) {
     CampsiteDetailCard {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -491,7 +503,7 @@ private fun CampsiteDetailsSection() {
                 )
 
                 Text(
-                    text = "10 people",
+                    text = "$maxOccupancy people",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = PrimaryColor
@@ -509,10 +521,7 @@ private fun CampsiteDetailsSection() {
         )
 
         Text(
-            text = "Riverside campsite in Dartmoor with picnic tables, " +
-                    "fire pits, and access to a nearby stream. Amenities " +
-                    "include potable water, composting toilets, and parking " +
-                    "for two vehicles per pitch.",
+            text = description,
             fontSize = 12.sp,
             lineHeight = 18.sp,
             color = PrimaryColor
@@ -528,8 +537,9 @@ private fun CampsiteDetailsSection() {
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            CampsiteTag("Riverside")
-            CampsiteTag("Pet Friendly")
+            tags.forEach { tag ->
+                CampsiteTag(tag)
+            }
         }
     }
 }
@@ -559,7 +569,7 @@ private fun CampsiteTag(label: String) {
  * Displays the campsite's rules and policies.
  */
 @Composable
-private fun CampsiteRulesSection() {
+private fun CampsiteRulesSection(rulesText: String) {
     CampsiteDetailCard {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -588,10 +598,7 @@ private fun CampsiteRulesSection() {
         )
 
         Text(
-            text = "Arrival is between 2 PM and 6 PM. Quiet hours are " +
-                    "10 PM to 7 AM. Campfires are permitted in designated " +
-                    "pits only. Please keep pets on a short lead and clean " +
-                    "up after them. No amplified music.",
+            text = rulesText,
             fontSize = 12.sp,
             lineHeight = 18.sp,
             color = PrimaryColor
