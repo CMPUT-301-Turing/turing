@@ -45,10 +45,7 @@ private val SecondaryText = Color(0xFF7A8079)
 private val DeleteColor = Color(0xFFB45345)
 
 /**
- * Profile data for displaying the admin profile list.
- *
- * The id is the database id of the user. It is empty for
- * sample profiles that are not stored in the database.
+ * Sample profiles shown when no profiles are passed in.
  */
 private val sampleProfiles = listOf(
     User(
@@ -94,7 +91,7 @@ private val sampleProfiles = listOf(
 @Composable
 fun AdminBrowseProfilesScreen(
     onBackClick: () -> Unit,
-    profiles: List<ProfilePreview> = sampleProfiles
+    profiles: List<User> = sampleProfiles
 ) {
     Column(
         modifier = Modifier
@@ -190,7 +187,7 @@ fun AdminBrowseProfilesScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(
-                items = sampleProfiles,
+                items = profiles,
                 key = { it.id }
             ) { profile ->
                 AdminProfileCard(profile)

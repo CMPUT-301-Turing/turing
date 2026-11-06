@@ -86,9 +86,9 @@ private val sampleNotifications = listOf(
 private val sampleLotteries = listOf(
     Lottery(
         id = "november-lottery",
-        campsiteIds = listOf("Pinewood Retreat", "Riverbend Glade"),
+        campsiteID = "Pinewood Retreat",
         winnerCount = 12,
-        status = com.turing.campsite.data.model.LotteryStatus.OPEN
+        status = "open"
     )
 )
 
@@ -351,7 +351,7 @@ private fun NewNotificationSheet(
                             verticalArrangement = Arrangement.spacedBy(3.dp)
                         ) {
                             Text(
-                                text = selectedLottery.campsiteIds.joinToString(" + "),
+                                text = selectedLottery.campsiteID,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = PrimaryColor
@@ -385,7 +385,7 @@ private fun NewNotificationSheet(
                             text = {
                                 Column {
                                     Text(
-                                        text = lottery.campsiteIds.joinToString(" + "),
+                                        text = lottery.campsiteID,
                                         fontSize = 12.sp,
                                         color = PrimaryColor
                                     )

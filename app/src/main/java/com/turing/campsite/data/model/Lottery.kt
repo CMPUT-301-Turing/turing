@@ -32,7 +32,7 @@ enum class LotteryStatus { OPEN, DRAWN, CLOSED }
 data class Lottery(
     var id: String = "",
     var owner: String = "",
-    var campsiteID: String,
+    var campsiteID: String = "",
     var registrationStart: Timestamp? = null,
     var registrationEnd: Timestamp? = null,
     var bookingStart: Timestamp? = null,

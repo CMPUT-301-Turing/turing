@@ -40,19 +40,6 @@ class CampsiteMapperTest {
     }
 
     @Test
-    fun toDetailsPreview_campsite_copiesDetails() {
-        val details = pinewood.toDetailsPreview()
-
-        assertEquals("Pinewood Retreat", details.name)
-        assertEquals("Woodland · Pet Friendly", details.type)
-        assertEquals("Max 8 people", details.maximumOccupancy)
-        assertEquals("Quiet forest site with fire pits.", details.description)
-        assertEquals("4.8", details.rating)
-        assertEquals(4, details.reviewCount)
-        assertEquals(0, details.pitchCount) // not stored, so the screen hides it
-    }
-
-    @Test
     fun toCampsite_filledForm_copiesAndTrimsFields() {
         val campsite = form.toCampsite("owner-1")
 

@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import com.turing.campsite.data.model.Campsite
 import com.turing.campsite.PrimaryColor
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
 import com.turing.campsite.ui.viewmodel.LotteryViewModel
@@ -66,6 +67,25 @@ fun EntrantCampsiteDetailsScreen(
         campsiteViewModel.select(campsiteId)
     }
 
+    EntrantCampsiteDetailsContent(
+        campsite = campsite,
+        onBackClick = onBackClick,
+        onEnterLotteryClick = onEnterLotteryClick
+    )
+}
+
+/**
+ * Draws the campsite details for a given campsite.
+ *
+ * Kept apart from the view models so it can be shown and tested
+ * without the database. A null campsite shows the not found text.
+ */
+@Composable
+fun EntrantCampsiteDetailsContent(
+    campsite: Campsite?,
+    onBackClick: () -> Unit,
+    onEnterLotteryClick: () -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()

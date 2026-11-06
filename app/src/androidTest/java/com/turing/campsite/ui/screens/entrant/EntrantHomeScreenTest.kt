@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import org.junit.Assert.assertEquals
+import com.turing.campsite.data.model.Campsite
 
 
 
@@ -22,6 +23,13 @@ class EntrantHomeScreenTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    // one campsite to show, so the test does not need the database
+    private val pinewood = Campsite(
+        id = "pinewood-retreat",
+        name = "Pinewood Retreat",
+        location = "Jasper, Alberta"
+    )
+
     /**
      * Tests if screen load and show header text
      */
@@ -30,7 +38,10 @@ class EntrantHomeScreenTest {
 
         composeTestRule.setContent {
 
-            EntrantHomeScreen(onCampsiteClick = {})
+            EntrantHomeContent(
+                activeCampsites = listOf(pinewood),
+                onCampsiteClick = {}
+            )
         }
 
         // check main title
@@ -42,18 +53,19 @@ class EntrantHomeScreenTest {
 
     /**
      * Tests clicking a campsite card
-     * we need to click hardcoded name because card has no id
+     * the card is found by its name and should pass the campsite id
      */
     @Test
-    fun entrantHomeScreen_campsiteCardClickPassesName() {
+    fun entrantHomeScreen_campsiteCardClickPassesId() {
 
-        var clickedName = ""
+        var clickedId = ""
 
 
         composeTestRule.setContent {
 
-            EntrantHomeScreen(
-                onCampsiteClick = { name -> clickedName = name }
+            EntrantHomeContent(
+                activeCampsites = listOf(pinewood),
+                onCampsiteClick = { id -> clickedId = id }
             )
 
         }
@@ -63,8 +75,8 @@ class EntrantHomeScreenTest {
         composeTestRule.onNodeWithText("Pinewood Retreat").performClick()
 
 
-        // check if correct name passed
-        assertEquals("Pinewood Retreat", clickedName)
+        // check if the id of that campsite was passed
+        assertEquals("pinewood-retreat", clickedId)
 
     }
 

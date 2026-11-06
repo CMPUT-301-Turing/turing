@@ -2,6 +2,9 @@ package com.turing.campsite.ui.screens.admin
 
 import org.junit.Rule
 import org.junit.Test
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -45,9 +48,9 @@ class AdminNotificationLogScreenTest {
 
         // NOTIFICATION
 
-        composeTestRule.onNodeWithText("Sent to: John Doe").assertIsDisplayed()
-
-        composeTestRule.onNodeWithText("Sent to: All campers").assertIsDisplayed()
+        // every card shows the same receiver line, so look at the first one
+        composeTestRule.onAllNodesWithText("Sent to: John Doe").onFirst().assertIsDisplayed()
+        composeTestRule.onAllNodesWithText("You have won the lottery for Banff Campsite!").onFirst().assertIsDisplayed()
     }
 
     /**
@@ -76,8 +79,8 @@ class AdminNotificationLogScreenTest {
     }
 
     /**
-     * Tests that clicking the lottery  filter button hides the
-     * nothing non lottery
+     * Tests that clicking the lottery filter button hides the
+     * notifications that are not about a lottery
      */
     @Test
     fun adminNotificationLogScreen_filterButtonWorks() {
@@ -87,19 +90,16 @@ class AdminNotificationLogScreenTest {
             AdminNotificationLogScreen(onBackClick = {})
         }
 
-        // all selected so announcement already visible?
-        composeTestRule.onNodeWithText("Sent to: All campers").assertIsDisplayed()
-
+        // all selected so the reservation notification is visible
+        composeTestRule.onAllNodesWithText("Your Pinewood reservation for Nov 6–8 is confirmed.").onFirst().assertIsDisplayed()
 
         // perform click on lottery button
         composeTestRule.onNodeWithText("Lottery").performClick()
 
+        // reservation notification gone?
+        composeTestRule.onAllNodesWithText("Your Pinewood reservation for Nov 6–8 is confirmed.").assertCountEquals(0)
 
-
-        // announcement gone?
-        composeTestRule.onNodeWithText("Sent to: All campers").assertDoesNotExist()
-
-        // lot notification still visible?
-        composeTestRule.onNodeWithText("Sent to: John Doe").assertIsDisplayed()
+        // lottery notification still visible?
+        composeTestRule.onAllNodesWithText("You have won the lottery for Banff Campsite!").onFirst().assertIsDisplayed()
     }
 }

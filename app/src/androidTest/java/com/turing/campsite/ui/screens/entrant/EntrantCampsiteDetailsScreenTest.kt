@@ -1,5 +1,6 @@
 package com.turing.campsite.ui.screens.entrant
 
+import com.turing.campsite.data.model.Campsite
 import org.junit.Rule
 import org.junit.Test
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -23,6 +24,13 @@ class EntrantCampsiteDetailsScreenTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    // one campsite to show, so the test does not need the database
+    private val pinewood = Campsite(
+        id = "pinewood-retreat",
+        name = "Pinewood Retreat",
+        location = "Jasper, Alberta"
+    )
+
 
 
 
@@ -36,10 +44,9 @@ class EntrantCampsiteDetailsScreenTest {
 
         composeTestRule.setContent {
 
-            // use valid name so screen loads
-            EntrantCampsiteDetailsScreen(
-
-                campsiteName = "Pinewood Retreat",
+            // pass a campsite so the screen loads
+            EntrantCampsiteDetailsContent(
+                campsite = pinewood,
                 onBackClick = { clicked = true }
             )
         }
@@ -59,9 +66,8 @@ class EntrantCampsiteDetailsScreenTest {
 
         composeTestRule.setContent {
 
-            EntrantCampsiteDetailsScreen(
-
-                campsiteName = "Pinewood Retreat",
+            EntrantCampsiteDetailsContent(
+                campsite = pinewood,
 
                 onBackClick = {},
                 onEnterLotteryClick = { clicked = true }

@@ -3,13 +3,11 @@ package com.turing.campsite.ui.viewmodel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.turing.campsite.data.model.Lottery
 import com.turing.campsite.data.model.LotteryEntry
 import com.turing.campsite.data.model.LotteryStatus
 import com.turing.campsite.data.repository.LotteryRepository
-import java.lang.ref.Reference
 
 /**
  * Holds lottery data for the owner lottery screens and the entrant waitlist.
@@ -37,8 +35,6 @@ class LotteryViewModel(
 
     var hasJoined by mutableStateOf(false)
         private set
-
-    private val entrantId = FirebaseAuth.getInstance().currentUser?.uid
 
     /**
      * Loads the lotteries entrants can currently join.
@@ -121,8 +117,11 @@ class LotteryViewModel(
 
             repository.setStatus(lotteryId, newStatus)
 
-            lotteries = lotteries.map{
-                if (it.id == lotteryId) it.copy(status = newStatus)
+            lotteries = lotteries.map {
+                if (it.id == lotteryId) it.copy(status = newStatus) else it
+            }
+            if (selectedLottery?.id == lotteryId) {
+                selectedLottery = selectedLottery?.copy(status = newStatus)
             }
         }
     }
@@ -161,7 +160,12 @@ class LotteryViewModel(
         }
     }
 
-    fun loadLotteryForCampsite(campsiteId: String){
-        launchCall
+    /**
+     * Loads the lottery a campsite is listed in.
+     *
+     * @param campsiteId the Firestore document id of the campsite
+     */
+    fun loadLotteryForCampsite(campsiteId: String) {
+        // TODO: not written yet, nothing calls this so far
     }
 }
