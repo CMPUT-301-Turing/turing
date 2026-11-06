@@ -2,6 +2,7 @@ package com.turing.campsite.ui.screens.entrant
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,7 +33,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import com.google.firebase.auth.FirebaseAuth
 import com.turing.campsite.PrimaryColor
+import com.turing.campsite.data.model.Review
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
 import com.turing.campsite.ui.viewmodel.LotteryViewModel
 
@@ -52,6 +55,7 @@ fun EntrantCampsiteDetailsScreen(
     onEnterLotteryClick: () -> Unit = {}
 ) {
     val campsite = campsiteViewModel.selectedCampsite
+    val currentEntrantId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
     LaunchedEffect(campsiteId) {
         campsiteViewModel.select(campsiteId)
@@ -187,7 +191,19 @@ fun EntrantCampsiteDetailsScreen(
 
                     CampsiteReviewsSection(
                         rating = campsite.ratingAverage.toString(),
-                        reviewCount = campsite.ratingCount
+                        reviewCount = campsite.ratingCount,
+                        onLeaveReviewClick = {
+
+                            // connected
+                            campsiteViewModel.addReview(
+                                campsiteId = campsiteId,
+                                review = Review(
+                                    entrantId = currentEntrantId,
+                                    rating = 5,
+                                    comment = "Wow very veery nice campsite!"
+                                )
+                            )
+                        }
                     )
                 }
 
@@ -195,7 +211,17 @@ fun EntrantCampsiteDetailsScreen(
             }
 
             EntrantLotterySection(
-                onEnterLotteryClick = onEnterLotteryClick
+                onEnterLotteryClick = {
+
+                    // connected
+                    lotteryViewModel.join(
+                        lotteryId = campsiteId,
+                        entrantId = currentEntrantId
+                    )
+
+                    // Then navigate or show success
+                    onEnterLotteryClick()
+                }
             )
         }
     }
@@ -319,7 +345,8 @@ private fun CampsiteLocationCard(
 @Composable
 private fun CampsiteReviewsSection(
     rating: String,
-    reviewCount: Int
+    reviewCount: Int,
+    onLeaveReviewClick: () -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -392,7 +419,8 @@ private fun CampsiteReviewsSection(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(42.dp),
+                .height(42.dp)
+                .clickable { onLeaveReviewClick() }, // CONNECTED TO FIREBASE
             shape = RoundedCornerShape(9.dp),
             color = PageBackground,
             border = BorderStroke(1.dp, CardBorder)

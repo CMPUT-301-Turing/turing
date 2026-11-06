@@ -4,9 +4,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import android.net.Uri
 
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
 import com.turing.campsite.ui.viewmodel.LotteryViewModel
+import com.turing.campsite.ui.viewmodel.ReservationViewModel
+import com.turing.campsite.ui.viewmodel.NotificationViewModel
 
 import com.turing.campsite.ui.screens.entrant.EntrantHomeScreen
 import com.turing.campsite.ui.screens.entrant.EntrantCampsiteListScreen
@@ -14,7 +17,6 @@ import com.turing.campsite.ui.screens.entrant.EntrantSelectCampsiteScreen
 import com.turing.campsite.ui.screens.entrant.EntrantQRCodeScreen
 import com.turing.campsite.ui.screens.entrant.EntrantNotificationScreen
 import com.turing.campsite.ui.screens.entrant.EntrantAcceptReservationScreen
-import android.net.Uri
 import com.turing.campsite.ui.screens.entrant.EntrantCampsiteDetailsScreen
 
 /**
@@ -24,7 +26,6 @@ fun NavGraphBuilder.entrantGraph(
     navController: NavHostController
 ) {
     composable(Routes.ENTRANT_HOME) {
-        // The screen loads every campsite from the database through the view model.
         val campsiteViewModel: CampsiteViewModel = viewModel()
         ErrorToast(campsiteViewModel)
 
@@ -45,7 +46,6 @@ fun NavGraphBuilder.entrantGraph(
         val campsiteId =
             backStackEntry.arguments?.getString("campsiteId").orEmpty()
 
-        // The screen loads the campsite with this id through the view model.
         val campsiteViewModel: CampsiteViewModel = viewModel()
         val lotteryViewModel: LotteryViewModel = viewModel()
 
@@ -57,13 +57,15 @@ fun NavGraphBuilder.entrantGraph(
                 navController.popBackStack()
             },
             onEnterLotteryClick = {
-                // TODO: Connect to lottery entry flow.
             }
         )
     }
 
     composable(Routes.ENTRANT_CAMPSITE_LIST) {
-        EntrantCampsiteListScreen()
+        val reservationViewModel: ReservationViewModel = viewModel()
+        EntrantCampsiteListScreen(
+            reservationViewModel = reservationViewModel
+        )
     }
 
     composable(Routes.ENTRANT_SELECT_CAMPSITE) {
@@ -75,7 +77,10 @@ fun NavGraphBuilder.entrantGraph(
     }
 
     composable(Routes.ENTRANT_NOTIFICATION) {
-        EntrantNotificationScreen()
+        val notificationViewModel: NotificationViewModel = viewModel()
+        EntrantNotificationScreen(
+            notificationViewModel = notificationViewModel
+        )
     }
 
     composable(Routes.ENTRANT_ACCEPT_RESERVATION) {
