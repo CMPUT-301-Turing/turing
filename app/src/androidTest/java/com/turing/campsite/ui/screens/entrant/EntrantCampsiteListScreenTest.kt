@@ -26,7 +26,7 @@ class EntrantCampsiteListScreenTest {
 
         composeTestRule.setContent {
 
-            EntrantCampsiteListScreen()
+            EntrantCampsiteListContent(allReservations = emptyList())
         }
 
         // check title
@@ -45,7 +45,7 @@ class EntrantCampsiteListScreenTest {
 
 
         composeTestRule.setContent {
-            EntrantCampsiteListScreen()
+            EntrantCampsiteListContent(allReservations = emptyList())
         }
 
 

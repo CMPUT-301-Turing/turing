@@ -25,7 +25,7 @@ class EntrantNotificationScreenTest {
     fun entrantNotificationScreen_rendersHeader() {
 
         composeTestRule.setContent {
-            EntrantNotificationScreen()
+            EntrantNotificationContent(notifications = emptyList())
 
         }
 
@@ -45,14 +45,13 @@ class EntrantNotificationScreenTest {
 
         composeTestRule.setContent {
 
-            EntrantNotificationScreen()
+            EntrantNotificationContent(notifications = emptyList())
         }
 
 
-        // check today and earlier headers exist
-        composeTestRule.onNodeWithText("Today").assertIsDisplayed()
-
-        composeTestRule.onNodeWithText("Earlier").assertIsDisplayed()
+        // check the list header and the unread count exist
+        composeTestRule.onNodeWithText("Recent").assertIsDisplayed()
+        composeTestRule.onNodeWithText("0 unread").assertIsDisplayed()
 
     }
 
