@@ -14,21 +14,21 @@ class LotteryModelTest {
     private val fixed = Timestamp(1_000L, 123)
     private val later = Timestamp(2_000L, 456)
 
-    private fun subject() = Lottery(registrationStart = fixed, registrationEnd = later, createdAt = fixed)
+    private fun subject() = Lottery(registrationStart = fixed, registrationEnd = later, status = "open")
 
-    /** Verifies empty configuration, OPEN status, and a null waitlist limit, with registration closed when dates are absent. */
-    @Test fun defaultsAreOpenUnlimitedAndUndated() {
-        val lottery = Lottery(createdAt = fixed)
+    /** Verifies empty configuration, closed status, and no waitlist limit, with registration closed when dates are absent. */
+    @Test fun defaultsAreClosedUnlimitedAndUndated() {
+        val lottery = Lottery()
         assertEquals("", lottery.id)
-        assertEquals("", lottery.ownerId)
-        assertTrue(lottery.campsiteIds.isEmpty())
+        assertEquals("", lottery.owner)
+        assertEquals("", lottery.campsiteID)
         assertNull(lottery.registrationStart)
         assertNull(lottery.registrationEnd)
         assertNull(lottery.bookingStart)
         assertNull(lottery.bookingEnd)
         assertEquals(0, lottery.winnerCount)
-        assertNull(lottery.waitlistCapacity)
-        assertEquals(LotteryStatus.OPEN, lottery.status)
+        assertEquals(0L, lottery.waitlistCap) // 0 means no limit
+        assertEquals("closed", lottery.status)
         assertFalse(lottery.isRegistrationOpen(fixed))
     }
 
@@ -67,7 +67,7 @@ class LotteryModelTest {
 
     /** Verifies that DRAWN and CLOSED statuses reject the start, middle, and end of the registration window. */
     @Test fun allNonOpenStatusesCloseEntireRegistrationWindow() {
-        for (status in listOf(LotteryStatus.DRAWN, LotteryStatus.CLOSED)) {
+        for (status in listOf("drawn", "closed")) {
             for (time in listOf(fixed, Timestamp(1_500L, 0), later)) {
                 assertFalse("$status at $time", subject().copy(status = status).isRegistrationOpen(time))
             }
@@ -93,9 +93,9 @@ class LotteryModelTest {
     /** Verifies that status and date mutations immediately affect the registration predicate. */
     @Test fun changingStatusAndDatesChangesRegistrationResult() {
         val lottery = subject()
-        lottery.status = LotteryStatus.CLOSED
+        lottery.status = "closed"
         assertFalse(lottery.isRegistrationOpen(fixed))
-        lottery.status = LotteryStatus.OPEN
+        lottery.status = "open"
         assertTrue(lottery.isRegistrationOpen(fixed))
         lottery.registrationStart = later
         assertFalse(lottery.isRegistrationOpen(fixed))
@@ -110,24 +110,23 @@ class LotteryModelTest {
         assertFalse(lottery.isRegistrationOpen(Timestamp(3_500L, 0)))
     }
 
-    /** Verifies that zero winners and null, zero, or one waitlist capacity do not close an otherwise open window. */
+    /** Verifies that zero winners and a zero or one waitlist capacity do not close an otherwise open window. */
     @Test fun registrationPredicateDoesNotCheckWinnerCountOrWaitlistCapacity() {
         // Capacity enforcement is not implemented in this model predicate.
-        for (capacity in listOf<Int?>(null, 0, 1)) {
-            val lottery = subject().copy(waitlistCapacity = capacity, winnerCount = 0)
+        for (capacity in listOf(0L, 1L)) {
+            val lottery = subject().copy(waitlistCap = capacity, winnerCount = 0)
             assertTrue(lottery.isRegistrationOpen(fixed))
         }
     }
 
-    /** Verifies that copying a lottery with selected sites and draw configuration retains those values and creation time. */
-    @Test fun selectedSitesAndDrawConfigurationAreRetained() {
-        val lottery = subject().copy(id = "lottery-1", ownerId = "owner-1", campsiteIds = listOf("site-1", "site-2"), winnerCount = 2, waitlistCapacity = 10)
+    /** Verifies that copying a lottery with a selected site and draw configuration retains those values. */
+    @Test fun selectedSiteAndDrawConfigurationAreRetained() {
+        val lottery = subject().copy(id = "lottery-1", owner = "owner-1", campsiteID = "site-1", winnerCount = 2, waitlistCap = 10)
         assertEquals("lottery-1", lottery.id)
-        assertEquals("owner-1", lottery.ownerId)
-        assertEquals(listOf("site-1", "site-2"), lottery.campsiteIds)
+        assertEquals("owner-1", lottery.owner)
+        assertEquals("site-1", lottery.campsiteID)
         assertEquals(2, lottery.winnerCount)
-        assertEquals(10, lottery.waitlistCapacity)
-        assertEquals(fixed, lottery.createdAt)
+        assertEquals(10L, lottery.waitlistCap)
     }
 
     // Tests retained from LotteryTest, including its per-test fixture setup.
@@ -146,7 +145,7 @@ class LotteryModelTest {
             id = "lottery1",
             registrationStart = start,
             registrationEnd = end,
-            status = LotteryStatus.OPEN
+            status = "open"
         )
     }
 
@@ -179,7 +178,7 @@ class LotteryModelTest {
 
     @Test
     fun isRegistrationOpen_statusDrawn_false() {
-        lottery.status = LotteryStatus.DRAWN // winners already picked
+        lottery.status = "drawn" // winners already picked
         val open = lottery.isRegistrationOpen(Timestamp(1_500L, 0))
 
         assertFalse(open)
@@ -208,7 +207,7 @@ class LotteryModelTest {
 
     @Test
     fun isRegistrationOpen_statusClosed_false() {
-        lottery.status = LotteryStatus.CLOSED
+        lottery.status = "closed"
         assertFalse(lottery.isRegistrationOpen(Timestamp(1_500L, 0)))
     }
 

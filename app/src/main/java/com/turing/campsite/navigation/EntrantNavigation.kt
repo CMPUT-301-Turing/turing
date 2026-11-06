@@ -1,13 +1,12 @@
 package com.turing.campsite.navigation
 
-import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 
-import com.turing.campsite.ui.mapper.toDetailsPreview
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
+import com.turing.campsite.ui.viewmodel.LotteryViewModel
 
 import com.turing.campsite.ui.screens.entrant.EntrantHomeScreen
 import com.turing.campsite.ui.screens.entrant.EntrantCampsiteListScreen
@@ -25,20 +24,17 @@ fun NavGraphBuilder.entrantGraph(
     navController: NavHostController
 ) {
     composable(Routes.ENTRANT_HOME) {
-        // All campsites are read from the database, only active ones are listed.
+        // The screen loads every campsite from the database through the view model.
         val campsiteViewModel: CampsiteViewModel = viewModel()
-        LaunchedEffect(Unit) {
-            campsiteViewModel.loadAll()
-        }
         ErrorToast(campsiteViewModel)
 
         EntrantHomeScreen(
+            campsiteViewModel = campsiteViewModel,
             onCampsiteClick = { campsiteId ->
                 navController.navigate(
                     "${Routes.ENTRANT_CAMPSITE_DETAILS}/${Uri.encode(campsiteId)}"
                 )
-            },
-            campsites = campsiteViewModel.campsites.filter { it.active }
+            }
         )
     }
 
@@ -49,28 +45,21 @@ fun NavGraphBuilder.entrantGraph(
         val campsiteId =
             backStackEntry.arguments?.getString("campsiteId").orEmpty()
 
+        // The screen loads the campsite with this id through the view model.
         val campsiteViewModel: CampsiteViewModel = viewModel()
-        LaunchedEffect(campsiteId) {
-            campsiteViewModel.select(campsiteId)
-        }
+        val lotteryViewModel: LotteryViewModel = viewModel()
 
-        val campsite = campsiteViewModel.selectedCampsite
-
-        if (campsite == null && campsiteViewModel.errorMessage == null) {
-            // Still reading the campsite from the database.
-            LoadingBox()
-        } else {
-            EntrantCampsiteDetailsScreen(
-                campsiteName = campsite?.name.orEmpty(),
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onEnterLotteryClick = {
-                    // TODO: Connect to lottery entry flow.
-                },
-                campsite = campsite?.toDetailsPreview()
-            )
-        }
+        EntrantCampsiteDetailsScreen(
+            campsiteViewModel = campsiteViewModel,
+            lotteryViewModel = lotteryViewModel,
+            campsiteId = campsiteId,
+            onBackClick = {
+                navController.popBackStack()
+            },
+            onEnterLotteryClick = {
+                // TODO: Connect to lottery entry flow.
+            }
+        )
     }
 
     composable(Routes.ENTRANT_CAMPSITE_LIST) {

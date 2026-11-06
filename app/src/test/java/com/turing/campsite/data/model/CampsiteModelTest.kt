@@ -36,8 +36,10 @@ class CampsiteModelTest {
 
     /** Verifies that construction retains every supplied campsite detail and rating value. */
     @Test fun constructorRetainsFullCampsiteDetails() {
-        val subject = Campsite("site-1", "owner-1", "Lake", "Alberta", "Tent site", 4,
-            listOf("lake", "pets"), "https://example.invalid/site.jpg", 4.5, 2, "Quiet after ten", fixed)
+        val subject = Campsite(id = "site-1", ownerId = "owner-1", name = "Lake", location = "Alberta",
+            description = "Tent site", maxOccupancy = 4, tags = listOf("lake", "pets"),
+            imageUrl = "https://example.invalid/site.jpg", ratingAverage = 4.5, ratingCount = 2,
+            rulesText = "Quiet after ten", createdAt = fixed)
         assertEquals("site-1", subject.id)
         assertEquals("owner-1", subject.ownerId)
         assertEquals("Lake", subject.name)

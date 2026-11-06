@@ -6,7 +6,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 
-import com.turing.campsite.ui.mapper.toProfilePreview
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
 import com.turing.campsite.ui.viewmodel.UserViewModel
 
@@ -76,7 +75,7 @@ fun NavGraphBuilder.adminGraph(
             onBackClick = {
                 navController.popBackStack()
             },
-            profiles = userViewModel.users.map { it.toProfilePreview() }
+            profiles = userViewModel.users
         )
     }
 
@@ -125,12 +124,9 @@ fun NavGraphBuilder.adminGraph(
         )
     }
 
-    composable("${Routes.ADMIN_CONVERSATION_HISTORY}/{conversationId}") { backStackEntry ->
-        val conversationId =
-            backStackEntry.arguments?.getString("conversationId").orEmpty()
-
+    composable("${Routes.ADMIN_CONVERSATION_HISTORY}/{conversationId}") {
+        // TODO: load the messages of this conversation. Sample messages are shown for now.
         AdminConversationHistoryScreen(
-            conversationId = conversationId,
             onBackClick = {
                 navController.popBackStack()
             }

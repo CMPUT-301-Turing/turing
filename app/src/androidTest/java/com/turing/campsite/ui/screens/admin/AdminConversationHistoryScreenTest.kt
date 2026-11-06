@@ -32,10 +32,8 @@ class AdminConversationHistoryScreenTest {
 
         composeTestRule.setContent {
 
-            // use "very cool message" just to show normal screen
+            // sample messages are used, so the normal screen shows
             AdminConversationHistoryScreen(
-
-                conversationId = "very cool message",
                 onBackClick = { clicked = true }
             )
         }
@@ -47,17 +45,17 @@ class AdminConversationHistoryScreenTest {
 
 
     /**
-     * Tests that bad id to show not found message
+     * Tests that no messages shows the not found message
      */
     @Test
     fun adminConversationHistoryScreen_showsNotFoundForBadId() {
 
         composeTestRule.setContent {
 
-            // using the wrong id to trigger not found message
+            // pass no messages to trigger the not found message
             AdminConversationHistoryScreen(
 
-                conversationId = "nikola-a-good-programmer",
+                messages = emptyList(),
                 onBackClick = {}
             )
         }

@@ -1,5 +1,6 @@
 package com.turing.campsite.ui.viewmodel
 
+import com.google.firebase.firestore.DocumentReference
 import com.turing.campsite.data.model.Lottery
 import com.turing.campsite.data.model.LotteryEntry
 import com.turing.campsite.data.model.LotteryStatus
@@ -36,7 +37,7 @@ class LotteryViewModelTest {
         Dispatchers.setMain(UnconfinedTestDispatcher()) // run background calls right away
         repository = mock(LotteryRepository::class.java)
         viewModel = LotteryViewModel(repository)
-        lottery = Lottery(id = "l1", ownerId = "owner1", winnerCount = 2)
+        lottery = Lottery(id = "l1", owner = "owner1", winnerCount = 2)
         entry = LotteryEntry(id = "u1", entrantId = "u1")
     }
 
@@ -66,9 +67,10 @@ class LotteryViewModelTest {
 
     @Test
     fun loadForOwner_ownerHasOne_fillsList() = runBlocking<Unit> {
-        doReturn(listOf(lottery)).`when`(repository).listByOwner("owner1")
+        val owner = mock(DocumentReference::class.java)
+        doReturn(listOf(lottery)).`when`(repository).listByOwner(owner)
 
-        viewModel.loadForOwner("owner1")
+        viewModel.loadForOwner(owner)
 
         assertEquals(listOf(lottery), viewModel.lotteries)
     }
@@ -134,8 +136,8 @@ class LotteryViewModelTest {
 
         viewModel.setStatus("l1", LotteryStatus.CLOSED)
 
-        verify(repository).setStatus("l1", LotteryStatus.CLOSED)
-        assertEquals(LotteryStatus.CLOSED, viewModel.lotteries[0].status)
+        verify(repository).setStatus("l1", "closed") // stored in lower case
+        assertEquals("closed", viewModel.lotteries[0].status)
     }
 
     @Test
