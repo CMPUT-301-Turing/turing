@@ -31,6 +31,8 @@ import androidx.compose.foundation.clickable
 
 import com.turing.campsite.PrimaryColor
 
+import com.turing.campsite.data.model.Campsite // real model
+
 private val CardBackground = Color(0xFFFCFBF7)
 private val CardBorder = Color(0xFFDFE2D8)
 private val ChipBackground = Color(0xFFE8EFE3)
@@ -62,15 +64,12 @@ data class CampsitePreview(
  */
 @Composable
 fun CampsiteCard(
-    campsite: CampsitePreview,
+    campsite: Campsite,
     showDeleteButton: Boolean = false,
     onClick: (() -> Unit)? = null
 ) {
-    val statusColor = if (campsite.statusLabel == "Inactive") {
-        SecondaryText
-    } else {
-        PrimaryColor
-    }
+
+    val statusColor = PrimaryColor
 
     Surface(
         modifier = Modifier
@@ -91,13 +90,14 @@ fun CampsiteCard(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Placeholder for campsite photograph
+
+
             Box(
                 modifier = Modifier
                     .width(84.dp)
                     .height(104.dp)
                     .background(
-                        campsite.imageColor,
+                        Color(0xFF82967A),
                         RoundedCornerShape(8.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -131,7 +131,7 @@ fun CampsiteCard(
                         )
 
                         Text(
-                            text = campsite.statusLabel,
+                            text = "Active",
                             fontSize = 10.sp,
                             color = statusColor
                         )
@@ -174,11 +174,17 @@ fun CampsiteCard(
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    InfoChip(campsite.peoplePerPitch)
-                    InfoChip(campsite.maxPeople)
+
+                    InfoChip("Max ${campsite.maxOccupancy} people")
                 }
 
-                InfoChip(campsite.rating)
+
+                val ratingText = if (campsite.ratingCount == 0) {
+                    "Not rated"
+                } else {
+                    "${campsite.ratingAverage}/5"
+                }
+                InfoChip(ratingText)
             }
         }
     }
