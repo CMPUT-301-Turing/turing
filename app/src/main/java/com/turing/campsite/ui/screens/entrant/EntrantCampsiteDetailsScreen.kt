@@ -42,9 +42,11 @@ private val SecondaryText = Color(0xFF7A8079)
 private val StarColor = Color(0xFFC19A49)
 
 /**
- * Temporary campsite details used until database integration.
+ * Campsite details shown on the entrant details screen.
+ *
+ * A pitch count of 0 and a blank people per pitch are not shown.
  */
-private data class EntrantCampsiteDetailsPreview(
+data class EntrantCampsiteDetailsPreview(
     val name: String,
     val location: String,
     val pitchCount: Int,
@@ -103,8 +105,9 @@ private val sampleCampsiteDetails = listOf(
 /**
  * Detailed campsite view for entrants.
  *
- * Displays temporary campsite information, reviews,
- * and lottery availability.
+ * Displays campsite information, reviews, and lottery
+ * availability. The campsite to show is passed in. When none
+ * is given the sample campsite with the given name is used.
  *
  * Navigation is handled through callbacks.
  */
@@ -112,12 +115,11 @@ private val sampleCampsiteDetails = listOf(
 fun EntrantCampsiteDetailsScreen(
     campsiteName: String,
     onBackClick: () -> Unit,
-    onEnterLotteryClick: () -> Unit = {}
-) {
-    val campsite = sampleCampsiteDetails.find {
+    onEnterLotteryClick: () -> Unit = {},
+    campsite: EntrantCampsiteDetailsPreview? = sampleCampsiteDetails.find {
         it.name == campsiteName
     }
-
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -206,7 +208,11 @@ fun EntrantCampsiteDetailsScreen(
                         )
 
                         Text(
-                            text = "${campsite.pitchCount} pitches · ${campsite.type}",
+                            text = if (campsite.pitchCount > 0) {
+                                "${campsite.pitchCount} pitches · ${campsite.type}"
+                            } else {
+                                campsite.type
+                            },
                             modifier = Modifier.weight(1f),
                             fontSize = 11.sp,
                             color = PrimaryColor
@@ -215,11 +221,13 @@ fun EntrantCampsiteDetailsScreen(
                         Column(
                             horizontalAlignment = Alignment.End
                         ) {
-                            Text(
-                                text = campsite.peoplePerPitch,
-                                fontSize = 10.sp,
-                                color = SecondaryText
-                            )
+                            if (campsite.peoplePerPitch.isNotBlank()) {
+                                Text(
+                                    text = campsite.peoplePerPitch,
+                                    fontSize = 10.sp,
+                                    color = SecondaryText
+                                )
+                            }
 
                             Text(
                                 text = campsite.maximumOccupancy,

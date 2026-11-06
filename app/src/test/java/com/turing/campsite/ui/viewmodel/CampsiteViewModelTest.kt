@@ -11,6 +11,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -18,6 +19,7 @@ import org.junit.Test
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.doThrow
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -102,6 +104,29 @@ class CampsiteViewModelTest {
 
         verify(repository).add(pinewood)
         assertEquals(listOf(pinewood), viewModel.campsites)
+    }
+
+    @Test
+    fun add_newCampsite_callsOnDoneAfterSaving() = runBlocking<Unit> {
+        doReturn("c1").`when`(repository).add(pinewood)
+        var done = false
+
+        viewModel.add(pinewood) { done = true }
+
+        assertTrue(done)
+    }
+
+    @Test
+    fun add_blankName_notSavedAndSetsError() = runBlocking<Unit> {
+        val unnamed = Campsite(ownerId = "owner-1", name = "  ")
+        var done = false
+
+        viewModel.add(unnamed) { done = true }
+
+        verify(repository, never()).add(unnamed)
+        assertEquals("Campsite needs a name", viewModel.errorMessage)
+        assertTrue(viewModel.campsites.isEmpty())
+        assertFalse(done) // onDone must not run when nothing was saved
     }
 
     @Test

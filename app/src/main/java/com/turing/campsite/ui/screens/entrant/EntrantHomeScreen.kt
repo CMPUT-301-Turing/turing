@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.turing.campsite.PrimaryColor
 
 import com.turing.campsite.ui.components.CampsiteCard
-import com.turing.campsite.ui.components.CampsitePreview
+import com.turing.campsite.data.model.Campsite
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
@@ -31,44 +31,44 @@ private val CardBorder = Color(0xFFDFE2D8)
 private val SecondaryText = Color(0xFF7A8079)
 
 private val sampleCampsites = listOf(
-    CampsitePreview(
+    Campsite(
         name = "Pinewood Retreat",
         location = "New Forest, Hampshire",
         description = "12 pitches · Woodland",
-        peoplePerPitch = "1–4 people/pitch",
-        maxPeople = "Max 48 people",
-        rating = "4.8/5",
-        imageColor = Color(0xFF82967A)
+        maxOccupancy = 48,
+        ratingAverage = 4.8,
+        ratingCount = 10
     ),
-    CampsitePreview(
+    Campsite(
         name = "Willowbank Meadow",
         location = "Bakewell, Peak District",
         description = "8 pitches · Riverside",
-        peoplePerPitch = "1–6 people/pitch",
-        maxPeople = "Max 48 people",
-        rating = "4.7/5",
-        imageColor = Color(0xFF9CAB91)
+        maxOccupancy = 48,
+        ratingAverage = 4.7,
+        ratingCount = 10
     ),
-    CampsitePreview(
+    Campsite(
         name = "Fellside Farm",
         location = "Keswick, Lake District",
         description = "6 pitches · Hill views",
-        peoplePerPitch = "1–4 people/pitch",
-        maxPeople = "Max 24 people",
-        rating = "4.6/5",
-        imageColor = Color(0xFF8B9D91)
+        maxOccupancy = 24,
+        ratingAverage = 4.6,
+        ratingCount = 10
     )
 )
 
 /**
  * Entrant home screen.
  *
- * Displays a static campsite browsing interface.
+ * Displays a campsite browsing interface. The campsites
+ * to show are passed in. Sample campsites are used when
+ * none are given.
  * Shared bottom navigation is managed by AppScaffold.
  */
 @Composable
 fun EntrantHomeScreen(
-    onCampsiteClick: (String) -> Unit
+    onCampsiteClick: (String) -> Unit,
+    campsites: List<Campsite> = sampleCampsites
 ) {
     LazyColumn(
         modifier = Modifier
@@ -180,7 +180,7 @@ fun EntrantHomeScreen(
                     )
 
                     Text(
-                        text = "${sampleCampsites.size} campsites",
+                        text = "${campsites.size} campsites",
                         fontSize = 11.sp,
                         color = SecondaryText
                     )
@@ -192,13 +192,14 @@ fun EntrantHomeScreen(
 
         // Campsite cards
         items(
-            items = sampleCampsites,
-            key = { it.name }
+            items = campsites,
+            key = { it.id.ifEmpty { it.name } }
         ) { campsite ->
             CampsiteCard(
                 campsite = campsite,
                 onClick = {
-                    onCampsiteClick(campsite.name)
+                    // Stored campsites are opened by id, sample ones by name.
+                    onCampsiteClick(campsite.id.ifEmpty { campsite.name })
                 }
             )
         }

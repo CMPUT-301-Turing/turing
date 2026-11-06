@@ -20,6 +20,10 @@ import com.google.firebase.Timestamp
  * @property ratingCount how many reviews the campsite has
  * @property rulesText the rules an entrant must accept before reserving
  * @property createdAt when the campsite document was created
+ * @property mapLocation the place used to show the campsite on a map
+ * @property cancellationPolicy the refund terms shown to entrants
+ * @property confirmationRequired true if entrants must accept the rules before reserving
+ * @property active true if the campsite is listed, false if the owner has paused it
  */
 data class Campsite(
     var id: String = "",
@@ -33,5 +37,9 @@ data class Campsite(
     var ratingAverage: Double = 0.0,
     var ratingCount: Int = 0,
     var rulesText: String = "",
-    var createdAt: Timestamp = Timestamp.now()
+    var createdAt: Timestamp = Timestamp.now(),
+    var mapLocation: String = "",
+    var cancellationPolicy: String = "",
+    var confirmationRequired: Boolean = true,
+    var active: Boolean = true
 )

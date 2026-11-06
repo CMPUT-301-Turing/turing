@@ -44,13 +44,17 @@ private val SecondaryText = Color(0xFF7A8079)
 private val DeleteColor = Color(0xFFB45345)
 
 /**
- * Temporary profile data for displaying the admin profile list.
+ * Profile data for displaying the admin profile list.
+ *
+ * The id is the database id of the user. It is empty for
+ * sample profiles that are not stored in the database.
  */
-private data class ProfilePreview(
+data class ProfilePreview(
     val name: String,
     val email: String,
     val role: String,
-    val initials: String
+    val initials: String,
+    val id: String = ""
 )
 
 private val sampleProfiles = listOf(
@@ -90,12 +94,14 @@ private val sampleProfiles = listOf(
  * Admin browse profiles screen.
  *
  * Displays a list of user profiles with search and deletion
- * placeholders. Navigation back to the admin home screen
- * is handled through a callback.
+ * placeholders. The profiles to show are passed in. Sample
+ * profiles are used when none are given. Navigation back to
+ * the admin home screen is handled through a callback.
  */
 @Composable
 fun AdminBrowseProfilesScreen(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    profiles: List<ProfilePreview> = sampleProfiles
 ) {
     Column(
         modifier = Modifier
@@ -177,7 +183,7 @@ fun AdminBrowseProfilesScreen(
             )
 
             Text(
-                text = "${sampleProfiles.size} profiles",
+                text = "${profiles.size} profiles",
                 fontSize = 11.sp,
                 color = SecondaryText
             )
@@ -191,8 +197,8 @@ fun AdminBrowseProfilesScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(
-                items = sampleProfiles,
-                key = { it.email }
+                items = profiles,
+                key = { it.id.ifEmpty { it.email } }
             ) { profile ->
                 AdminProfileCard(profile)
             }
