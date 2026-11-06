@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.sp
 import com.turing.campsite.PrimaryColor
 
 import com.turing.campsite.ui.components.CampsiteCard
-import com.turing.campsite.ui.components.CampsitePreview
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
 
 private val PageBackground = Color(0xFFF6F4ED)
@@ -32,11 +31,12 @@ private val CardBackground = Color(0xFFFCFBF7)
 private val CardBorder = Color(0xFFDFE2D8)
 private val SecondaryText = Color(0xFF7A8079)
 
-
 /**
  * Entrant home screen.
  *
- * Displays a static campsite browsing interface.
+ * Displays a campsite browsing interface. The campsites
+ * to show are passed in. Sample campsites are used when
+ * none are given.
  * Shared bottom navigation is managed by AppScaffold.
  */
 @Composable
@@ -44,11 +44,14 @@ fun EntrantHomeScreen(
     campsiteViewModel: CampsiteViewModel,
     onCampsiteClick: (String) -> Unit
 ) {
-    val campsites =  campsiteViewModel.campsites
+    val campsites = campsiteViewModel.campsites
 
-    LaunchedEffect(Unit) {campsiteViewModel.loadAll() }
+    LaunchedEffect(Unit) {
+        campsiteViewModel.loadAll()
+    }
 
-    val activeCampsites = campsites.filter{it.statusLabel.equals("Active", ignoreCase = true)}
+    val activeCampsites = campsites.filter { it.statusLabel.equals("Active", ignoreCase = true) }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()

@@ -1,4 +1,3 @@
-
 package com.turing.campsite.ui.screens.entrant
 
 import androidx.compose.foundation.BorderStroke
@@ -45,15 +44,11 @@ private val SecondaryText = Color(0xFF7A8079)
 private val StarColor = Color(0xFFC19A49)
 
 /**
- * Temporary campsite details used until database integration.
- */
-
-
-/**
  * Detailed campsite view for entrants.
  *
- * Displays temporary campsite information, reviews,
- * and lottery availability.
+ * Displays campsite information, reviews, and lottery
+ * availability. The campsite to show is passed in. When none
+ * is given the sample campsite with the given name is used.
  *
  * Navigation is handled through callbacks.
  */
@@ -64,7 +59,6 @@ fun EntrantCampsiteDetailsScreen(
     campsiteId: String,
     onBackClick: () -> Unit,
     onEnterLotteryClick: () -> Unit = {}
-
 ) {
     val campsite = campsiteViewModel.selectedCampsite
 
@@ -140,7 +134,7 @@ fun EntrantCampsiteDetailsScreen(
                         )
 
                         Text(
-                            text = "Owned by: ${campsite.owner}",
+                            text = campsite.location,
                             fontSize = 13.sp,
                             color = SecondaryText
                         )
@@ -166,7 +160,18 @@ fun EntrantCampsiteDetailsScreen(
                             color = PrimaryColor
                         )
 
+                        Column(
+                            horizontalAlignment = Alignment.End
+                        ) {
+                            Text(
+                                text = "Max ${campsite.maxOccupancy} people",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = PrimaryColor
+                            )
+                        }
                     }
+                    
                     Text(
                         text = "Status: ${campsite.statusLabel}",
                         fontSize = 12.sp,
@@ -192,6 +197,12 @@ fun EntrantCampsiteDetailsScreen(
                         )
                     }
 
+                    CampsiteLocationCard(campsite.location)
+
+                    CampsiteReviewsSection(
+                        rating = campsite.ratingAverage.toString(),
+                        reviewCount = campsite.ratingCount
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))

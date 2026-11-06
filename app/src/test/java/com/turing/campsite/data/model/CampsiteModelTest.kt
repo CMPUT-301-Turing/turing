@@ -28,6 +28,10 @@ class CampsiteModelTest {
         assertEquals(0, subject.ratingCount)
         assertEquals("", subject.rulesText)
         assertEquals(fixed, subject.createdAt)
+        assertEquals("", subject.mapLocation)
+        assertEquals("", subject.cancellationPolicy)
+        assertTrue(subject.confirmationRequired)
+        assertTrue(subject.active)
     }
 
     /** Verifies that construction retains every supplied campsite detail and rating value. */

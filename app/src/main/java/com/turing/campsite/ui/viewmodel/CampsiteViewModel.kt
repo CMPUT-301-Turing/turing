@@ -74,12 +74,20 @@ class CampsiteViewModel(
     /**
      * Saves a new campsite and adds it to campsites.
      *
+     * A campsite with a blank name is not saved and errorMessage is set instead.
+     *
      * @param campsite the campsite to add; its id is filled in by the repository
+     * @param onDone called after the campsite has been saved, for example to go back
      */
-    fun add(campsite: Campsite) {
+    fun add(campsite: Campsite, onDone: () -> Unit = {}) {
+        if (campsite.name.isBlank()) {
+            errorMessage = "Campsite needs a name"
+            return
+        }
         launchCall {
             repository.add(campsite)
             campsites = campsites + campsite
+            onDone()
         }
     }
 

@@ -62,6 +62,10 @@ Stories: 01.07.03, 01.08.01, 01.09.01, 01.10.01, 03.02.01, 03.05.01, 03.07.01, 0
 | `ratingCount` | number | |
 | `rulesText` | string | shown before confirming a reservation (US 02.11.01) |
 | `createdAt` | Timestamp | |
+| `mapLocation` | string | place shown on the map, typed in the campsite form |
+| `cancellationPolicy` | string | refund terms shown to entrants |
+| `confirmationRequired` | boolean | default `true`; entrant must accept the rules first |
+| `active` | boolean | default `true`; `false` when the owner pauses the campsite |
 
 Stories: 01.01.01 to 01.01.05, 01.12.01, 02.01.01 to 02.01.04, 02.02.01, 02.03.01, 03.01.01, 03.04.01
 
@@ -243,6 +247,9 @@ app/src/main/java/com/turing/campsite/
     │   ├── ReservationViewModel.kt
     │   ├── NotificationViewModel.kt
     │   └── MessageViewModel.kt
+    ├── mapper/           turn models into what screens draw, and forms into models
+    │   ├── CampsiteMapper.kt
+    │   └── UserMapper.kt
     └── ...                          screens, components, theme
 ```
 

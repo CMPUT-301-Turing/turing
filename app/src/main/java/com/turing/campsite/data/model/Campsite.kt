@@ -1,8 +1,6 @@
 package com.turing.campsite.data.model
 
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.PropertyName
-import com.google.j2objc.annotations.Property
 
 /**
  * Represents one document in the "campsites" collection.
@@ -22,12 +20,29 @@ import com.google.j2objc.annotations.Property
  * @property ratingCount how many reviews the campsite has
  * @property rulesText the rules an entrant must accept before reserving
  * @property createdAt when the campsite document was created
+ * @property mapLocation the place used to show the campsite on a map
+ * @property cancellationPolicy the refund terms shown to entrants
+ * @property confirmationRequired true if entrants must accept the rules before reserving
+ * @property active true if the campsite is listed, false if the owner has paused it
  */
 data class Campsite(
     var id: String = "",
+    var ownerId: String = "", // brought back because UI uses it
     var name: String = "",
-    var owner: String = "",
-    var capacity: Long = 0,
+    var location: String = "", // brought back because UI uses it
+    var owner: String = "", // added by teammate
+    var capacity: Long = 0, // added by teammate
     var description: String = "",
-    var statusLabel: String = "Active"
+    var maxOccupancy: Int = 0,
+    var tags: List<String> = emptyList(),
+    var imageUrl: String = "",
+    var ratingAverage: Double = 0.0,
+    var ratingCount: Int = 0,
+    var rulesText: String = "",
+    var createdAt: Timestamp = Timestamp.now(),
+    var mapLocation: String = "",
+    var cancellationPolicy: String = "",
+    var confirmationRequired: Boolean = true,
+    var active: Boolean = true,
+    var statusLabel: String = "Active" // added to fix the filter error
 )

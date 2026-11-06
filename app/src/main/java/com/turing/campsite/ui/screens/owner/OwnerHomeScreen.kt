@@ -1,4 +1,3 @@
-
 package com.turing.campsite.ui.screens.owner
 
 import androidx.compose.foundation.BorderStroke
@@ -38,7 +37,7 @@ import androidx.compose.ui.unit.sp
 
 import com.turing.campsite.PrimaryColor
 import com.turing.campsite.ui.components.CampsiteCard
-import com.turing.campsite.ui.components.CampsitePreview
+import com.turing.campsite.data.model.Campsite // real model
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
@@ -50,45 +49,38 @@ private val SecondaryText = Color(0xFF7A8079)
  * Temporary campsites belonging to the logged-in owner.
  */
 private val sampleCampsites = listOf(
-    CampsitePreview(
+
+    Campsite(
         name = "Pinewood Retreat",
         location = "New Forest, Hampshire",
         description = "12 pitches · Woodland",
-        peoplePerPitch = "1–4 people/pitch",
-        maxPeople = "Max 48 people",
-        rating = "4.8/5",
-        imageColor = Color(0xFF82967A),
-        statusLabel = "Active"
+        maxOccupancy = 48,
+        ratingAverage = 4.8,
+        ratingCount = 10
     ),
-    CampsitePreview(
+    Campsite(
         name = "Willowbank Meadow",
         location = "Bakewell, Peak District",
         description = "8 pitches · Riverside",
-        peoplePerPitch = "1–6 people/pitch",
-        maxPeople = "Max 48 people",
-        rating = "4.7/5",
-        imageColor = Color(0xFF9CAB91),
-        statusLabel = "Inactive"
+        maxOccupancy = 48,
+        ratingAverage = 4.7,
+        ratingCount = 15
     ),
-    CampsitePreview(
+    Campsite(
         name = "Fellside Farm",
         location = "Keswick, Lake District",
         description = "6 pitches · Hill views",
-        peoplePerPitch = "1–4 people/pitch",
-        maxPeople = "Max 24 people",
-        rating = "4.6/5",
-        imageColor = Color(0xFF8B9D91),
-        statusLabel = "Inactive"
+        maxOccupancy = 24,
+        ratingAverage = 4.6,
+        ratingCount = 8
     ),
-    CampsitePreview(
+    Campsite(
         name = "Heather Ridge",
         location = "Whitby, North Yorkshire",
         description = "10 pitches · Countryside",
-        peoplePerPitch = "1–4 people/pitch",
-        maxPeople = "Max 40 people",
-        rating = "4.5/5",
-        imageColor = Color(0xFF879F86),
-        statusLabel = "Active"
+        maxOccupancy = 40,
+        ratingAverage = 4.5,
+        ratingCount = 5
     )
 )
 
@@ -98,7 +90,8 @@ private val sampleCampsites = listOf(
  * Displays the owner's campsites and actions for
  * registering campsites and creating lotteries.
  *
- * Data is currently static.
+ * The campsites to show are passed in. Sample campsites
+ * are used when none are given.
  * Navigation is handled through callbacks.
  */
 @Composable
@@ -107,7 +100,8 @@ fun OwnerHomeScreen(
     onProfileClick: () -> Unit,
     onRegisterCampsiteClick: () -> Unit,
     onCreateLotteryClick: () -> Unit,
-    onCampsiteClick: () -> Unit
+    onCampsiteClick: () -> Unit,
+    campsites: List<Campsite> = sampleCampsites
 ) {
     Column(
         modifier = Modifier
@@ -251,7 +245,7 @@ fun OwnerHomeScreen(
             )
 
             Text(
-                text = "${sampleCampsites.size} campsites",
+                text = "${campsites.size} campsites",
                 fontSize = 12.sp,
                 color = SecondaryText
             )
@@ -266,8 +260,9 @@ fun OwnerHomeScreen(
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             items(
-                items = sampleCampsites,
-                key = { it.name }
+                items = campsites,
+                // Sample campsites have no id, so their name is used instead.
+                key = { it.id.ifEmpty { it.name } }
             ) { campsite ->
                 CampsiteCard(
                     campsite = campsite,

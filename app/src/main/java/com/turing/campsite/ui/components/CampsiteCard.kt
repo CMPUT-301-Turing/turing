@@ -31,28 +31,14 @@ import androidx.compose.foundation.clickable
 
 import com.turing.campsite.PrimaryColor
 
+import com.turing.campsite.data.model.Campsite // real model
+import java.util.Locale
+
 private val CardBackground = Color(0xFFFCFBF7)
 private val CardBorder = Color(0xFFDFE2D8)
 private val ChipBackground = Color(0xFFE8EFE3)
 private val SecondaryText = Color(0xFF7A8079)
 private val DeleteColor = Color(0xFFB45345)
-
-/**
- * Temporary campsite data used to populate campsite cards.
- *
- * The default status preserves existing entrant and admin
- * campsite cards that do not explicitly provide a status.
- */
-data class CampsitePreview(
-    val name: String,
-    val location: String,
-    val description: String,
-    val peoplePerPitch: String,
-    val maxPeople: String,
-    val rating: String,
-    val imageColor: Color,
-    val statusLabel: String = "Active now"
-)
 
 /**
  * Displays a preview of one campsite.
@@ -62,14 +48,16 @@ data class CampsitePreview(
  */
 @Composable
 fun CampsiteCard(
-    campsite: CampsitePreview,
+    campsite: Campsite,
     showDeleteButton: Boolean = false,
     onClick: (() -> Unit)? = null
 ) {
-    val statusColor = if (campsite.statusLabel == "Inactive") {
-        SecondaryText
-    } else {
+
+    // A campsite the owner has paused is shown as inactive.
+    val statusColor = if (campsite.active) {
         PrimaryColor
+    } else {
+        SecondaryText
     }
 
     Surface(
@@ -91,13 +79,14 @@ fun CampsiteCard(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Placeholder for campsite photograph
+
+
             Box(
                 modifier = Modifier
                     .width(84.dp)
                     .height(104.dp)
                     .background(
-                        campsite.imageColor,
+                        Color(0xFF82967A),
                         RoundedCornerShape(8.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -131,7 +120,7 @@ fun CampsiteCard(
                         )
 
                         Text(
-                            text = campsite.statusLabel,
+                            text = if (campsite.active) "Active" else "Inactive",
                             fontSize = 10.sp,
                             color = statusColor
                         )
@@ -165,20 +154,33 @@ fun CampsiteCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
+                // Tags are shown when there are any, otherwise the description.
                 Text(
-                    text = campsite.description,
+                    text = if (campsite.tags.isEmpty()) {
+                        campsite.description
+                    } else {
+                        campsite.tags.joinToString(" · ")
+                    },
                     fontSize = 11.sp,
-                    color = PrimaryColor
+                    color = PrimaryColor,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    InfoChip(campsite.peoplePerPitch)
-                    InfoChip(campsite.maxPeople)
+
+                    InfoChip("Max ${campsite.maxOccupancy} people")
                 }
 
-                InfoChip(campsite.rating)
+
+                val ratingText = if (campsite.ratingCount == 0) {
+                    "Not rated"
+                } else {
+                    String.format(Locale.US, "%.1f/5", campsite.ratingAverage)
+                }
+                InfoChip(ratingText)
             }
         }
     }
