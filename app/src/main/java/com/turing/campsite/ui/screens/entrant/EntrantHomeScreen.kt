@@ -14,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,41 +25,13 @@ import com.turing.campsite.PrimaryColor
 
 import com.turing.campsite.ui.components.CampsiteCard
 import com.turing.campsite.ui.components.CampsitePreview
+import com.turing.campsite.ui.viewmodel.CampsiteViewModel
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
 private val CardBorder = Color(0xFFDFE2D8)
 private val SecondaryText = Color(0xFF7A8079)
 
-private val sampleCampsites = listOf(
-    CampsitePreview(
-        name = "Pinewood Retreat",
-        location = "New Forest, Hampshire",
-        description = "12 pitches · Woodland",
-        peoplePerPitch = "1–4 people/pitch",
-        maxPeople = "Max 48 people",
-        rating = "4.8/5",
-        imageColor = Color(0xFF82967A)
-    ),
-    CampsitePreview(
-        name = "Willowbank Meadow",
-        location = "Bakewell, Peak District",
-        description = "8 pitches · Riverside",
-        peoplePerPitch = "1–6 people/pitch",
-        maxPeople = "Max 48 people",
-        rating = "4.7/5",
-        imageColor = Color(0xFF9CAB91)
-    ),
-    CampsitePreview(
-        name = "Fellside Farm",
-        location = "Keswick, Lake District",
-        description = "6 pitches · Hill views",
-        peoplePerPitch = "1–4 people/pitch",
-        maxPeople = "Max 24 people",
-        rating = "4.6/5",
-        imageColor = Color(0xFF8B9D91)
-    )
-)
 
 /**
  * Entrant home screen.
@@ -68,8 +41,14 @@ private val sampleCampsites = listOf(
  */
 @Composable
 fun EntrantHomeScreen(
+    campsiteViewModel: CampsiteViewModel,
     onCampsiteClick: (String) -> Unit
 ) {
+    val campsites =  campsiteViewModel.campsites
+
+    LaunchedEffect(Unit) {campsiteViewModel.loadAll() }
+
+    val activeCampsites = campsites.filter{it.statusLabel.equals("Active", ignoreCase = true)}
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -180,7 +159,7 @@ fun EntrantHomeScreen(
                     )
 
                     Text(
-                        text = "${sampleCampsites.size} campsites",
+                        text = "${activeCampsites.size} campsites",
                         fontSize = 11.sp,
                         color = SecondaryText
                     )
@@ -192,13 +171,13 @@ fun EntrantHomeScreen(
 
         // Campsite cards
         items(
-            items = sampleCampsites,
-            key = { it.name }
+            items = activeCampsites,
+            key = { it.id }
         ) { campsite ->
             CampsiteCard(
                 campsite = campsite,
                 onClick = {
-                    onCampsiteClick(campsite.name)
+                    onCampsiteClick(campsite.id)
                 }
             )
         }

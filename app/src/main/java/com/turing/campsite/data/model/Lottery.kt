@@ -39,8 +39,7 @@ data class Lottery(
     var bookingEnd: Timestamp? = null,
     var winnerCount: Int = 0,
     var waitlistCapacity: Int? = null,
-    var status: LotteryStatus = LotteryStatus.OPEN,
-    var createdAt: Timestamp = Timestamp.now()
+    var status: LotteryStatus = LotteryStatus.OPEN
 ) {
     /**
      * Checks whether entrants can still join the lottery at a given time.

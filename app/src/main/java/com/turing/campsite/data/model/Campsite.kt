@@ -1,6 +1,8 @@
 package com.turing.campsite.data.model
 
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.PropertyName
+import com.google.j2objc.annotations.Property
 
 /**
  * Represents one document in the "campsites" collection.
@@ -23,15 +25,9 @@ import com.google.firebase.Timestamp
  */
 data class Campsite(
     var id: String = "",
-    var ownerId: String = "",
     var name: String = "",
-    var location: String = "",
+    var owner: String = "",
+    var capacity: Long = 0,
     var description: String = "",
-    var maxOccupancy: Int = 0,
-    var tags: List<String> = emptyList(),
-    var imageUrl: String = "",
-    var ratingAverage: Double = 0.0,
-    var ratingCount: Int = 0,
-    var rulesText: String = "",
-    var createdAt: Timestamp = Timestamp.now()
+    var statusLabel: String = "Active"
 )
