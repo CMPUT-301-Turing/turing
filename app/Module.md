@@ -16,7 +16,8 @@ wrapper every screen is rendered inside.
 # Package com.turing.campsite.data.auth
 
 Device-based identity. `DeviceAuthManager` signs the device in anonymously with
-Firebase Auth and exposes the resulting user id.
+Firebase Auth and exposes the resulting user id. `TempUser` holds a fixed test
+uid until sign-in on launch is connected.
 
 # Package com.turing.campsite.data.model
 
@@ -27,3 +28,8 @@ Plain data classes mirroring the Firestore collections described in
 
 One repository per Firestore collection. All reads and writes to Firestore go
 through these classes; screens and view models never touch Firestore directly.
+
+# Package com.turing.campsite.ui.viewmodel
+
+One view model per repository. Screens read their lists from these and call
+their functions, so no composable calls a repository or Firestore directly.
