@@ -1,4 +1,3 @@
-
 package com.turing.campsite.ui.screens.owner
 
 import androidx.compose.foundation.BorderStroke
@@ -43,6 +42,9 @@ import com.turing.campsite.PrimaryColor
 import com.turing.campsite.ui.components.ConversationBubbleStyle
 import com.turing.campsite.ui.components.ConversationMessageBubble
 
+import com.turing.campsite.data.model.Message
+
+import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -52,71 +54,55 @@ private val ChipBackground = Color(0xFFE8EFE3)
 private val CardBorder = Color(0xFFDFE2D8)
 private val SecondaryText = Color(0xFF7A8079)
 
-/**
- * Temporary message data.
- *
- * isFromOwner determines the message's alignment.
- */
-private data class OwnerChatMessage(
-    val id: String,
-    val text: String,
-    val timestamp: String,
-    val isFromOwner: Boolean
-)
-
-/**
- * Sample conversation matching the Figma design.
- */
 private val sampleMessages = listOf(
-    OwnerChatMessage(
+    Message(
         id = "message-1",
-        text = "Hi! We're looking forward to our stay on 23 Oct. Would arriving around 3 PM work?",
-        timestamp = "9:32 AM",
-        isFromOwner = false
+        body = "Hi! We're looking forward to our stay on 23 Oct. Would arriving around 3 PM work?",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 3600000)),
+        fromUserId = "entrant-id"
     ),
-    OwnerChatMessage(
+    Message(
         id = "message-2",
-        text = "Hi Amelia! 3 PM is perfect. Arrival is between 2 PM and 6 PM. Just message me when you're close.",
-        timestamp = "9:34 AM",
-        isFromOwner = true
+        body = "Hi Amelia! 3 PM is perfect. Arrival is between 2 PM and 6 PM. Just message me when you're close.",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 3000000)),
+        fromUserId = "owner-id"
     ),
-    OwnerChatMessage(
+    Message(
         id = "message-3",
-        text = "Lovely, thank you! We'll have our dog with us. Is that okay?",
-        timestamp = "9:36 AM",
-        isFromOwner = false
+        body = "Lovely, thank you! We'll have our dog with us. Is that okay?",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 2400000)),
+        fromUserId = "entrant-id"
     ),
-    OwnerChatMessage(
+    Message(
         id = "message-4",
-        text = "Of course! Please keep your dog on a lead. Looking forward to welcoming you on the 23rd.",
-        timestamp = "9:38 AM",
-        isFromOwner = true
+        body = "Of course! Please keep your dog on a lead. Looking forward to welcoming you on the 23rd.",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 1800000)),
+        fromUserId = "owner-id"
     ),
-    OwnerChatMessage(
+    Message(
         id = "message-5",
-        text = "Will do. See you on the 23rd!",
-        timestamp = "9:40 AM",
-        isFromOwner = false
+        body = "Will do. See you on the 23rd!",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 1200000)),
+        fromUserId = "entrant-id"
     )
 )
 
-/**
- * Messaging screen between a campsite owner and entrant.
- *
- * Uses the shared ConversationMessageBubble in CHAT mode.
- *
- * Sending messages updates local state only.
- * Database synchronization will be implemented later.
- */
+private fun formatTime(timestamp: Timestamp?): String {
+    if (timestamp == null) return ""
+    val date = timestamp.toDate()
+    return SimpleDateFormat("h:mm a", Locale.getDefault()).format(date)
+}
+
 @Composable
 fun OwnerMessageScreen(
     onBackClick: () -> Unit,
+    currentUserId: String = "owner-id",
     entrantName: String = "Amelia Clarke",
     campsiteName: String = "Riverbend Glade",
     reservationDates: String = "23–25 Oct 2026"
 ) {
     val messages = remember {
-        mutableStateListOf<OwnerChatMessage>().apply {
+        mutableStateListOf<Message>().apply {
             addAll(sampleMessages)
         }
     }
@@ -139,17 +125,12 @@ fun OwnerMessageScreen(
         val text = messageInput.trim()
 
         if (text.isNotEmpty()) {
-            val timestamp = SimpleDateFormat(
-                "h:mm a",
-                Locale.getDefault()
-            ).format(Date())
-
             messages.add(
-                OwnerChatMessage(
+                Message(
                     id = "local-${messages.size}",
-                    text = text,
-                    timestamp = timestamp,
-                    isFromOwner = true
+                    body = text,
+                    createdAt = Timestamp.now(),
+                    fromUserId = currentUserId
                 )
             )
 
@@ -271,11 +252,13 @@ fun OwnerMessageScreen(
                 items = messages,
                 key = { it.id }
             ) { message ->
+                val isFromOwner = message.fromUserId == currentUserId
+
                 ConversationMessageBubble(
-                    message = message.text,
-                    timestamp = message.timestamp,
+                    message = message.body,
+                    timestamp = formatTime(message.createdAt),
                     senderLabel = "",
-                    alignRight = message.isFromOwner,
+                    alignRight = isFromOwner,
                     style = ConversationBubbleStyle.CHAT
                 )
             }
@@ -294,12 +277,6 @@ fun OwnerMessageScreen(
     }
 }
 
-/**
- * Fixed message input and send button.
- *
- * The parent screen manages the draft text and
- * handles the send action.
- */
 @Composable
 private fun OwnerMessageComposer(
     message: String,

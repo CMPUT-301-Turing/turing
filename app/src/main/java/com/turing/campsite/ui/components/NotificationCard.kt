@@ -1,4 +1,3 @@
-
 package com.turing.campsite.ui.components
 
 import androidx.compose.foundation.BorderStroke
@@ -15,6 +14,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ConfirmationNumber
+import androidx.compose.material.icons.outlined.EmojiEvents
+import androidx.compose.material.icons.outlined.EventAvailable
+import androidx.compose.material.icons.outlined.EventBusy
+import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,45 +34,47 @@ import androidx.compose.ui.unit.sp
 
 import com.turing.campsite.PrimaryColor
 
+
+import com.turing.campsite.data.model.Notification
+import com.turing.campsite.data.model.NotificationType
+import java.text.SimpleDateFormat
+import java.util.Locale
+
 private val CardBackground = Color(0xFFFCFBF7)
 private val EarlierCardBackground = Color(0xFFF3F2EC)
 private val CardBorder = Color(0xFFDFE2D8)
 private val IconBackground = Color(0xFFE8EFE3)
 private val SecondaryText = Color(0xFF7A8079)
 
-/**
- * Temporary notification data used to populate notification cards.
- *
- * campsiteName represents the related campsite or lottery
- * until the actual notification model is implemented.
- */
-data class NotificationPreview(
-    val title: String,
-    val campsiteName: String,
-    val message: String,
-    val timestamp: String,
-    val icon: ImageVector,
-    val isUnread: Boolean
-)
-
-/**
- * Shared notification card for received and sent notifications.
- *
- * Received notifications preserve read/unread styling.
- * Sent notifications use a compact audit-history layout.
- */
 @Composable
 fun NotificationCard(
-    notification: NotificationPreview,
+    notification: Notification,
     isSentNotification: Boolean = false
 ) {
+
+    val isUnread = !notification.read
+
     val backgroundColor = if (
-        isSentNotification || notification.isUnread
+        isSentNotification || isUnread
     ) {
         CardBackground
     } else {
         EarlierCardBackground
     }
+
+
+    val icon = when (notification.type) {
+        NotificationType.LOTTERY_WON -> Icons.Outlined.EmojiEvents
+        NotificationType.LOTTERY_LOST -> Icons.Outlined.ConfirmationNumber
+        NotificationType.RESERVATION_CONFIRMED -> Icons.Outlined.EventAvailable
+        NotificationType.RESERVATION_CANCELLED -> Icons.Outlined.EventBusy
+        NotificationType.OWNER_MESSAGE -> Icons.Outlined.NotificationsNone
+    }
+
+    val timestampText = notification.createdAt?.let {
+        SimpleDateFormat("dd MMM\nHH:mm", Locale.getDefault()).format(it.toDate())
+    } ?: ""
+
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -82,10 +87,9 @@ fun NotificationCard(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.Top
         ) {
-            // Notification icon
             if (isSentNotification) {
                 Icon(
-                    imageVector = notification.icon,
+                    imageVector = icon,
                     contentDescription = null,
                     modifier = Modifier.size(22.dp),
                     tint = PrimaryColor
@@ -98,7 +102,7 @@ fun NotificationCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = notification.icon,
+                        imageVector = icon,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
                         tint = PrimaryColor
@@ -106,13 +110,11 @@ fun NotificationCard(
                 }
             }
 
-            // Notification content
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 if (isSentNotification) {
-                    // Sent notification title and timestamp
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -129,7 +131,7 @@ fun NotificationCard(
                         )
 
                         Text(
-                            text = notification.timestamp,
+                            text = timestampText,
                             fontSize = 10.sp,
                             lineHeight = 13.sp,
                             textAlign = TextAlign.End,
@@ -139,7 +141,6 @@ fun NotificationCard(
 
                     Spacer(modifier = Modifier.size(2.dp))
 
-                    // Associated lottery
                     Surface(
                         shape = RoundedCornerShape(5.dp),
                         color = IconBackground
@@ -160,7 +161,7 @@ fun NotificationCard(
                             )
 
                             Text(
-                                text = notification.campsiteName,
+                                text = "Campsite Lottery",
                                 fontSize = 10.sp,
                                 color = PrimaryColor,
                                 maxLines = 1,
@@ -169,11 +170,10 @@ fun NotificationCard(
                         }
                     }
                 } else {
-                    // Received notification title
                     Text(
                         text = notification.title,
                         fontSize = 13.sp,
-                        fontWeight = if (notification.isUnread) {
+                        fontWeight = if (isUnread) {
                             FontWeight.SemiBold
                         } else {
                             FontWeight.Normal
@@ -182,32 +182,29 @@ fun NotificationCard(
                     )
 
                     Text(
-                        text = notification.campsiteName,
+                        text = "Campsite Lottery",
                         fontSize = 12.sp,
                         color = PrimaryColor
                     )
                 }
 
-                // Notification message
                 Text(
-                    text = notification.message,
+                    text = notification.body,
                     fontSize = 11.sp,
                     lineHeight = 15.sp,
                     color = SecondaryText
                 )
 
-                // Received notifications show their timestamp below
                 if (!isSentNotification) {
                     Text(
-                        text = notification.timestamp,
+                        text = timestampText,
                         fontSize = 10.sp,
                         color = SecondaryText
                     )
                 }
             }
 
-            // Only received notifications can display unread status
-            if (!isSentNotification && notification.isUnread) {
+            if (!isSentNotification && isUnread) {
                 Box(
                     modifier = Modifier
                         .padding(top = 4.dp)

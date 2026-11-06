@@ -1,4 +1,3 @@
-
 package com.turing.campsite.ui.screens.owner
 
 import androidx.compose.foundation.BorderStroke
@@ -39,6 +38,15 @@ import androidx.compose.ui.unit.sp
 
 import com.turing.campsite.PrimaryColor
 
+// reservation model
+import com.turing.campsite.data.model.Reservation
+import com.turing.campsite.data.model.ReservationStatus
+
+// timestamp
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
 private val CardBorder = Color(0xFFDFE2D8)
@@ -77,95 +85,85 @@ private enum class ReservationSection(
 /**
  * Temporary reservation information for the owner.
  */
-private data class OwnerReservationPreview(
-    val id: String,
-    val entrantName: String,
-    val campsiteName: String,
-    val dateRange: String,
-    val section: ReservationSection
-)
 
-/**
- * Sample reservations matching the three Figma views.
- */
 private val sampleReservations = listOf(
-    // Active reservations
-    OwnerReservationPreview(
+    Reservation(
         id = "reservation-1",
-        entrantName = "Oliver Bennett",
-        campsiteName = "Pinewood Retreat",
-        dateRange = "21–23 Oct 2026",
-        section = ReservationSection.ACTIVE
+        entrantId = "Oliver Bennett",
+        campsiteId = "Pinewood Retreat",
+        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
+        status = ReservationStatus.ACTIVE
     ),
-    OwnerReservationPreview(
+    Reservation(
         id = "reservation-2",
-        entrantName = "Amelia Clarke",
-        campsiteName = "Riverbend Glade",
-        dateRange = "23–25 Oct 2026",
-        section = ReservationSection.ACTIVE
+        entrantId = "Amelia Clarke",
+        campsiteId = "Riverbend Glade",
+        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
+        status = ReservationStatus.ACTIVE
     ),
-    OwnerReservationPreview(
+    Reservation(
         id = "reservation-3",
-        entrantName = "Noah Williams",
-        campsiteName = "Riverbend Glade",
-        dateRange = "30–31 Oct 2026",
-        section = ReservationSection.ACTIVE
+        entrantId = "Noah Williams",
+        campsiteId = "Riverbend Glade",
+        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
+        status = ReservationStatus.ACTIVE
     ),
-
-    // Past reservations
-    OwnerReservationPreview(
+    Reservation(
         id = "reservation-4",
-        entrantName = "Sophie Turner",
-        campsiteName = "Pinewood Retreat",
-        dateRange = "17–19 Oct 2026",
-        section = ReservationSection.PAST
+        entrantId = "Sophie Turner",
+        campsiteId = "Pinewood Retreat",
+        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
+        status = ReservationStatus.COMPLETED
     ),
-    OwnerReservationPreview(
+    Reservation(
         id = "reservation-5",
-        entrantName = "Ethan Brooks",
-        campsiteName = "Willowbank Meadow",
-        dateRange = "8–10 Oct 2026",
-        section = ReservationSection.PAST
+        entrantId = "Ethan Brooks",
+        campsiteId = "Willowbank Meadow",
+        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
+        status = ReservationStatus.COMPLETED
     ),
-    OwnerReservationPreview(
+    Reservation(
         id = "reservation-6",
-        entrantName = "Isla Morgan",
-        campsiteName = "Riverbend Glade",
-        dateRange = "25–27 Sep 2026",
-        section = ReservationSection.PAST
+        entrantId = "Isla Morgan",
+        campsiteId = "Riverbend Glade",
+        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
+        status = ReservationStatus.COMPLETED
     ),
-
-    // Cancelled reservations
-    OwnerReservationPreview(
+    Reservation(
         id = "reservation-7",
-        entrantName = "Grace Wilson",
-        campsiteName = "Pinewood Retreat",
-        dateRange = "24–26 Oct 2026",
-        section = ReservationSection.CANCELLED
+        entrantId = "Grace Wilson",
+        campsiteId = "Pinewood Retreat",
+        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
+        status = ReservationStatus.CANCELLED
     ),
-    OwnerReservationPreview(
+    Reservation(
         id = "reservation-8",
-        entrantName = "Jack Davies",
-        campsiteName = "Willowbank Meadow",
-        dateRange = "26–28 Sep 2026",
-        section = ReservationSection.CANCELLED
+        entrantId = "Jack Davies",
+        campsiteId = "Willowbank Meadow",
+        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
+        status = ReservationStatus.CANCELLED
     ),
-    OwnerReservationPreview(
+    Reservation(
         id = "reservation-9",
-        entrantName = "Freya Ellis",
-        campsiteName = "Riverbend Glade",
-        dateRange = "18–20 Sep 2026",
-        section = ReservationSection.CANCELLED
+        entrantId = "Freya Ellis",
+        campsiteId = "Riverbend Glade",
+        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
+        status = ReservationStatus.CANCELLED
     )
 )
 
+
+private fun formatDate(timestamp: com.google.firebase.Timestamp?): String {
+    if (timestamp == null) return "No date"
+
+    val date = timestamp.toDate()
+
+    val format = SimpleDateFormat("dd MMM", Locale.getDefault())
+    return format.format(date)
+}
+
 /**
  * Displays reservations for campsites owned by the user.
- *
- * One screen supports Active, Past, and Cancelled views.
- * Message and Reject actions are handled through callbacks.
- *
- * Reservation data is temporary.
  */
 @Composable
 fun OwnerCampsiteHistoryScreen(
@@ -177,8 +175,13 @@ fun OwnerCampsiteHistoryScreen(
         mutableStateOf(ReservationSection.ACTIVE)
     }
 
+
     val visibleReservations = sampleReservations.filter {
-        it.section == selectedSection
+        when (selectedSection) {
+            ReservationSection.ACTIVE -> it.status == ReservationStatus.ACTIVE
+            ReservationSection.PAST -> it.status == ReservationStatus.COMPLETED
+            ReservationSection.CANCELLED -> it.status == ReservationStatus.CANCELLED || it.status == ReservationStatus.REJECTED
+        }
     }
 
     Column(
@@ -365,13 +368,10 @@ private fun ReservationSectionTabs(
 
 /**
  * Displays a reservation for the campsite owner.
- *
- * Active reservations include Message and Reject buttons.
- * Past and cancelled reservations include Message only.
  */
 @Composable
 private fun OwnerReservationCard(
-    reservation: OwnerReservationPreview,
+    reservation: Reservation,
     onMessageClick: () -> Unit,
     onRejectClick: () -> Unit
 ) {
@@ -395,26 +395,26 @@ private fun OwnerReservationCard(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = reservation.entrantName,
+                        text = reservation.entrantId,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = PrimaryColor
                     )
 
                     Text(
-                        text = reservation.campsiteName,
+                        text = reservation.campsiteId,
                         fontSize = 12.sp,
                         color = PrimaryColor
                     )
 
                     Text(
-                        text = reservation.dateRange,
+                        text = formatDate(reservation.startDate),
                         fontSize = 11.sp,
                         color = SecondaryText
                     )
                 }
 
-                ReservationStatusBadge(reservation.section)
+                ReservationStatusBadge(reservation.status)
             }
 
             Surface(
@@ -436,7 +436,8 @@ private fun OwnerReservationCard(
                     modifier = Modifier.weight(1f)
                 )
 
-                if (reservation.section == ReservationSection.ACTIVE) {
+
+                if (reservation.status == ReservationStatus.ACTIVE) {
                     ReservationActionButton(
                         label = "Reject",
                         icon = Icons.Outlined.Close,
@@ -455,26 +456,24 @@ private fun OwnerReservationCard(
  */
 @Composable
 private fun ReservationStatusBadge(
-    section: ReservationSection
+    status: ReservationStatus
 ) {
     val label: String
     val backgroundColor: Color
     val textColor: Color
 
-    when (section) {
-        ReservationSection.ACTIVE -> {
+    when (status) {
+        ReservationStatus.ACTIVE -> {
             label = "Confirmed"
             backgroundColor = ChipBackground
             textColor = PrimaryColor
         }
-
-        ReservationSection.PAST -> {
+        ReservationStatus.COMPLETED -> {
             label = "Completed"
             backgroundColor = CompletedBackground
             textColor = PrimaryColor
         }
-
-        ReservationSection.CANCELLED -> {
+        else -> { // CANCELLED or REJECTED
             label = "Cancelled"
             backgroundColor = CancelledBackground
             textColor = RejectColor
@@ -500,8 +499,6 @@ private fun ReservationStatusBadge(
 
 /**
  * Shared action button within a reservation card.
- *
- * Destructive actions use a red background and text.
  */
 @Composable
 private fun ReservationActionButton(

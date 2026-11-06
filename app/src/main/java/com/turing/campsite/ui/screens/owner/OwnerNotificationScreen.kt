@@ -11,7 +11,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ConfirmationNumber
 import androidx.compose.material.icons.outlined.ExpandMore
-import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,68 +28,67 @@ import androidx.compose.foundation.BorderStroke
 
 import com.turing.campsite.PrimaryColor
 import com.turing.campsite.ui.components.NotificationCard
-import com.turing.campsite.ui.components.NotificationPreview
+import com.turing.campsite.data.model.Notification
+import com.turing.campsite.data.model.NotificationType
+import com.turing.campsite.data.model.Lottery
+import com.google.firebase.Timestamp
+
+import java.util.Date
+
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
 private val CardBorder = Color(0xFFDFE2D8)
 private val SecondaryText = Color(0xFF7A8079)
-private val FieldBackground = Color(0xFFF4F2EB)
+
 
 /**
  * Temporary history of notifications sent by the owner.
  */
 private val sampleNotifications = listOf(
-    NotificationPreview(
+    Notification(
+        id = "notification-1",
         title = "Registration reminder",
-        campsiteName = "Pinewood + Riverbend waitlist",
-        message = "Registration closes 14 Nov at 23:59 GMT. There's still time to update your entry.",
-        timestamp = "Sent 10 Nov\n09:00",
-        icon = Icons.Outlined.NotificationsNone,
-        isUnread = false
+        body = "Registration closes 14 Nov at 23:59 GMT. There's still time to update your entry.",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 86400000)),
+        type = NotificationType.OWNER_MESSAGE,
+        read = false
     ),
-    NotificationPreview(
+    Notification(
+        id = "notification-2",
         title = "Your November stay",
-        campsiteName = "Pinewood + Riverbend waitlist",
-        message = "Planning ahead? The booking period for this lottery is 16–23 Nov 2026.",
-        timestamp = "Sent 08 Nov\n14:30",
-        icon = Icons.Outlined.NotificationsNone,
-        isUnread = false
+        body = "Planning ahead? The booking period for this lottery is 16–23 Nov 2026.",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 172800000)),
+        type = NotificationType.OWNER_MESSAGE,
+        read = false
     ),
-    NotificationPreview(
+    Notification(
+        id = "notification-3",
         title = "How the draw works",
-        campsiteName = "Pinewood + Riverbend waitlist",
-        message = "The automatic draw is on 15 Nov at 00:00 GMT, with 10 winners across both campsites.",
-        timestamp = "Sent 05 Nov\n10:15",
-        icon = Icons.Outlined.NotificationsNone,
-        isUnread = false
+        body = "The automatic draw is on 15 Nov at 00:00 GMT, with 10 winners across both campsites.",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 259200000)),
+        type = NotificationType.OWNER_MESSAGE,
+        read = false
     ),
-    NotificationPreview(
+    Notification(
+        id = "notification-4",
         title = "The waitlist is open",
-        campsiteName = "Pinewood + Riverbend waitlist",
-        message = "Welcome to our November lottery. Registration is open until 14 Nov 2026.",
-        timestamp = "Sent 01 Nov\n08:00",
-        icon = Icons.Outlined.NotificationsNone,
-        isUnread = false
+        body = "Welcome to our November lottery. Registration is open until 14 Nov 2026.",
+        createdAt = Timestamp(Date(System.currentTimeMillis() - 345600000)),
+        type = NotificationType.OWNER_MESSAGE,
+        read = false
     )
 )
 
 /**
  * Temporary lottery option for notification creation.
  */
-private data class NotificationLotteryPreview(
-    val id: String,
-    val name: String,
-    val description: String,
-    val recipientCount: Int
-)
-
 private val sampleLotteries = listOf(
-    NotificationLotteryPreview(
+    Lottery(
         id = "november-lottery",
-        name = "Pinewood Retreat + Riverbend Glade",
-        description = "November 2026 · Combined lottery",
-        recipientCount = 12
+        campsiteIds = listOf("Pinewood Retreat", "Riverbend Glade"),
+        winnerCount = 12,
+        status = com.turing.campsite.data.model.LotteryStatus.OPEN
     )
 )
 
@@ -192,7 +190,7 @@ fun OwnerNotificationScreen(
             ) {
                 items(
                     items = sampleNotifications,
-                    key = { it.title }
+                    key = { it.id }
                 ) { notification ->
                     NotificationCard(
                         notification = notification,
@@ -353,14 +351,14 @@ private fun NewNotificationSheet(
                             verticalArrangement = Arrangement.spacedBy(3.dp)
                         ) {
                             Text(
-                                text = selectedLottery.name,
+                                text = selectedLottery.campsiteIds.joinToString(" + "),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = PrimaryColor
                             )
 
                             Text(
-                                text = selectedLottery.description,
+                                text = "November 2026 · Combined lottery",
                                 fontSize = 11.sp,
                                 color = SecondaryText
                             )
@@ -387,13 +385,13 @@ private fun NewNotificationSheet(
                             text = {
                                 Column {
                                     Text(
-                                        text = lottery.name,
+                                        text = lottery.campsiteIds.joinToString(" + "),
                                         fontSize = 12.sp,
                                         color = PrimaryColor
                                     )
 
                                     Text(
-                                        text = lottery.description,
+                                        text = "November 2026 · Combined lottery",
                                         fontSize = 11.sp,
                                         color = SecondaryText
                                     )
@@ -409,7 +407,7 @@ private fun NewNotificationSheet(
             }
 
             Text(
-                text = "Send goes to all ${selectedLottery.recipientCount} " +
+                text = "Send goes to all ${selectedLottery.winnerCount} " +
                         "waitlist entrants in this combined lottery.",
                 fontSize = 11.sp,
                 lineHeight = 15.sp,
