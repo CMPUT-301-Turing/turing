@@ -1,5 +1,6 @@
 package com.turing.campsite.data.repository
 
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.turing.campsite.data.model.EntryResult
 import com.turing.campsite.data.model.Lottery
@@ -39,9 +40,14 @@ class LotteryRepository {
      * @return the lotteries whose status is OPEN
      */
     suspend fun listOpen(): List<Lottery> {
-        val snapshot = lotteries.whereEqualTo("status", LotteryStatus.OPEN.name).get().await()
+        val snapshot = lotteries
+            .whereEqualTo("status", "open")
+            .get()
+            .await()
         return snapshot.documents.mapNotNull { doc ->
-            doc.toObject(Lottery::class.java)?.also { it.id = doc.id }
+            doc.toObject(Lottery :: class.java)?.also{
+                it.id = doc.id
+            }
         }
     }
 
@@ -51,10 +57,16 @@ class LotteryRepository {
      * @param ownerId the uid of the owner
      * @return the lotteries whose ownerId matches
      */
-    suspend fun listByOwner(ownerId: String): List<Lottery> {
-        val snapshot = lotteries.whereEqualTo("ownerId", ownerId).get().await()
+    suspend fun listByOwner(ownerReference: DocumentReference): List<Lottery> {
+        val  snapshot =lotteries
+            .whereEqualTo("owner", ownerReference)
+            .get()
+            .await()
+
         return snapshot.documents.mapNotNull { doc ->
-            doc.toObject(Lottery::class.java)?.also { it.id = doc.id }
+            doc.toObject(Lottery::class.java)?.also {
+                it.id = doc.id
+            }
         }
     }
 
@@ -86,8 +98,10 @@ class LotteryRepository {
      * @param lotteryId the Firestore document id of the lottery
      * @param status the new status
      */
-    suspend fun setStatus(lotteryId: String, status: LotteryStatus) {
-        lotteries.document(lotteryId).update("status", status.name).await()
+    suspend fun setStatus(lotteryId: String, status: String) {
+        lotteries.document(lotteryId)
+            .update("status", status.lowercase())
+            .await()
     }
 
     /**
@@ -102,12 +116,29 @@ class LotteryRepository {
      */
     suspend fun join(lotteryId: String, entrantId: String): Boolean {
         val lottery = get(lotteryId) ?: return false
-        val capacity = lottery.waitlistCapacity
-        if (capacity != null && listEntries(lotteryId).size >= capacity) {
+
+        if (!lottery.isRegistrationOpen())
+        {
             return false
         }
-        val entry = LotteryEntry(id = entrantId, entrantId = entrantId)
-        entries(lotteryId).document(entrantId).set(entry).await()
+
+        if(lottery.waitlistCap > 0 && listEntries(lotteryId).size.toLong() >= lottery.waitlistCap){
+            return false
+        }
+
+        if(hasJoined(lotteryId, entrantId)) {
+            return false
+        }
+
+        val entry = LotteryEntry(
+            id = entrantId,
+            entrantId =  entrantId
+        )
+
+        entries(lotteryId)
+            .document(entrantId)
+            .set(entry)
+            .await()
         return true
     }
 

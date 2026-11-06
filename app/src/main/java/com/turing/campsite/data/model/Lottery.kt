@@ -31,15 +31,15 @@ enum class LotteryStatus { OPEN, DRAWN, CLOSED }
  */
 data class Lottery(
     var id: String = "",
-    var ownerId: String = "",
-    var campsiteIds: List<String> = emptyList(),
+    var owner: String = "",
+    var campsiteID: String,
     var registrationStart: Timestamp? = null,
     var registrationEnd: Timestamp? = null,
     var bookingStart: Timestamp? = null,
     var bookingEnd: Timestamp? = null,
     var winnerCount: Int = 0,
-    var waitlistCapacity: Int? = null,
-    var status: LotteryStatus = LotteryStatus.OPEN
+    var waitlistCap: Long = 0,
+    var status: String = "closed"
 ) {
     /**
      * Checks whether entrants can still join the lottery at a given time.
@@ -51,9 +51,9 @@ data class Lottery(
      * @param now the time to check against
      * @return true if an entrant could join at that time, false otherwise
      */
-    fun isRegistrationOpen(now: Timestamp): Boolean {
+    fun isRegistrationOpen(now: Timestamp = Timestamp.now()): Boolean {
         val start = registrationStart ?: return false
         val end = registrationEnd ?: return false
-        return status == LotteryStatus.OPEN && now >= start && now <= end
+        return status.equals("open", ignoreCase = true) && now >=start && now <= end
     }
 }

@@ -23,6 +23,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -33,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 import com.turing.campsite.PrimaryColor
+import com.turing.campsite.ui.viewmodel.CampsiteViewModel
+import com.turing.campsite.ui.viewmodel.LotteryViewModel
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
@@ -44,61 +47,7 @@ private val StarColor = Color(0xFFC19A49)
 /**
  * Temporary campsite details used until database integration.
  */
-private data class EntrantCampsiteDetailsPreview(
-    val name: String,
-    val location: String,
-    val pitchCount: Int,
-    val type: String,
-    val peoplePerPitch: String,
-    val maximumOccupancy: String,
-    val heading: String,
-    val description: String,
-    val rating: String,
-    val reviewCount: Int,
-    val imageColor: Color
-)
 
-private val sampleCampsiteDetails = listOf(
-    EntrantCampsiteDetailsPreview(
-        name = "Pinewood Retreat",
-        location = "New Forest, Hampshire",
-        pitchCount = 12,
-        type = "Woodland",
-        peoplePerPitch = "1–4 people/pitch",
-        maximumOccupancy = "Max 48 people",
-        heading = "A quiet corner of the forest",
-        description = "Settle beneath the pines at this peaceful, small-scale campsite. Wake to birdsong, wander woodland trails and unwind under the stars.",
-        rating = "4.8",
-        reviewCount = 24,
-        imageColor = Color(0xFF82967A)
-    ),
-    EntrantCampsiteDetailsPreview(
-        name = "Willowbank Meadow",
-        location = "Bakewell, Peak District",
-        pitchCount = 8,
-        type = "Riverside",
-        peoplePerPitch = "1–6 people/pitch",
-        maximumOccupancy = "Max 48 people",
-        heading = "A peaceful riverside escape",
-        description = "Relax by the water and enjoy the surrounding countryside.",
-        rating = "4.7",
-        reviewCount = 18,
-        imageColor = Color(0xFF9CAB91)
-    ),
-    EntrantCampsiteDetailsPreview(
-        name = "Fellside Farm",
-        location = "Keswick, Lake District",
-        pitchCount = 6,
-        type = "Hill views",
-        peoplePerPitch = "1–4 people/pitch",
-        maximumOccupancy = "Max 24 people",
-        heading = "Camping among the hills",
-        description = "Enjoy open countryside and views of the surrounding fells.",
-        rating = "4.6",
-        reviewCount = 12,
-        imageColor = Color(0xFF8B9D91)
-    )
-)
 
 /**
  * Detailed campsite view for entrants.
@@ -110,12 +59,17 @@ private val sampleCampsiteDetails = listOf(
  */
 @Composable
 fun EntrantCampsiteDetailsScreen(
-    campsiteName: String,
+    campsiteViewModel: CampsiteViewModel,
+    lotteryViewModel: LotteryViewModel,
+    campsiteId: String,
     onBackClick: () -> Unit,
     onEnterLotteryClick: () -> Unit = {}
+
 ) {
-    val campsite = sampleCampsiteDetails.find {
-        it.name == campsiteName
+    val campsite = campsiteViewModel.selectedCampsite
+
+    LaunchedEffect(campsiteId) {
+        campsiteViewModel.select(campsiteId)
     }
 
     Column(
@@ -172,7 +126,7 @@ fun EntrantCampsiteDetailsScreen(
                 ) {
                     Spacer(modifier = Modifier.height(2.dp))
 
-                    CampsitePhotoGallery(campsite.imageColor)
+                    CampsitePhotoGallery(imageColor = Color(0xFF82967A))
 
                     // Campsite name and location
                     Column(
@@ -186,13 +140,13 @@ fun EntrantCampsiteDetailsScreen(
                         )
 
                         Text(
-                            text = campsite.location,
+                            text = "Owned by: ${campsite.owner}",
                             fontSize = 13.sp,
                             color = SecondaryText
                         )
                     }
 
-                    // Campsite capacity and type
+                    // Campsite capacity
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -206,36 +160,25 @@ fun EntrantCampsiteDetailsScreen(
                         )
 
                         Text(
-                            text = "${campsite.pitchCount} pitches · ${campsite.type}",
+                            text = "Capacity: ${campsite.capacity} people",
                             modifier = Modifier.weight(1f),
                             fontSize = 11.sp,
                             color = PrimaryColor
                         )
 
-                        Column(
-                            horizontalAlignment = Alignment.End
-                        ) {
-                            Text(
-                                text = campsite.peoplePerPitch,
-                                fontSize = 10.sp,
-                                color = SecondaryText
-                            )
-
-                            Text(
-                                text = campsite.maximumOccupancy,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = PrimaryColor
-                            )
-                        }
                     }
+                    Text(
+                        text = "Status: ${campsite.statusLabel}",
+                        fontSize = 12.sp,
+                        color = PrimaryColor
+                    )
 
                     // Campsite description
                     Column(
                         verticalArrangement = Arrangement.spacedBy(7.dp)
                     ) {
                         Text(
-                            text = campsite.heading,
+                            text = "About Campsite",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = PrimaryColor
@@ -249,12 +192,6 @@ fun EntrantCampsiteDetailsScreen(
                         )
                     }
 
-                    CampsiteLocationCard(campsite.location)
-
-                    CampsiteReviewsSection(
-                        rating = campsite.rating,
-                        reviewCount = campsite.reviewCount
-                    )
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
