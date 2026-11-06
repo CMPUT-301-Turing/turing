@@ -15,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
 import com.turing.campsite.PrimaryColor
 
 import com.turing.campsite.ui.components.ReservationCard
@@ -36,6 +38,7 @@ import com.turing.campsite.ui.components.LotteryEntryCard
 import com.turing.campsite.data.model.LotteryEntry
 import com.turing.campsite.data.model.EntryResult
 import com.turing.campsite.ui.components.LotteryResultCard
+import com.turing.campsite.ui.viewmodel.ReservationViewModel
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val DropdownBackground = Color(0xFFE8EFE3)
@@ -49,63 +52,38 @@ private enum class CampsiteListSection(val label: String) {
     LOTTERY_RESULTS("Lottery results")
 }
 
-private val activeReservations = listOf(
-    Reservation(
-        id = "WM-1041",
-        campsiteId = "Willowbank Meadow",
-        status = ReservationStatus.ACTIVE
-    ),
-    Reservation(
-        id = "BH-1043",
-        campsiteId = "Bracken Hollow",
-        status = ReservationStatus.ACTIVE
-    )
-)
-
-private val inactiveReservations = listOf(
-    Reservation(
-        id = "HV-0986",
-        campsiteId = "Hawthorn Vale",
-        status = ReservationStatus.COMPLETED
-    ),
-    Reservation(
-        id = "PR-1042",
-        campsiteId = "Pinewood Retreat",
-        status = ReservationStatus.CANCELLED
-    )
-)
-
 private val currentLotteryEntries = listOf(
-    LotteryEntry(
-        id = "Pinewood Retreat",
-        result = EntryResult.PENDING
-    )
+    LotteryEntry(id = "Pinewood Retreat", result = EntryResult.PENDING)
 )
 
 private val lotteryWaitlistEntries = listOf(
-    LotteryEntry(
-        id = "Oakridge Farm",
-        result = EntryResult.PENDING
-    )
+    LotteryEntry(id = "Oakridge Farm", result = EntryResult.PENDING)
 )
 
 private val lotteryResults = listOf(
-    LotteryEntry(
-        id = "Willowbank Meadow",
-        result = EntryResult.WON
-    ),
-    LotteryEntry(
-        id = "Pinewood Retreat",
-        result = EntryResult.PENDING
-    ),
-    LotteryEntry(
-        id = "Fellside Farm",
-        result = EntryResult.LOST
-    )
+    LotteryEntry(id = "Willowbank Meadow", result = EntryResult.WON),
+    LotteryEntry(id = "Pinewood Retreat", result = EntryResult.PENDING),
+    LotteryEntry(id = "Fellside Farm", result = EntryResult.LOST)
 )
 
 @Composable
-fun EntrantCampsiteListScreen() {
+fun EntrantCampsiteListScreen(
+    reservationViewModel: ReservationViewModel
+) {
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+    val allReservations = reservationViewModel.reservations
+
+    LaunchedEffect(currentUserId) {
+        if (currentUserId.isNotEmpty()) {
+            reservationViewModel.loadForEntrant(currentUserId)
+        }
+    }
+
+    val activeReservations = allReservations.filter { it.status == ReservationStatus.ACTIVE }
+    val inactiveReservations = allReservations.filter {
+        it.status == ReservationStatus.COMPLETED || it.status == ReservationStatus.CANCELLED || it.status == ReservationStatus.REJECTED
+    }
+
     var selectedSection by rememberSaveable {
         mutableStateOf(CampsiteListSection.ACTIVE_RESERVATIONS)
     }
@@ -207,22 +185,12 @@ fun EntrantCampsiteListScreen() {
         Spacer(modifier = Modifier.height(20.dp))
 
         when (selectedSection) {
-            CampsiteListSection.ACTIVE_RESERVATIONS -> ActiveReservationsContent()
-            CampsiteListSection.INACTIVE_RESERVATIONS -> InactiveReservationsContent()
+            CampsiteListSection.ACTIVE_RESERVATIONS -> ReservationListContent(activeReservations)
+            CampsiteListSection.INACTIVE_RESERVATIONS -> ReservationListContent(inactiveReservations)
             CampsiteListSection.WAITLISTS_AND_LOTTERIES -> WaitlistsAndLotteriesContent()
             CampsiteListSection.LOTTERY_RESULTS -> LotteryResultsContent()
         }
     }
-}
-
-@Composable
-private fun ActiveReservationsContent() {
-    ReservationListContent(activeReservations)
-}
-
-@Composable
-private fun InactiveReservationsContent() {
-    ReservationListContent(inactiveReservations)
 }
 
 @Composable
