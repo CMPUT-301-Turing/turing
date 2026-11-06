@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.turing.campsite.data.model.Campsite
 import com.turing.campsite.PrimaryColor
 
 import com.turing.campsite.ui.components.CampsiteCard
@@ -42,8 +43,26 @@ fun EntrantHomeScreen(
         campsiteViewModel.loadAll()
     }
 
-    val activeCampsites = campsites.filter { it.statusLabel.equals("Active", ignoreCase = true) }
+    // Paused campsites are marked by the active field in the database.
+    val activeCampsites = campsites.filter { it.active }
 
+    EntrantHomeContent(
+        activeCampsites = activeCampsites,
+        onCampsiteClick = onCampsiteClick
+    )
+}
+
+/**
+ * Draws the entrant home screen for a given list of campsites.
+ *
+ * Kept apart from the view model so it can be shown and tested
+ * without the database.
+ */
+@Composable
+fun EntrantHomeContent(
+    activeCampsites: List<Campsite>,
+    onCampsiteClick: (String) -> Unit
+) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
