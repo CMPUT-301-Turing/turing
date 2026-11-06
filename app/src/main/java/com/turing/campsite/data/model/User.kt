@@ -21,8 +21,6 @@ enum class UserRole { ENTRANT, OWNER, ADMIN }
  * @property email the contact email, optional
  * @property phone the contact phone number, optional
  * @property roles the roles this user has, entrant and owner by default
- * @property notificationsEnabled whether the user wants to receive notifications
- * @property createdAt when the user document was created
  */
 data class User(
     var id: String = "",
@@ -30,8 +28,6 @@ data class User(
     var email: String = "",
     var phone: String = "",
     var roles: List<UserRole> = listOf(UserRole.ENTRANT, UserRole.OWNER),
-    var notificationsEnabled: Boolean = true,
-    var createdAt: Timestamp = Timestamp.now()
 ) {
     /**
      * Checks whether the user has a given role.
