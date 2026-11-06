@@ -1,4 +1,3 @@
-
 package com.turing.campsite.ui.screens.admin
 
 import androidx.compose.foundation.BorderStroke
@@ -35,6 +34,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.turing.campsite.PrimaryColor
+import com.turing.campsite.data.model.User
+import com.turing.campsite.data.model.UserRole
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
@@ -46,43 +47,36 @@ private val DeleteColor = Color(0xFFB45345)
 /**
  * Temporary profile data for displaying the admin profile list.
  */
-private data class ProfilePreview(
-    val name: String,
-    val email: String,
-    val role: String,
-    val initials: String
-)
-
 private val sampleProfiles = listOf(
-    ProfilePreview(
+    User(
+        id = "1",
         name = "Priya Shah",
         email = "priya.s@example.com",
-        role = "Campsite Owner",
-        initials = "PS"
+        roles = listOf(UserRole.OWNER)
     ),
-    ProfilePreview(
+    User(
+        id = "2",
         name = "Will Smith",
         email = "willthesmith3@example.com",
-        role = "Campsite Owner",
-        initials = "WS"
+        roles = listOf(UserRole.OWNER)
     ),
-    ProfilePreview(
+    User(
+        id = "3",
         name = "Maya Bennett",
         email = "maya.b@example.com",
-        role = "Entrant",
-        initials = "MB"
+        roles = listOf(UserRole.ENTRANT)
     ),
-    ProfilePreview(
+    User(
+        id = "4",
         name = "Harry Potter",
         email = "harrypotter67@example.com",
-        role = "Entrant",
-        initials = "HP"
+        roles = listOf(UserRole.ENTRANT)
     ),
-    ProfilePreview(
+    User(
+        id = "5",
         name = "Sophie Chen",
         email = "sophie.c@example.com",
-        role = "Entrant",
-        initials = "SC"
+        roles = listOf(UserRole.ENTRANT)
     )
 )
 
@@ -192,7 +186,7 @@ fun AdminBrowseProfilesScreen(
         ) {
             items(
                 items = sampleProfiles,
-                key = { it.email }
+                key = { it.id }
             ) { profile ->
                 AdminProfileCard(profile)
             }
@@ -207,7 +201,16 @@ fun AdminBrowseProfilesScreen(
  * is implemented.
  */
 @Composable
-private fun AdminProfileCard(profile: ProfilePreview) {
+private fun AdminProfileCard(profile: User) {
+    val initials = profile.name.split(" ")
+        .mapNotNull { it.firstOrNull()?.uppercase() }
+        .joinToString("")
+        .take(2)
+
+    val roleText = profile.roles.joinToString(", ") {
+        it.name.lowercase().replaceFirstChar { char -> char.uppercase() }
+    }
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
@@ -227,7 +230,7 @@ private fun AdminProfileCard(profile: ProfilePreview) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = profile.initials,
+                    text = initials,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = PrimaryColor
@@ -257,7 +260,7 @@ private fun AdminProfileCard(profile: ProfilePreview) {
                 )
 
                 Text(
-                    text = profile.role,
+                    text = roleText,
                     fontSize = 11.sp,
                     color = PrimaryColor
                 )

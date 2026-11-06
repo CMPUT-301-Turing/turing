@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.sp
 
 import com.turing.campsite.PrimaryColor
 import com.turing.campsite.ui.components.CampsiteCard
-import com.turing.campsite.ui.components.CampsitePreview
+import com.turing.campsite.data.model.Campsite
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
@@ -43,50 +43,51 @@ private val SecondaryText = Color(0xFF7A8079)
  * Temporary campsite data used by the admin browse screen.
  */
 private val sampleCampsites = listOf(
-    CampsitePreview(
+
+    Campsite(
+        id = "1",
         name = "Oak Hollow",
         location = "Brecon, Powys",
         description = "Woodland",
-        peoplePerPitch = "1–2 people/pitch",
-        maxPeople = "Max 2 people",
-        rating = "Not rated",
-        imageColor = Color(0xFFE5EBDD)
+        maxOccupancy = 2,
+        ratingAverage = 0.0,
+        ratingCount = 0
     ),
-    CampsitePreview(
+    Campsite(
+        id = "2",
         name = "Pinewood Retreat",
         location = "New Forest, Hampshire",
         description = "Woodland",
-        peoplePerPitch = "1–4 people/pitch",
-        maxPeople = "Max 7 people",
-        rating = "4.8/5",
-        imageColor = Color(0xFF82967A)
+        maxOccupancy = 7,
+        ratingAverage = 4.8,
+        ratingCount = 12
     ),
-    CampsitePreview(
+    Campsite(
+        id = "3",
         name = "Willowbank Meadow",
         location = "Bakewell, Peak District",
         description = "Riverside",
-        peoplePerPitch = "1–5 people/pitch",
-        maxPeople = "Max 5 people",
-        rating = "4.7/5",
-        imageColor = Color(0xFF9CAB91)
+        maxOccupancy = 5,
+        ratingAverage = 4.7,
+        ratingCount = 8
     ),
-    CampsitePreview(
+    Campsite(
+        id = "4",
         name = "Heather Ridge",
         location = "Whitby, North Yorkshire",
         description = "Hill views",
-        peoplePerPitch = "1–4 people/pitch",
-        maxPeople = "Max 12 people",
-        rating = "Not rated",
-        imageColor = Color(0xFFE5EBDD)
+        maxOccupancy = 12,
+        ratingAverage = 0.0,
+        ratingCount = 0
     ),
-    CampsitePreview(
+    Campsite(
+        id = "5",
         name = "Fellside Farm",
         location = "Keswick, Lake District",
         description = "Hill views",
-        peoplePerPitch = "1–4 people/pitch",
-        maxPeople = "Max 10 people",
-        rating = "4.6/5",
-        imageColor = Color(0xFF8B9D91)
+        maxOccupancy = 10,
+        ratingAverage = 4.6,
+        ratingCount = 5
     )
 )
 
@@ -198,7 +199,7 @@ fun AdminBrowseCampsiteScreen(
         ) {
             items(
                 items = sampleCampsites,
-                key = { it.name }
+                key = { it.id }
             ) { campsite ->
                 CampsiteCard(
                     campsite = campsite,
