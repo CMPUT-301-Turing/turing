@@ -185,7 +185,7 @@ dashed boxes are still to be written or configured.
 flowchart LR
     subgraph UI["ui/  (Compose)"]
         S["Screen<br/>e.g. EntrantHomeScreen"]
-        VM["ViewModel<br/>(to be added)"]
+        VM["viewmodel/<br/>UserViewModel<br/>CampsiteViewModel<br/>LotteryViewModel<br/>ReservationViewModel<br/>NotificationViewModel<br/>MessageViewModel"]
     end
     subgraph DATA["data/"]
         AUTH["auth/<br/>DeviceAuthManager"]
@@ -208,8 +208,8 @@ flowchart LR
 
     classDef done fill:#dfe9df,stroke:#354F45,color:#1c2b24
     classDef todo fill:#f3ead8,stroke:#9a7b3c,color:#3b2f14,stroke-dasharray:4 3
-    class AUTH,REPO,MODEL,RULES done
-    class S,VM,FA,FS todo
+    class AUTH,REPO,MODEL,RULES,VM done
+    class S,FA,FS todo
 ```
 
 ```
@@ -232,8 +232,18 @@ app/src/main/java/com/turing/campsite/
 │   │   ├── NotificationRepository.kt
 │   │   └── MessageRepository.kt
 │   └── auth/
-│       └── DeviceAuthManager.kt     anonymous sign-in, exposes current uid
-└── ui/ ...                          unchanged
+│       ├── DeviceAuthManager.kt     anonymous sign-in, exposes current uid
+│       └── TempUser.kt              fixed test uid, delete once sign-in is connected
+└── ui/
+    ├── viewmodel/        one view model per repository, screens talk to these
+    │   ├── BaseViewModel.kt         shared isLoading and errorMessage
+    │   ├── UserViewModel.kt
+    │   ├── CampsiteViewModel.kt
+    │   ├── LotteryViewModel.kt
+    │   ├── ReservationViewModel.kt
+    │   ├── NotificationViewModel.kt
+    │   └── MessageViewModel.kt
+    └── ...                          screens, components, theme
 ```
 
 Rules for this layer:
@@ -244,6 +254,11 @@ Rules for this layer:
   `ACTIVE`. The lower-case values in the tables above are shorthand.
 - Repository functions are `suspend` and return the model, a list, or throw.
   Screens call them from a `ViewModel`, never from a composable directly.
+- There is one view model per repository, shared by every screen that shows
+  that data. A screen gets it with `viewModel()`, calls a load function, and
+  reads the list. If a call fails the message is in `errorMessage`.
+- Until sign-in on launch is connected, screens use `TempUser.UID` as the
+  current user id.
 - Each repository gets its collection from `FirebaseFirestore.getInstance()`.
   Model classes contain no Firebase calls, so they are the part covered by
   unit tests.
