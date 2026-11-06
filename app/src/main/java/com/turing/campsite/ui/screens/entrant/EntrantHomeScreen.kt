@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.turing.campsite.data.model.Campsite
 import com.turing.campsite.PrimaryColor
 
 import com.turing.campsite.ui.components.CampsiteCard
@@ -32,14 +31,6 @@ private val CardBackground = Color(0xFFFCFBF7)
 private val CardBorder = Color(0xFFDFE2D8)
 private val SecondaryText = Color(0xFF7A8079)
 
-/**
- * Entrant home screen.
- *
- * Displays a campsite browsing interface. The campsites
- * to show are passed in. Sample campsites are used when
- * none are given.
- * Shared bottom navigation is managed by AppScaffold.
- */
 @Composable
 fun EntrantHomeScreen(
     campsiteViewModel: CampsiteViewModel,
@@ -51,25 +42,8 @@ fun EntrantHomeScreen(
         campsiteViewModel.loadAll()
     }
 
-    val activeCampsites = campsites.filter { it.active }
+    val activeCampsites = campsites.filter { it.statusLabel.equals("Active", ignoreCase = true) }
 
-    EntrantHomeContent(
-        activeCampsites = activeCampsites,
-        onCampsiteClick = onCampsiteClick
-    )
-}
-
-/**
- * Draws the entrant home screen for a given list of campsites.
- *
- * Kept apart from the view model so it can be shown and tested
- * without the database.
- */
-@Composable
-fun EntrantHomeContent(
-    activeCampsites: List<Campsite>,
-    onCampsiteClick: (String) -> Unit
-) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -80,7 +54,6 @@ fun EntrantHomeContent(
         ),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Header, search controls, and section title
         item {
             Column {
                 Row(
@@ -115,7 +88,6 @@ fun EntrantHomeContent(
 
                 Spacer(modifier = Modifier.height(28.dp))
 
-                // Search and filter controls (visual only)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -166,7 +138,6 @@ fun EntrantHomeContent(
 
                 Spacer(modifier = Modifier.height(28.dp))
 
-                // Section heading
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -190,7 +161,6 @@ fun EntrantHomeContent(
             }
         }
 
-        // Campsite cards
         items(
             items = activeCampsites,
             key = { it.id }

@@ -32,7 +32,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-import com.turing.campsite.data.model.Campsite
 import com.turing.campsite.PrimaryColor
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
 import com.turing.campsite.ui.viewmodel.LotteryViewModel
@@ -44,15 +43,6 @@ private val ChipBackground = Color(0xFFE8EFE3)
 private val SecondaryText = Color(0xFF7A8079)
 private val StarColor = Color(0xFFC19A49)
 
-/**
- * Detailed campsite view for entrants.
- *
- * Displays campsite information, reviews, and lottery
- * availability. The campsite to show is passed in. When none
- * is given the sample campsite with the given name is used.
- *
- * Navigation is handled through callbacks.
- */
 @Composable
 fun EntrantCampsiteDetailsScreen(
     campsiteViewModel: CampsiteViewModel,
@@ -67,31 +57,11 @@ fun EntrantCampsiteDetailsScreen(
         campsiteViewModel.select(campsiteId)
     }
 
-    EntrantCampsiteDetailsContent(
-        campsite = campsite,
-        onBackClick = onBackClick,
-        onEnterLotteryClick = onEnterLotteryClick
-    )
-}
-
-/**
- * Draws the campsite details for a given campsite.
- *
- * Kept apart from the view models so it can be shown and tested
- * without the database. A null campsite shows the not found text.
- */
-@Composable
-fun EntrantCampsiteDetailsContent(
-    campsite: Campsite?,
-    onBackClick: () -> Unit,
-    onEnterLotteryClick: () -> Unit = {}
-) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(PageBackground)
     ) {
-        // Header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -127,7 +97,6 @@ fun EntrantCampsiteDetailsContent(
                 color = SecondaryText
             )
         } else {
-            // Scrollable campsite information
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -142,7 +111,6 @@ fun EntrantCampsiteDetailsContent(
 
                     CampsitePhotoGallery(imageColor = Color(0xFF82967A))
 
-                    // Campsite name and location
                     Column(
                         verticalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
@@ -160,7 +128,6 @@ fun EntrantCampsiteDetailsContent(
                         )
                     }
 
-                    // Campsite capacity
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -191,14 +158,13 @@ fun EntrantCampsiteDetailsContent(
                             )
                         }
                     }
-                    
+
                     Text(
                         text = "Status: ${campsite.statusLabel}",
                         fontSize = 12.sp,
                         color = PrimaryColor
                     )
 
-                    // Campsite description
                     Column(
                         verticalArrangement = Arrangement.spacedBy(7.dp)
                     ) {
@@ -228,7 +194,6 @@ fun EntrantCampsiteDetailsContent(
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            // Persistent lottery section
             EntrantLotterySection(
                 onEnterLotteryClick = onEnterLotteryClick
             )
@@ -236,13 +201,6 @@ fun EntrantCampsiteDetailsContent(
     }
 }
 
-/**
- * Gallery layout containing one large image
- * and two smaller images.
- *
- * Images are visual placeholders until campsite
- * photographs are available.
- */
 @Composable
 private fun CampsitePhotoGallery(
     imageColor: Color
@@ -283,9 +241,6 @@ private fun CampsitePhotoGallery(
     }
 }
 
-/**
- * Temporary campsite image.
- */
 @Composable
 private fun CampsitePhotoPlaceholder(
     imageColor: Color,
@@ -312,11 +267,6 @@ private fun CampsitePhotoPlaceholder(
     }
 }
 
-/**
- * Displays the campsite location.
- *
- * Directions functionality will be added later.
- */
 @Composable
 private fun CampsiteLocationCard(
     location: String
@@ -366,11 +316,6 @@ private fun CampsiteLocationCard(
     }
 }
 
-/**
- * Displays sample campsite reviews.
- *
- * Review navigation and submission are placeholders.
- */
 @Composable
 private fun CampsiteReviewsSection(
     rating: String,
@@ -406,7 +351,6 @@ private fun CampsiteReviewsSection(
             )
         }
 
-        // Sample review
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(9.dp),
@@ -445,7 +389,6 @@ private fun CampsiteReviewsSection(
             }
         }
 
-        // Leave a review (visual placeholder)
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -479,10 +422,6 @@ private fun CampsiteReviewsSection(
     }
 }
 
-/**
- * Lottery entry area displayed at the bottom
- * of the campsite details screen.
- */
 @Composable
 private fun EntrantLotterySection(
     onEnterLotteryClick: () -> Unit
