@@ -27,9 +27,11 @@ import com.google.firebase.Timestamp
  */
 data class Campsite(
     var id: String = "",
-    var ownerId: String = "",
+    var ownerId: String = "", // brought back because UI uses it
     var name: String = "",
-    var location: String = "",
+    var location: String = "", // brought back because UI uses it
+    var owner: String = "", // added by teammate
+    var capacity: Long = 0, // added by teammate
     var description: String = "",
     var maxOccupancy: Int = 0,
     var tags: List<String> = emptyList(),
@@ -41,5 +43,6 @@ data class Campsite(
     var mapLocation: String = "",
     var cancellationPolicy: String = "",
     var confirmationRequired: Boolean = true,
-    var active: Boolean = true
+    var active: Boolean = true,
+    var statusLabel: String = "Active" // added to fix the filter error
 )

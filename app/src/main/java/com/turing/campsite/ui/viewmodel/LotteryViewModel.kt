@@ -3,10 +3,13 @@ package com.turing.campsite.ui.viewmodel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
 import com.turing.campsite.data.model.Lottery
 import com.turing.campsite.data.model.LotteryEntry
 import com.turing.campsite.data.model.LotteryStatus
 import com.turing.campsite.data.repository.LotteryRepository
+import java.lang.ref.Reference
 
 /**
  * Holds lottery data for the owner lottery screens and the entrant waitlist.
@@ -35,6 +38,8 @@ class LotteryViewModel(
     var hasJoined by mutableStateOf(false)
         private set
 
+    private val entrantId = FirebaseAuth.getInstance().currentUser?.uid
+
     /**
      * Loads the lotteries entrants can currently join.
      */
@@ -49,9 +54,9 @@ class LotteryViewModel(
      *
      * @param ownerId the uid of the owner
      */
-    fun loadForOwner(ownerId: String) {
+    fun loadForOwner(ownerReference: DocumentReference) {
         launchCall {
-            lotteries = repository.listByOwner(ownerId)
+            lotteries = repository.listByOwner(ownerReference)
         }
     }
 
@@ -112,10 +117,12 @@ class LotteryViewModel(
      */
     fun setStatus(lotteryId: String, status: LotteryStatus) {
         launchCall {
-            repository.setStatus(lotteryId, status)
-            lotteries = lotteries.map { if (it.id == lotteryId) it.copy(status = status) else it }
-            if (selectedLottery?.id == lotteryId) {
-                selectedLottery = selectedLottery?.copy(status = status)
+            val newStatus = status.name.lowercase()
+
+            repository.setStatus(lotteryId, newStatus)
+
+            lotteries = lotteries.map{
+                if (it.id == lotteryId) it.copy(status = newStatus)
             }
         }
     }
@@ -152,5 +159,9 @@ class LotteryViewModel(
             hasJoined = false
             entries = entries.filter { it.entrantId != entrantId }
         }
+    }
+
+    fun loadLotteryForCampsite(campsiteId: String){
+        launchCall
     }
 }

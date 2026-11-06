@@ -14,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,39 +24,12 @@ import androidx.compose.ui.unit.sp
 import com.turing.campsite.PrimaryColor
 
 import com.turing.campsite.ui.components.CampsiteCard
-import com.turing.campsite.data.model.Campsite
+import com.turing.campsite.ui.viewmodel.CampsiteViewModel
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
 private val CardBorder = Color(0xFFDFE2D8)
 private val SecondaryText = Color(0xFF7A8079)
-
-private val sampleCampsites = listOf(
-    Campsite(
-        name = "Pinewood Retreat",
-        location = "New Forest, Hampshire",
-        description = "12 pitches · Woodland",
-        maxOccupancy = 48,
-        ratingAverage = 4.8,
-        ratingCount = 10
-    ),
-    Campsite(
-        name = "Willowbank Meadow",
-        location = "Bakewell, Peak District",
-        description = "8 pitches · Riverside",
-        maxOccupancy = 48,
-        ratingAverage = 4.7,
-        ratingCount = 10
-    ),
-    Campsite(
-        name = "Fellside Farm",
-        location = "Keswick, Lake District",
-        description = "6 pitches · Hill views",
-        maxOccupancy = 24,
-        ratingAverage = 4.6,
-        ratingCount = 10
-    )
-)
 
 /**
  * Entrant home screen.
@@ -67,9 +41,17 @@ private val sampleCampsites = listOf(
  */
 @Composable
 fun EntrantHomeScreen(
-    onCampsiteClick: (String) -> Unit,
-    campsites: List<Campsite> = sampleCampsites
+    campsiteViewModel: CampsiteViewModel,
+    onCampsiteClick: (String) -> Unit
 ) {
+    val campsites = campsiteViewModel.campsites
+
+    LaunchedEffect(Unit) {
+        campsiteViewModel.loadAll()
+    }
+
+    val activeCampsites = campsites.filter { it.statusLabel.equals("Active", ignoreCase = true) }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -180,7 +162,7 @@ fun EntrantHomeScreen(
                     )
 
                     Text(
-                        text = "${campsites.size} campsites",
+                        text = "${activeCampsites.size} campsites",
                         fontSize = 11.sp,
                         color = SecondaryText
                     )
@@ -192,14 +174,13 @@ fun EntrantHomeScreen(
 
         // Campsite cards
         items(
-            items = campsites,
-            key = { it.id.ifEmpty { it.name } }
+            items = activeCampsites,
+            key = { it.id }
         ) { campsite ->
             CampsiteCard(
                 campsite = campsite,
                 onClick = {
-                    // Stored campsites are opened by id, sample ones by name.
-                    onCampsiteClick(campsite.id.ifEmpty { campsite.name })
+                    onCampsiteClick(campsite.id)
                 }
             )
         }
