@@ -22,44 +22,35 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.turing.campsite.PrimaryColor
+import com.turing.campsite.data.model.Reservation
+import com.turing.campsite.data.model.ReservationStatus
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 private val CardBackground = Color(0xFFFCFBF7)
 private val CardBorder = Color(0xFFDFE2D8)
 private val SecondaryText = Color(0xFF7A8079)
 private val CancelledColor = Color(0xFFB45345)
 
-/**
- * Possible reservation states.
- */
-enum class ReservationStatus(val label: String) {
-    CONFIRMED("Confirmed"),
-    PAST("Past"),
-    CANCELLED("Cancelled")
-}
-
-/**
- * Temporary data used to display a reservation card.
- */
-data class ReservationPreview(
-    val reservationId: String,
-    val campsiteName: String,
-    val location: String,
-    val dateRange: String,
-    val nights: Int,
-    val adults: Int,
-    val tents: Int,
-    val environment: String,
-    val status: ReservationStatus,
-    val imageColor: Color
-)
-
-/**
- * Displays a reservation with status-specific actions.
- *
- * All action controls are visual placeholders for now.
- */
 @Composable
-fun ReservationCard(reservation: ReservationPreview) {
+fun ReservationCard(reservation: Reservation) {
+    val statusText = when (reservation.status) {
+        ReservationStatus.ACTIVE -> "Confirmed"
+        ReservationStatus.COMPLETED -> "Past"
+        ReservationStatus.CANCELLED -> "Cancelled"
+        ReservationStatus.REJECTED -> "Rejected"
+    }
+
+    val statusColor = when (reservation.status) {
+        ReservationStatus.ACTIVE -> PrimaryColor
+        ReservationStatus.COMPLETED -> SecondaryText
+        ReservationStatus.CANCELLED, ReservationStatus.REJECTED -> CancelledColor
+    }
+
+    val dateText = reservation.startDate?.let { timestamp ->
+        SimpleDateFormat("dd MMM", Locale.getDefault()).format(timestamp.toDate())
+    } ?: "No date"
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
@@ -70,17 +61,15 @@ fun ReservationCard(reservation: ReservationPreview) {
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Campsite information
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Placeholder campsite image
                 Box(
                     modifier = Modifier
                         .size(64.dp)
                         .background(
-                            reservation.imageColor,
+                            Color(0xFF82967A),
                             RoundedCornerShape(7.dp)
                         ),
                     contentAlignment = Alignment.Center
@@ -96,17 +85,10 @@ fun ReservationCard(reservation: ReservationPreview) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    // Reservation status
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
-                        val statusColor = when (reservation.status) {
-                            ReservationStatus.CONFIRMED -> PrimaryColor
-                            ReservationStatus.PAST -> SecondaryText
-                            ReservationStatus.CANCELLED -> CancelledColor
-                        }
-
                         Box(
                             modifier = Modifier
                                 .size(5.dp)
@@ -114,14 +96,14 @@ fun ReservationCard(reservation: ReservationPreview) {
                         )
 
                         Text(
-                            text = reservation.status.label,
+                            text = statusText,
                             fontSize = 10.sp,
                             color = statusColor
                         )
                     }
 
                     Text(
-                        text = reservation.campsiteName,
+                        text = reservation.campsiteId,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = PrimaryColor,
@@ -130,7 +112,7 @@ fun ReservationCard(reservation: ReservationPreview) {
                     )
 
                     Text(
-                        text = reservation.location,
+                        text = "Campsite Location",
                         fontSize = 11.sp,
                         color = SecondaryText,
                         maxLines = 1,
@@ -141,7 +123,6 @@ fun ReservationCard(reservation: ReservationPreview) {
 
             HorizontalDivider(color = CardBorder)
 
-            // Reservation dates
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -159,7 +140,7 @@ fun ReservationCard(reservation: ReservationPreview) {
                     )
 
                     Text(
-                        text = reservation.dateRange,
+                        text = dateText,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = PrimaryColor
@@ -167,24 +148,20 @@ fun ReservationCard(reservation: ReservationPreview) {
                 }
 
                 Text(
-                    text = "${reservation.nights} nights",
+                    text = "2 nights",
                     fontSize = 11.sp,
                     color = SecondaryText
                 )
             }
 
-            // Reservation details
             Text(
-                text = "${reservation.adults} adults · " +
-                        "${reservation.tents} tent · " +
-                        reservation.environment,
+                text = "2 adults · 1 tent · Woodland",
                 fontSize = 11.sp,
                 color = SecondaryText
             )
 
-            // Reservation actions
             when (reservation.status) {
-                ReservationStatus.CONFIRMED -> {
+                ReservationStatus.ACTIVE -> {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -205,8 +182,9 @@ fun ReservationCard(reservation: ReservationPreview) {
                     }
                 }
 
-                ReservationStatus.PAST,
-                ReservationStatus.CANCELLED -> {
+                ReservationStatus.COMPLETED,
+                ReservationStatus.CANCELLED,
+                ReservationStatus.REJECTED -> {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -216,7 +194,7 @@ fun ReservationCard(reservation: ReservationPreview) {
                             verticalArrangement = Arrangement.spacedBy(2.dp)
                         ) {
                             Text(
-                                text = reservation.reservationId,
+                                text = reservation.id,
                                 fontSize = 12.sp,
                                 color = PrimaryColor
                             )
@@ -241,11 +219,6 @@ fun ReservationCard(reservation: ReservationPreview) {
     }
 }
 
-/**
- * Displays a reservation action.
- *
- * Currently visual only. Click callbacks will be added later.
- */
 @Composable
 private fun ReservationAction(
     text: String,

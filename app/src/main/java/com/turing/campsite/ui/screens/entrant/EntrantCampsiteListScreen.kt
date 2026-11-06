@@ -30,23 +30,18 @@ import androidx.compose.ui.unit.sp
 import com.turing.campsite.PrimaryColor
 
 import com.turing.campsite.ui.components.ReservationCard
-import com.turing.campsite.ui.components.ReservationPreview
-import com.turing.campsite.ui.components.ReservationStatus
+import com.turing.campsite.data.model.Reservation
+import com.turing.campsite.data.model.ReservationStatus
 import com.turing.campsite.ui.components.LotteryEntryCard
-import com.turing.campsite.ui.components.LotteryEntryPreview
-import com.turing.campsite.ui.components.LotteryEntryStatus
+import com.turing.campsite.data.model.LotteryEntry
+import com.turing.campsite.data.model.EntryResult
 import com.turing.campsite.ui.components.LotteryResultCard
-import com.turing.campsite.ui.components.LotteryResultPreview
-import com.turing.campsite.ui.components.LotteryResultStatus
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val DropdownBackground = Color(0xFFE8EFE3)
 private val CardBackground = Color(0xFFFCFBF7)
 private val SecondaryText = Color(0xFF7A8079)
 
-/**
- * Available views within the entrant campsite lists screen.
- */
 private enum class CampsiteListSection(val label: String) {
     ACTIVE_RESERVATIONS("Active reservations"),
     INACTIVE_RESERVATIONS("Inactive reservations"),
@@ -54,139 +49,61 @@ private enum class CampsiteListSection(val label: String) {
     LOTTERY_RESULTS("Lottery results")
 }
 
-/**
- * Temporary active reservation data.
- */
 private val activeReservations = listOf(
-    ReservationPreview(
-        reservationId = "WM-1041",
-        campsiteName = "Willowbank Meadow",
-        location = "Bakewell, Peak District",
-        dateRange = "13–15 Nov",
-        nights = 2,
-        adults = 2,
-        tents = 1,
-        environment = "Riverside",
-        status = ReservationStatus.CONFIRMED,
-        imageColor = Color(0xFF9CAB91)
+    Reservation(
+        id = "WM-1041",
+        campsiteId = "Willowbank Meadow",
+        status = ReservationStatus.ACTIVE
     ),
-    ReservationPreview(
-        reservationId = "BH-1043",
-        campsiteName = "Bracken Hollow",
-        location = "Lyndhurst, Hampshire",
-        dateRange = "27–29 Nov",
-        nights = 2,
-        adults = 2,
-        tents = 1,
-        environment = "Woodland",
-        status = ReservationStatus.CONFIRMED,
-        imageColor = Color(0xFF82967A)
+    Reservation(
+        id = "BH-1043",
+        campsiteId = "Bracken Hollow",
+        status = ReservationStatus.ACTIVE
     )
 )
 
-/**
- * Temporary inactive reservation data.
- */
 private val inactiveReservations = listOf(
-    ReservationPreview(
-        reservationId = "HV-0986",
-        campsiteName = "Hawthorn Vale",
-        location = "Keswick, Lake District",
-        dateRange = "9–11 Oct",
-        nights = 2,
-        adults = 2,
-        tents = 1,
-        environment = "Lakeside",
-        status = ReservationStatus.PAST,
-        imageColor = Color(0xFF9D9B7B)
+    Reservation(
+        id = "HV-0986",
+        campsiteId = "Hawthorn Vale",
+        status = ReservationStatus.COMPLETED
     ),
-    ReservationPreview(
-        reservationId = "PR-1042",
-        campsiteName = "Pinewood Retreat",
-        location = "New Forest, Hampshire",
-        dateRange = "6–8 Nov",
-        nights = 2,
-        adults = 2,
-        tents = 1,
-        environment = "Woodland",
-        status = ReservationStatus.CANCELLED,
-        imageColor = Color(0xFF82967A)
+    Reservation(
+        id = "PR-1042",
+        campsiteId = "Pinewood Retreat",
+        status = ReservationStatus.CANCELLED
     )
 )
 
-
-/**
- * Temporary lottery entry data.
- */
 private val currentLotteryEntries = listOf(
-    LotteryEntryPreview(
-        id = "lottery-pinewood",
-        campsiteName = "Pinewood Retreat",
-        location = "New Forest, Hampshire",
-        dateRange = "20–22 Nov",
-        nights = 2,
-        note = "Entries close 26 Oct",
-        status = LotteryEntryStatus.ENTERED,
-        imageColor = Color(0xFF82967A)
+    LotteryEntry(
+        id = "Pinewood Retreat",
+        result = EntryResult.PENDING
     )
 )
 
-/**
- * Temporary lottery waitlist data.
- */
 private val lotteryWaitlistEntries = listOf(
-    LotteryEntryPreview(
-        id = "waitlist-oakridge",
-        campsiteName = "Oakridge Farm",
-        location = "Ashbourne, Peak District",
-        dateRange = "20–22 Nov",
-        nights = 2,
-        note = "We'll notify you if a pitch opens.",
-        status = LotteryEntryStatus.WAITLISTED,
-        imageColor = Color(0xFF9D9B7B)
+    LotteryEntry(
+        id = "Oakridge Farm",
+        result = EntryResult.PENDING
     )
 )
 
-
-/**
- * Temporary lottery results.
- */
 private val lotteryResults = listOf(
-    LotteryResultPreview(
-        id = "result-willowbank",
-        campsiteName = "Willowbank Meadow",
-        status = LotteryResultStatus.WON,
-        dateRange = "13–15 Nov · 2 nights",
-        message = "A pitch is yours to book.",
-        timestamp = "Announced today, 09:12",
-        deadline = "Accept your place by 21 Oct",
-        imageColor = Color(0xFF9CAB91)
+    LotteryEntry(
+        id = "Willowbank Meadow",
+        result = EntryResult.WON
     ),
-    LotteryResultPreview(
-        id = "result-pinewood",
-        campsiteName = "Pinewood Retreat",
-        status = LotteryResultStatus.PENDING,
-        message = "Lottery open. Your entry is in the draw.",
-        timestamp = "Entries close 26 Oct"
+    LotteryEntry(
+        id = "Pinewood Retreat",
+        result = EntryResult.PENDING
     ),
-    LotteryResultPreview(
-        id = "result-fellside",
-        campsiteName = "Fellside Farm",
-        status = LotteryResultStatus.LOST,
-        dateRange = "6–8 Nov",
-        message = "You weren't selected this time. Try a future draw.",
-        timestamp = "Announced today, 08:45"
+    LotteryEntry(
+        id = "Fellside Farm",
+        result = EntryResult.LOST
     )
 )
 
-
-/**
- * Entrant campsite lists screen.
- *
- * Provides a shared dropdown for reservations and lotteries.
- * The selected section is preserved through supported
- * navigation state restoration.
- */
 @Composable
 fun EntrantCampsiteListScreen() {
     var selectedSection by rememberSaveable {
@@ -198,17 +115,10 @@ fun EntrantCampsiteListScreen() {
     }
 
     val sectionCount = when (selectedSection) {
-        CampsiteListSection.ACTIVE_RESERVATIONS ->
-            activeReservations.size
-
-        CampsiteListSection.INACTIVE_RESERVATIONS ->
-            inactiveReservations.size
-
-        CampsiteListSection.WAITLISTS_AND_LOTTERIES ->
-            currentLotteryEntries.size + lotteryWaitlistEntries.size
-
-        CampsiteListSection.LOTTERY_RESULTS ->
-            lotteryResults.size
+        CampsiteListSection.ACTIVE_RESERVATIONS -> activeReservations.size
+        CampsiteListSection.INACTIVE_RESERVATIONS -> inactiveReservations.size
+        CampsiteListSection.WAITLISTS_AND_LOTTERIES -> currentLotteryEntries.size + lotteryWaitlistEntries.size
+        CampsiteListSection.LOTTERY_RESULTS -> lotteryResults.size
     }
 
     Column(
@@ -217,7 +127,6 @@ fun EntrantCampsiteListScreen() {
             .background(PageBackground)
             .padding(horizontal = 20.dp, vertical = 20.dp)
     ) {
-        // Header
         Text(
             text = "Campsite lists",
             fontSize = 24.sp,
@@ -235,7 +144,6 @@ fun EntrantCampsiteListScreen() {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // List selector
         Box {
             Row(
                 modifier = Modifier
@@ -255,25 +163,22 @@ fun EntrantCampsiteListScreen() {
                     modifier = Modifier.weight(1f)
                 )
 
-                // Reservation count
-                if (sectionCount != null) {
-                    Surface(
-                        shape = CircleShape,
-                        color = CardBackground
-                    ) {
-                        Text(
-                            text = sectionCount.toString(),
-                            modifier = Modifier.padding(
-                                horizontal = 8.dp,
-                                vertical = 4.dp
-                            ),
-                            fontSize = 11.sp,
-                            color = PrimaryColor
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(10.dp))
+                Surface(
+                    shape = CircleShape,
+                    color = CardBackground
+                ) {
+                    Text(
+                        text = sectionCount.toString(),
+                        modifier = Modifier.padding(
+                            horizontal = 8.dp,
+                            vertical = 4.dp
+                        ),
+                        fontSize = 11.sp,
+                        color = PrimaryColor
+                    )
                 }
+
+                Spacer(modifier = Modifier.width(10.dp))
 
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
@@ -301,45 +206,28 @@ fun EntrantCampsiteListScreen() {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Selected content
         when (selectedSection) {
-            CampsiteListSection.ACTIVE_RESERVATIONS ->
-                ActiveReservationsContent()
-
-            CampsiteListSection.INACTIVE_RESERVATIONS ->
-                InactiveReservationsContent()
-
-            CampsiteListSection.WAITLISTS_AND_LOTTERIES ->
-                WaitlistsAndLotteriesContent()
-
-            CampsiteListSection.LOTTERY_RESULTS ->
-                LotteryResultsContent()
+            CampsiteListSection.ACTIVE_RESERVATIONS -> ActiveReservationsContent()
+            CampsiteListSection.INACTIVE_RESERVATIONS -> InactiveReservationsContent()
+            CampsiteListSection.WAITLISTS_AND_LOTTERIES -> WaitlistsAndLotteriesContent()
+            CampsiteListSection.LOTTERY_RESULTS -> LotteryResultsContent()
         }
     }
 }
 
-/**
- * Displays active reservations.
- */
 @Composable
 private fun ActiveReservationsContent() {
     ReservationListContent(activeReservations)
 }
 
-/**
- * Displays inactive reservations.
- */
 @Composable
 private fun InactiveReservationsContent() {
     ReservationListContent(inactiveReservations)
 }
 
-/**
- * Shared list implementation for reservation cards.
- */
 @Composable
 private fun ReservationListContent(
-    reservations: List<ReservationPreview>
+    reservations: List<Reservation>
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -348,20 +236,13 @@ private fun ReservationListContent(
     ) {
         items(
             items = reservations,
-            key = { it.reservationId }
+            key = { it.id }
         ) { reservation ->
             ReservationCard(reservation)
         }
     }
 }
 
-/**
- * Placeholder: waitlists and lotteries.
- */
-
-/**
- * Displays current lottery entries and lottery waitlist entries.
- */
 @Composable
 private fun WaitlistsAndLotteriesContent() {
     LazyColumn(
@@ -369,7 +250,6 @@ private fun WaitlistsAndLotteriesContent() {
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(bottom = 12.dp)
     ) {
-        // Current lottery entries
         item {
             LotterySectionHeader(
                 title = "Current lottery entries",
@@ -384,7 +264,6 @@ private fun WaitlistsAndLotteriesContent() {
             LotteryEntryCard(entry)
         }
 
-        // Lottery waitlist entries
         item {
             Spacer(modifier = Modifier.height(4.dp))
 
@@ -403,9 +282,6 @@ private fun WaitlistsAndLotteriesContent() {
     }
 }
 
-/**
- * Displays a lottery section heading and entry count.
- */
 @Composable
 private fun LotterySectionHeader(
     title: String,
@@ -431,19 +307,14 @@ private fun LotterySectionHeader(
     }
 }
 
-
-
-/**
- * Displays winning, pending, and unsuccessful lottery results.
- */
 @Composable
 private fun LotteryResultsContent() {
     val winningResults = lotteryResults.filter {
-        it.status == LotteryResultStatus.WON
+        it.result == EntryResult.WON
     }
 
     val otherResults = lotteryResults.filter {
-        it.status != LotteryResultStatus.WON
+        it.result != EntryResult.WON
     }
 
     LazyColumn(
@@ -451,7 +322,6 @@ private fun LotteryResultsContent() {
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(bottom = 12.dp)
     ) {
-        // Winning lottery results
         items(
             items = winningResults,
             key = { it.id }
@@ -459,7 +329,6 @@ private fun LotteryResultsContent() {
             LotteryResultCard(result)
         }
 
-        // Other lottery entries
         if (otherResults.isNotEmpty()) {
             item {
                 Text(
