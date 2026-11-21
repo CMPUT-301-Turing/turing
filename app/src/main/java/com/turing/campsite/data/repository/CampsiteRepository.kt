@@ -1,6 +1,7 @@
 package com.turing.campsite.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.Firebase
 import com.turing.campsite.data.model.Campsite
 import com.turing.campsite.data.model.Review
 import kotlinx.coroutines.tasks.await

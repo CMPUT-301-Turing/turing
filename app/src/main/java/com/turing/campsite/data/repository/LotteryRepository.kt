@@ -2,6 +2,8 @@ package com.turing.campsite.data.repository
 
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
 import com.turing.campsite.data.model.EntryResult
 import com.turing.campsite.data.model.Lottery
 import com.turing.campsite.data.model.LotteryEntry
@@ -27,10 +29,26 @@ class LotteryRepository {
      * @param id the Firestore document id of the lottery
      * @return the lottery, or null if there is no document with that id
      */
-    suspend fun get(id: String): Lottery? {
+    suspend fun getLottery(id: String): Lottery? {
         val doc = lotteries.document(id).get().await()
         val lottery = doc.toObject(Lottery::class.java) ?: return null
         lottery.id = doc.id
+        return lottery
+    }
+
+    /**
+     * Finds a lottery ID using a given campsiteID
+     * @param campsiteId the campsiteID field value
+     * @return the lotteryID with this campsiteID
+     */
+    suspend fun findLot(campsiteId: String): Lottery?{
+        val db = Firebase.firestore
+        val snapshot = db.collection("lotteries")
+            .whereEqualTo("campsiteID",campsiteId)
+            .get()
+            .await()
+        val document = snapshot.documents.firstOrNull()
+        val lottery = getLottery(document!!.id)
         return lottery
     }
 
@@ -115,7 +133,7 @@ class LotteryRepository {
      * @return true if the entrant was added, false if the lottery was missing or full
      */
     suspend fun join(lotteryId: String, entrantId: String): Boolean {
-        val lottery = get(lotteryId) ?: return false
+        val lottery = getLottery(lotteryId) ?: return false
 
         if (!lottery.isRegistrationOpen())
         {

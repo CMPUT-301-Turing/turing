@@ -35,6 +35,8 @@ import androidx.compose.ui.unit.sp
 
 import com.google.firebase.auth.FirebaseAuth
 import com.turing.campsite.PrimaryColor
+import com.turing.campsite.data.model.Campsite
+import com.turing.campsite.data.model.Lottery
 import com.turing.campsite.data.model.Review
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
 import com.turing.campsite.ui.viewmodel.LotteryViewModel
@@ -48,18 +50,24 @@ private val StarColor = Color(0xFFC19A49)
 
 @Composable
 fun EntrantCampsiteDetailsScreen(
-    campsiteViewModel: CampsiteViewModel,
-    lotteryViewModel: LotteryViewModel,
-    campsiteId: String,
-    onBackClick: () -> Unit,
-    onEnterLotteryClick: () -> Unit = {}
-) {
-    val campsite = campsiteViewModel.selectedCampsite
-    val currentEntrantId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+        campsiteViewModel: CampsiteViewModel,
+        lotteryViewModel: LotteryViewModel,
+        campsiteId: String,
+        onBackClick: () -> Unit,
+        onEnterLotteryClick: () -> Unit = {}
+    ) {
+        val campsite = campsiteViewModel.selectedCampsite
+        val currentEntrantId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+        val currentLot = lotteryViewModel.selectedLottery
 
     LaunchedEffect(campsiteId) {
         campsiteViewModel.select(campsiteId)
     }
+
+    LaunchedEffect(campsiteId) {
+        lotteryViewModel.selectWithCampID(campsiteId)
+    }
+
 
     Column(
         modifier = Modifier
@@ -221,7 +229,9 @@ fun EntrantCampsiteDetailsScreen(
 
                     // Then navigate or show success
                     onEnterLotteryClick()
-                }
+                },
+                selected = campsite,
+                selectedlot = currentLot
             )
         }
     }
@@ -452,8 +462,11 @@ private fun CampsiteReviewsSection(
 
 @Composable
 private fun EntrantLotterySection(
-    onEnterLotteryClick: () -> Unit
+    onEnterLotteryClick: () -> Unit,
+    selected: Campsite?,
+    selectedlot: Lottery?
 ) {
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -473,6 +486,39 @@ private fun EntrantLotterySection(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                if (selected!!.statusLabel == "Active"){
+                    Text(
+                        text = "•  Lottery open",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = PrimaryColor
+                    )
+
+                    if(selectedlot?.registrationEnd == null){
+                        Text(
+                            text = "No current Deadline set",
+                            fontSize = 11.sp,
+                            color = SecondaryText
+                        )
+                    }
+
+                    Text(
+                        text = "Closes ${selectedlot?.registrationEnd}",
+                        fontSize = 11.sp,
+                        color = SecondaryText
+                    )
+                }
+                else{
+                    Text(
+                        text = "No lottery open next time? Join the waitlist to hear when entries reopen.",
+                        modifier = Modifier.fillMaxWidth(),
+                        fontSize = 11.sp,
+                        lineHeight = 15.sp,
+                        textAlign = TextAlign.Center,
+                        color = SecondaryText
+                    )
+                }
+                /**
                 Text(
                     text = "•  Lottery open",
                     fontSize = 13.sp,
@@ -485,6 +531,7 @@ private fun EntrantLotterySection(
                     fontSize = 11.sp,
                     color = SecondaryText
                 )
+                **/
             }
 
             Text(
