@@ -67,7 +67,7 @@ private val SecondaryText = Color(0xFF7A8079)
 fun OwnerHomeScreen(
     onNotificationsClick: () -> Unit,
     onProfileClick: () -> Unit,
-    onRegisterCampsiteClick: (String) -> Unit,
+    onRegisterCampsiteClick: () -> Unit,
     onCreateLotteryClick: () -> Unit,
     campsiteViewModel: CampsiteViewModel,
     onCampsiteClick: (String) -> Unit
@@ -131,7 +131,7 @@ fun OwnerHomeScreen(
 
         // Register new campsite
         Button(
-            onClick = onRegisterCampsiteClick(currentOwnerId),
+            onClick = onRegisterCampsiteClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(54.dp),
