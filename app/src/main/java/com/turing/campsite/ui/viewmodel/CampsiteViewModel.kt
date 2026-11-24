@@ -24,6 +24,9 @@ class CampsiteViewModel(
     var campsites by mutableStateOf<List<Campsite>>(emptyList())
         private set
 
+    var ownerCampsites by mutableStateOf<List<Campsite>>(emptyList())
+        private set
+
     var selectedCampsite by mutableStateOf<Campsite?>(null)
         private set
 
@@ -44,9 +47,9 @@ class CampsiteViewModel(
      *
      * @param ownerId the uid of the owner
      */
-    fun loadForOwner(ownerId: String) {
+    fun listByOwner(ownerId: String) {
         launchCall {
-            campsites = repository.listByOwner(ownerId)
+            ownerCampsites = repository.listByOwner(ownerId)
         }
     }
 
@@ -75,6 +78,8 @@ class CampsiteViewModel(
 
         var campsites by mutableStateOf<List<Campsite>>(emptyList())
             private set
+        var ownerCampsites by mutableStateOf<List<Campsite>>(emptyList())
+            private set
 
         var selectedCampsite by mutableStateOf<Campsite?>(null)
             private set
@@ -96,9 +101,9 @@ class CampsiteViewModel(
          *
          * @param ownerId the uid of the owner
          */
-        fun loadForOwner(ownerId: String) {
+        fun listByOwner(ownerId: String) {
             launchCall {
-                campsites = repository.listByOwner(ownerId)
+                ownerCampsites = repository.listByOwner(ownerId)
             }
         }
 

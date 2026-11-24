@@ -1,5 +1,6 @@
 package com.turing.campsite.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -20,6 +21,7 @@ import com.turing.campsite.ui.screens.owner.OwnerCreateLotteryScreen
 import com.turing.campsite.ui.screens.owner.OwnerCampsiteQRCodeScreen
 import com.turing.campsite.ui.screens.owner.OwnerEditCampsiteScreen
 import com.turing.campsite.ui.screens.owner.OwnerNotificationScreen
+import com.turing.campsite.ui.viewmodel.LotteryViewModel
 
 /**
  * Registers all campsite owner navigation destinations.
@@ -31,11 +33,13 @@ fun NavGraphBuilder.ownerGraph(
         // The owner's campsites are read from the database every time this screen opens.
         val campsiteViewModel: CampsiteViewModel = viewModel()
         LaunchedEffect(Unit) {
-            campsiteViewModel.loadForOwner(TempUser.UID)
+            campsiteViewModel.listByOwner(TempUser.UID)
         }
         ErrorToast(campsiteViewModel)
 
+
         OwnerHomeScreen(
+            campsiteViewModel = campsiteViewModel,
             onNotificationsClick = {
                 navController.navigate(Routes.OWNER_NOTIFICATION)
             },
@@ -48,10 +52,9 @@ fun NavGraphBuilder.ownerGraph(
             onCreateLotteryClick = {
                 navController.navigate(Routes.OWNER_CREATE_LOTTERY)
             },
-            onCampsiteClick = {
-                navController.navigate(Routes.OWNER_CAMPSITE_FULL_DETAIL)
+            onCampsiteClick = { campsiteId ->
+                navController.navigate("${Routes.ENTRANT_CAMPSITE_DETAILS}/${Uri.encode(campsiteId)}")
             },
-            campsites = campsiteViewModel.campsites
         )
     }
 
@@ -82,8 +85,19 @@ fun NavGraphBuilder.ownerGraph(
         )
     }
 
-    composable(Routes.OWNER_CAMPSITE_FULL_DETAIL) {
+    composable("${Routes.OWNER_CAMPSITE_FULL_DETAIL}/campsiteId") {
+        backStackEntry ->
+
+        val campsiteId =
+            backStackEntry.arguments?.getString("campsiteId").orEmpty()
+
+        val campsiteViewModel: CampsiteViewModel = viewModel()
+        val lotteryViewModel: LotteryViewModel = viewModel()
+
         OwnerCampsiteFullDetailScreen(
+            campsiteViewModel = campsiteViewModel,
+            lotteryViewModel = lotteryViewModel,
+            campsiteId = campsiteId,
             onBackClick = {
                 navController.popBackStack()
             },
