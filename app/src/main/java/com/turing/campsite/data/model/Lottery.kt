@@ -17,6 +17,8 @@ enum class LotteryStatus { OPEN, DRAWN, CLOSED }
  * waitlist during the registration period, then winners are drawn and can
  * reserve dates inside the booking period.
  *
+ * @property maxCap bool that sees if owner wants to cap lottery
+ * @property cap is the limit they set before others are added to waitlist
  * @property id the Firestore document id
  * @property ownerId the uid of the owner who created the lottery
  * @property campsiteIds the ids of the campsites included in the lottery
@@ -30,6 +32,8 @@ enum class LotteryStatus { OPEN, DRAWN, CLOSED }
  * @property createdAt when the lottery document was created
  */
 data class Lottery(
+    var maxCap: Boolean = false,
+    var cap: Int = 0,
     var id: String = "",
     var owner: String = "",
     var campsiteID: String= "",

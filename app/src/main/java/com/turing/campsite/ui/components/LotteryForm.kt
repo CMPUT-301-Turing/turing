@@ -13,6 +13,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,6 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 import com.turing.campsite.PrimaryColor
+import com.turing.campsite.data.auth.DeviceAuthManager
+import com.turing.campsite.data.model.Campsite
+import com.turing.campsite.ui.viewmodel.CampsiteViewModel
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
@@ -61,28 +65,6 @@ data class LotteryFormData(
     val waitlistCapacity: String = ""
 )
 
-private val sampleCampsites = listOf(
-    LotteryCampsitePreview(
-        id = "pinewood",
-        name = "Pinewood Retreat",
-        location = "New Forest, Hampshire"
-    ),
-    LotteryCampsitePreview(
-        id = "willowbank",
-        name = "Willowbank Meadow",
-        location = "Bakewell, Peak District"
-    ),
-    LotteryCampsitePreview(
-        id = "fellside",
-        name = "Fellside Farm",
-        location = "Keswick, Lake District"
-    ),
-    LotteryCampsitePreview(
-        id = "riverbend",
-        name = "Riverbend Glade",
-        location = "Dartmoor, Devon"
-    )
-)
 
 /**
  * Shared form for creating and editing lotteries.
@@ -94,6 +76,8 @@ private val sampleCampsites = listOf(
  */
 @Composable
 fun LotteryForm(
+    deviceAuthManager: DeviceAuthManager,
+    campsiteViewModel: CampsiteViewModel,
     title: String,
     description: String,
     actionLabel: String,
@@ -101,6 +85,13 @@ fun LotteryForm(
     onSubmitClick: (LotteryFormData) -> Unit,
     initialData: LotteryFormData = LotteryFormData()
 ) {
+    val deviceAuthManager = DeviceAuthManager()
+    val currentOwnerId = deviceAuthManager.currentUid
+    val campsites = campsiteViewModel.ownerCampsites
+
+    LaunchedEffect(currentOwnerId,) {
+        campsiteViewModel.listByOwner(currentOwnerId)
+    }
     var formData by remember(initialData) {
         mutableStateOf(initialData)
     }
@@ -161,7 +152,7 @@ fun LotteryForm(
             )
 
             LotteryCampsiteSection(
-                campsites = sampleCampsites,
+                campsites = campsites,
                 selectedIds = formData.selectedCampsiteIds,
                 onCampsiteToggled = { campsiteId ->
                     val selectedIds = formData.selectedCampsiteIds
@@ -305,7 +296,7 @@ private fun LotterySectionCard(
  */
 @Composable
 private fun LotteryCampsiteSection(
-    campsites: List<LotteryCampsitePreview>,
+    campsites: List<Campsite>,
     selectedIds: Set<String>,
     onCampsiteToggled: (String) -> Unit
 ) {
