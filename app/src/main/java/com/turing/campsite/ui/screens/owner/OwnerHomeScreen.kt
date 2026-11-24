@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 
 import com.turing.campsite.PrimaryColor
+import com.turing.campsite.data.auth.DeviceAuthManager
 import com.turing.campsite.ui.components.CampsiteCard
 import com.turing.campsite.data.model.Campsite // real model
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
@@ -65,6 +66,7 @@ private val SecondaryText = Color(0xFF7A8079)
  */
 @Composable
 fun OwnerHomeScreen(
+    deviceAuthManager: DeviceAuthManager,
     onNotificationsClick: () -> Unit,
     onProfileClick: () -> Unit,
     onRegisterCampsiteClick: () -> Unit,
@@ -72,7 +74,8 @@ fun OwnerHomeScreen(
     campsiteViewModel: CampsiteViewModel,
     onCampsiteClick: (String) -> Unit
 ) {
-    val currentOwnerId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+    val deviceAuthManager = DeviceAuthManager()
+    val currentOwnerId = deviceAuthManager.currentUid
     val campsites = campsiteViewModel.ownerCampsites
 
     LaunchedEffect(currentOwnerId,) {
@@ -131,7 +134,8 @@ fun OwnerHomeScreen(
 
         // Register new campsite
         Button(
-            onClick = onRegisterCampsiteClick,
+            onClick =
+                onRegisterCampsiteClick ,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(54.dp),

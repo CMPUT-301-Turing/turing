@@ -46,7 +46,7 @@ class CampsiteRepository {
      * @param ownerId the uid of the owner
      * @return the campsites whose ownerId matches
      */
-    suspend fun listByOwner(ownerId: String): List<Campsite> {
+    suspend fun listByOwner(ownerId: String?): List<Campsite> {
         val snapshot = campsites.whereEqualTo("ownerId", ownerId).get().await()
         return snapshot.documents.mapNotNull { doc ->
             doc.toObject(Campsite::class.java)?.also { it.id = doc.id }

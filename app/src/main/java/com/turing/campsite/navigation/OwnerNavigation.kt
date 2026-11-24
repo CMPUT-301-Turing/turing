@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.turing.campsite.data.auth.DeviceAuthManager
 
 import com.turing.campsite.data.auth.TempUser
 import com.turing.campsite.ui.mapper.toCampsite
@@ -39,6 +40,7 @@ fun NavGraphBuilder.ownerGraph(
 
 
         OwnerHomeScreen(
+            deviceAuthManager = DeviceAuthManager(),
             campsiteViewModel = campsiteViewModel,
             onNotificationsClick = {
                 navController.navigate(Routes.OWNER_NOTIFICATION)
@@ -53,12 +55,15 @@ fun NavGraphBuilder.ownerGraph(
                 navController.navigate(Routes.OWNER_CREATE_LOTTERY)
             },
             onCampsiteClick = { campsiteId ->
-                navController.navigate("${Routes.ENTRANT_CAMPSITE_DETAILS}/${Uri.encode(campsiteId)}")
+                navController.navigate("${Routes.OWNER_CAMPSITE_FULL_DETAIL}/${Uri.encode(campsiteId)}")
             },
         )
     }
 
-    composable(Routes.OWNER_REGISTER_NEW_CAMPSITE) {
+    composable("${Routes.OWNER_REGISTER_NEW_CAMPSITE}/{ownerId}")
+    { backStackEntry ->
+        val ownerId =
+            backStackEntry.arguments?.getString("ownerId").orEmpty()
         val campsiteViewModel: CampsiteViewModel = viewModel()
         ErrorToast(campsiteViewModel)
 

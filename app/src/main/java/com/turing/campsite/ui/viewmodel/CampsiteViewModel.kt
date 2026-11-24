@@ -47,7 +47,7 @@ class CampsiteViewModel(
      *
      * @param ownerId the uid of the owner
      */
-    fun listByOwner(ownerId: String) {
+    fun listByOwner(ownerId: String?) {
         launchCall {
             ownerCampsites = repository.listByOwner(ownerId)
         }
@@ -101,7 +101,7 @@ class CampsiteViewModel(
          *
          * @param ownerId the uid of the owner
          */
-        fun listByOwner(ownerId: String) {
+        fun listByOwner(ownerId: String?) {
             launchCall {
                 ownerCampsites = repository.listByOwner(ownerId)
             }
