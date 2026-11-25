@@ -159,10 +159,7 @@ fun NavGraphBuilder.ownerGraph(
 
     // Create Lottery
     composable(Routes.OWNER_CREATE_LOTTERY) {
-        val campsiteViewModel: CampsiteViewModel = viewModel()
-        ErrorToast(campsiteViewModel)
         OwnerCreateLotteryScreen(
-            campsiteViewModel = campsiteViewModel,
             onBackClick = {
                 navController.popBackStack()
             }
@@ -171,10 +168,7 @@ fun NavGraphBuilder.ownerGraph(
 
     // Edit Lottery
     composable(Routes.OWNER_EDIT_LOTTERY) {
-        val campsiteViewModel: CampsiteViewModel = viewModel()
-        ErrorToast(campsiteViewModel)
         OwnerEditLotteryScreen(
-            campsiteViewModel = campsiteViewModel,
             onBackClick = {
                 navController.popBackStack()
             }
