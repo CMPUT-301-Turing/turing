@@ -195,9 +195,7 @@ fun NavGraphBuilder.ownerGraph(
             val shared: CampsiteViewModel = viewModel(parent)
 
             OwnerCreateLotteryScreen(
-                shared,
-                deviceAuthManager = DeviceAuthManager(),
-
+                campsites = shared.ownerCampsites,
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -211,8 +209,7 @@ fun NavGraphBuilder.ownerGraph(
             }
             val shared: CampsiteViewModel = viewModel(parent)
             OwnerEditLotteryScreen(
-                shared,
-                deviceAuthManager = DeviceAuthManager(),
+                campsites = shared.ownerCampsites,
                 onBackClick = {
                     navController.popBackStack()
                 }

@@ -56,14 +56,10 @@ private val SecondaryText = Color(0xFF7A8079)
 
 
 /**
- * Campsite owner's home screen.
+ * Campsite owner's home screen, loaded from Firestore.
  *
- * Displays the owner's campsites and actions for
- * registering campsites and creating lotteries.
- *
- * The campsites to show are passed in. Sample campsites
- * are used when none are given.
- * Navigation is handled through callbacks.
+ * Loads the signed-in owner's campsites, then shows them with the
+ * stateless overload below. Navigation is handled through callbacks.
  */
 @Composable
 fun OwnerHomeScreen(
@@ -76,13 +72,34 @@ fun OwnerHomeScreen(
     onCampsiteClick: (String) -> Unit
 ) {
     val currentOwnerId = deviceAuthManager.currentUid
-    val campsites = campsiteViewModel.ownerCampsites
 
 
-    //val activeCampsites = campsites.filter { it.statusLabel.equals("Active", ignoreCase = true) }
+    OwnerHomeScreen(
+        campsites = campsiteViewModel.ownerCampsites,
+        onNotificationsClick = onNotificationsClick,
+        onProfileClick = onProfileClick,
+        onRegisterCampsiteClick = { onRegisterCampsiteClick(currentOwnerId) },
+        onCreateLotteryClick = onCreateLotteryClick,
+        onCampsiteClick = onCampsiteClick
+    )
+}
 
-
-
+/**
+ * Campsite owner's home screen.
+ *
+ * Displays the given campsites and actions for registering campsites and
+ * creating lotteries. Stateless, so screen tests can pass campsites directly.
+ * Navigation is handled through callbacks.
+ */
+@Composable
+fun OwnerHomeScreen(
+    campsites: List<Campsite>,
+    onNotificationsClick: () -> Unit,
+    onProfileClick: () -> Unit,
+    onRegisterCampsiteClick: () -> Unit,
+    onCreateLotteryClick: () -> Unit,
+    onCampsiteClick: (String) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -132,7 +149,7 @@ fun OwnerHomeScreen(
         // Register new campsite
         Button(
             onClick =
-                { onRegisterCampsiteClick(currentOwnerId) } ,
+                onRegisterCampsiteClick ,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(54.dp),

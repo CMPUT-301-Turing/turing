@@ -77,7 +77,7 @@ class LotteryViewModelTest {
 
     @Test
     fun select_entrantOnWaitlist_hasJoinedTrue() = runBlocking<Unit> {
-        doReturn(lottery).`when`(repository).get("l1")
+        doReturn(lottery).`when`(repository).getLottery("l1")
         doReturn(listOf(entry)).`when`(repository).listEntries("l1")
 
         viewModel.select("l1", "u1")
@@ -89,7 +89,7 @@ class LotteryViewModelTest {
 
     @Test
     fun select_entrantNotOnWaitlist_hasJoinedFalse() = runBlocking<Unit> {
-        doReturn(lottery).`when`(repository).get("l1")
+        doReturn(lottery).`when`(repository).getLottery("l1")
         doReturn(listOf(entry)).`when`(repository).listEntries("l1")
 
         viewModel.select("l1", "someoneElse")
@@ -99,7 +99,7 @@ class LotteryViewModelTest {
 
     @Test
     fun select_lotteryMissing_setsErrorMessage() = runBlocking<Unit> {
-        doReturn(null).`when`(repository).get("gone")
+        doReturn(null).`when`(repository).getLottery("gone")
 
         viewModel.select("gone", "u1")
 
@@ -164,7 +164,7 @@ class LotteryViewModelTest {
 
     @Test
     fun leave_entrantOnWaitlist_removedFromEntries() = runBlocking<Unit> {
-        doReturn(lottery).`when`(repository).get("l1")
+        doReturn(lottery).`when`(repository).getLottery("l1")
         doReturn(listOf(entry)).`when`(repository).listEntries("l1")
         viewModel.select("l1", "u1")
 
