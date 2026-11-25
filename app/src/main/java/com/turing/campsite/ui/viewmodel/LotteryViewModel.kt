@@ -56,6 +56,19 @@ class LotteryViewModel(
         }
     }
 
+    fun selectWithCampID(campsiteId: String) {
+        launchCall {
+            val lottery = repository.findLot(campsiteId)
+            selectedLottery = lottery
+            if (lottery == null) {
+                errorMessage = "Lottery not found"
+            } else {
+                val lotteryId = lottery.id
+            }
+        }
+    }
+
+
     /**
      * Loads one lottery and its waitlist for a details screen.
      *
@@ -67,7 +80,7 @@ class LotteryViewModel(
      */
     fun select(lotteryId: String, entrantId: String) {
         launchCall {
-            val lottery = repository.get(lotteryId)
+            val lottery = repository.getLottery(lotteryId)
             selectedLottery = lottery
             if (lottery == null) {
                 entries = emptyList()

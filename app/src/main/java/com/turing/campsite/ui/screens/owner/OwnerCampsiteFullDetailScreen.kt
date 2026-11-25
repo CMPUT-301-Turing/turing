@@ -26,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -35,10 +36,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
 
 import com.turing.campsite.PrimaryColor
 
 import com.turing.campsite.data.model.Campsite
+import com.turing.campsite.ui.viewmodel.CampsiteViewModel
+import com.turing.campsite.ui.viewmodel.LotteryViewModel
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
@@ -51,14 +55,6 @@ private val SecondaryText = Color(0xFF7A8079)
  */
 private val bookedDates = setOf(23, 24, 25, 30, 31)
 
-private val sampleCampsite = Campsite(
-    name = "Nikola Uletilovic",
-    location = "Dartmoor, Devon",
-    maxOccupancy = 10,
-    description = "Beautiful riverside cabin with a lot room for your friends.",
-    tags = listOf("Riverside", "Party Friendly", "Pets Allowed"),
-    rulesText = "Don't leave the doors unlocked"
-)
 
 /**
  * Detailed campsite information for the owner.
@@ -74,8 +70,22 @@ fun OwnerCampsiteFullDetailScreen(
     onEditLotteryClick: () -> Unit,
     onLotteryClick: () -> Unit,
     onReservationsClick: () -> Unit,
-    campsite: Campsite = sampleCampsite
+    campsiteViewModel: CampsiteViewModel,
+    lotteryViewModel: LotteryViewModel,
+    campsiteId: String
 ) {
+    val campsite = campsiteViewModel.selectedCampsite
+    val currentOwnerId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+    val currentLot = lotteryViewModel.selectedLottery
+
+    LaunchedEffect(campsiteId) {
+        campsiteViewModel.select(campsiteId)
+    }
+
+    LaunchedEffect(campsiteId) {
+        lotteryViewModel.selectWithCampID(campsiteId)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -109,61 +119,72 @@ fun OwnerCampsiteFullDetailScreen(
                 color = PrimaryColor
             )
         }
-
-        // Scrollable campsite details
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-        ) {
-            CampsiteHeroSection(campsite.name, campsite.location)
-
+        if (campsite == null){
+            Text(
+                text = "Campsite details not found.",
+                modifier = Modifier.padding(20.dp)
+            )
+        }
+        else {
+            // Scrollable campsite details
             Column(
-                modifier = Modifier.padding(
-                    horizontal = 20.dp,
-                    vertical = 20.dp
-                ),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
             ) {
-                // Main campsite actions
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                CampsiteHeroSection(campsite.name, campsite.location)
+
+                Column(
+                    modifier = Modifier.padding(
+                        horizontal = 20.dp,
+                        vertical = 20.dp
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    CampsiteAction(
-                        label = "Edit Campsite",
-                        icon = Icons.Outlined.Edit,
-                        onClick = onEditClick,
-                        modifier = Modifier.weight(1f)
+                    // Main campsite actions
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        CampsiteAction(
+                            label = "Edit Campsite",
+                            icon = Icons.Outlined.Edit,
+                            onClick = onEditClick,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        CampsiteAction(
+                            label = "QR Code",
+                            icon = Icons.Outlined.QrCode2,
+                            onClick = onQRCodeClick,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        CampsiteAction(
+                            label = "Edit Lottery",
+                            icon = Icons.Outlined.ConfirmationNumber,
+                            onClick = onEditLotteryClick,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    BookedDatesSection()
+
+                    CampsiteDetailsSection(
+                        campsite.maxOccupancy,
+                        campsite.description,
+                        campsite.tags
                     )
 
-                    CampsiteAction(
-                        label = "QR Code",
-                        icon = Icons.Outlined.QrCode2,
-                        onClick = onQRCodeClick,
-                        modifier = Modifier.weight(1f)
+                    CampsiteRulesSection(campsite.rulesText)
+
+                    CampsiteViewSection(
+                        onLotteryClick = onLotteryClick,
+                        onReservationsClick = onReservationsClick
                     )
 
-                    CampsiteAction(
-                        label = "Edit Lottery",
-                        icon = Icons.Outlined.ConfirmationNumber,
-                        onClick = onEditLotteryClick,
-                        modifier = Modifier.weight(1f)
-                    )
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
-
-                BookedDatesSection()
-
-                CampsiteDetailsSection(campsite.maxOccupancy, campsite.description, campsite.tags)
-
-                CampsiteRulesSection(campsite.rulesText)
-
-                CampsiteViewSection(
-                    onLotteryClick = onLotteryClick,
-                    onReservationsClick = onReservationsClick
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
             }
         }
     }
@@ -176,7 +197,9 @@ fun OwnerCampsiteFullDetailScreen(
  * are loaded from storage.
  */
 @Composable
-private fun CampsiteHeroSection(name: String, location: String) {
+private fun CampsiteHeroSection(name: String,
+                                location: String
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -444,7 +467,9 @@ private fun BookedDatesSection() {
  * Campsite occupancy, description, and tags.
  */
 @Composable
-private fun CampsiteDetailsSection(maxOccupancy: Int, description: String, tags: List<String>) {
+private fun CampsiteDetailsSection(maxOccupancy: Int,
+                                   description: String,
+                                   tags: List<String>) {
     CampsiteDetailCard {
         Row(
             modifier = Modifier.fillMaxWidth(),

@@ -17,7 +17,7 @@ import com.turing.campsite.ui.components.CampsiteFormMode
 fun OwnerRegisterNewCampsiteScreen(
     onBackClick: () -> Unit,
     onSaveDraftClick: (CampsiteFormData) -> Unit = {},
-    onPublishClick: (CampsiteFormData) -> Unit = {}
+    onPublishClick: (CampsiteFormData) -> Unit = {},
 ) {
     CampsiteForm(
         mode = CampsiteFormMode.CREATE,

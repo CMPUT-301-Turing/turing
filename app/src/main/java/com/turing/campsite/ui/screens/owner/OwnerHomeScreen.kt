@@ -28,16 +28,24 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
 
 import com.turing.campsite.PrimaryColor
+import com.turing.campsite.data.auth.DeviceAuthManager
 import com.turing.campsite.ui.components.CampsiteCard
 import com.turing.campsite.data.model.Campsite // real model
+import com.turing.campsite.ui.viewmodel.CampsiteViewModel
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
@@ -45,44 +53,6 @@ private val CardBorder = Color(0xFFDFE2D8)
 private val ChipBackground = Color(0xFFE8EFE3)
 private val SecondaryText = Color(0xFF7A8079)
 
-/**
- * Temporary campsites belonging to the logged-in owner.
- */
-private val sampleCampsites = listOf(
-
-    Campsite(
-        name = "Pinewood Retreat",
-        location = "New Forest, Hampshire",
-        description = "12 pitches · Woodland",
-        maxOccupancy = 48,
-        ratingAverage = 4.8,
-        ratingCount = 10
-    ),
-    Campsite(
-        name = "Willowbank Meadow",
-        location = "Bakewell, Peak District",
-        description = "8 pitches · Riverside",
-        maxOccupancy = 48,
-        ratingAverage = 4.7,
-        ratingCount = 15
-    ),
-    Campsite(
-        name = "Fellside Farm",
-        location = "Keswick, Lake District",
-        description = "6 pitches · Hill views",
-        maxOccupancy = 24,
-        ratingAverage = 4.6,
-        ratingCount = 8
-    ),
-    Campsite(
-        name = "Heather Ridge",
-        location = "Whitby, North Yorkshire",
-        description = "10 pitches · Countryside",
-        maxOccupancy = 40,
-        ratingAverage = 4.5,
-        ratingCount = 5
-    )
-)
 
 /**
  * Campsite owner's home screen.
@@ -96,13 +66,26 @@ private val sampleCampsites = listOf(
  */
 @Composable
 fun OwnerHomeScreen(
+    deviceAuthManager: DeviceAuthManager,
     onNotificationsClick: () -> Unit,
     onProfileClick: () -> Unit,
     onRegisterCampsiteClick: () -> Unit,
     onCreateLotteryClick: () -> Unit,
-    onCampsiteClick: () -> Unit,
-    campsites: List<Campsite> = sampleCampsites
+    campsiteViewModel: CampsiteViewModel,
+    onCampsiteClick: (String) -> Unit
 ) {
+    val deviceAuthManager = DeviceAuthManager()
+    val currentOwnerId = deviceAuthManager.currentUid
+    val campsites = campsiteViewModel.ownerCampsites
+
+    LaunchedEffect(currentOwnerId,) {
+        campsiteViewModel.listByOwner(currentOwnerId)
+    }
+
+    //val activeCampsites = campsites.filter { it.statusLabel.equals("Active", ignoreCase = true) }
+
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -151,7 +134,8 @@ fun OwnerHomeScreen(
 
         // Register new campsite
         Button(
-            onClick = onRegisterCampsiteClick,
+            onClick =
+                onRegisterCampsiteClick ,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(54.dp),
@@ -261,12 +245,11 @@ fun OwnerHomeScreen(
         ) {
             items(
                 items = campsites,
-                // Sample campsites have no id, so their name is used instead.
-                key = { it.id.ifEmpty { it.name } }
             ) { campsite ->
                 CampsiteCard(
                     campsite = campsite,
-                    onClick = onCampsiteClick
+                    onClick = {
+                        onCampsiteClick(campsite.id) }
                 )
             }
         }

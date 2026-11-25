@@ -1,6 +1,7 @@
 package com.turing.campsite.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.Firebase
 import com.turing.campsite.data.model.Campsite
 import com.turing.campsite.data.model.Review
 import kotlinx.coroutines.tasks.await
@@ -45,7 +46,7 @@ class CampsiteRepository {
      * @param ownerId the uid of the owner
      * @return the campsites whose ownerId matches
      */
-    suspend fun listByOwner(ownerId: String): List<Campsite> {
+    suspend fun listByOwner(ownerId: String?): List<Campsite> {
         val snapshot = campsites.whereEqualTo("ownerId", ownerId).get().await()
         return snapshot.documents.mapNotNull { doc ->
             doc.toObject(Campsite::class.java)?.also { it.id = doc.id }
