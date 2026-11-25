@@ -5,6 +5,7 @@ import org.junit.Test
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import org.junit.Assert.assertTrue
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -52,9 +53,10 @@ class AdminProfileScreenTest {
         composeTestRule.onNodeWithText("Morgan Ellis").assertIsDisplayed()
         composeTestRule.onNodeWithText("morgan.ellis@campmail.com").assertIsDisplayed()
         composeTestRule.onNodeWithText("Administrator").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Switch View").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Settings").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Log Out").assertIsDisplayed()
+        // lower items are below the fold on small screens, so scroll to them first
+        composeTestRule.onNodeWithText("Switch View").performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithText("Settings").performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithText("Log Out").performScrollTo().assertIsDisplayed()
     }
 
     /**

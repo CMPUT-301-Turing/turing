@@ -6,6 +6,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performScrollToNode
 import org.junit.Assert.assertTrue
 
 /**
@@ -66,6 +69,10 @@ class OwnerLotteryDetailsScreenTest {
 
         }
 
+
+        // the button is a LazyColumn item, which is not composed until it is scrolled into view
+        composeTestRule.onNode(hasScrollToNodeAction())
+            .performScrollToNode(hasText("Send Notification to Waitlist"))
 
         // click the send button
         composeTestRule.onNodeWithText("Send Notification to Waitlist").performClick()

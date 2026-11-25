@@ -32,6 +32,7 @@ class OwnerHomeScreenTest {
         composeTestRule.setContent {
 
             OwnerHomeScreen(
+                campsites = emptyList(),
                 onNotificationsClick = {},
                 onProfileClick = {},
 
@@ -65,6 +66,7 @@ class OwnerHomeScreenTest {
         composeTestRule.setContent {
 
             OwnerHomeScreen(
+                campsites = emptyList(),
 
                 onNotificationsClick = {},
                 onProfileClick = {},
@@ -98,6 +100,7 @@ class OwnerHomeScreenTest {
         composeTestRule.setContent {
 
             OwnerHomeScreen(
+                campsites = emptyList(),
 
                 onNotificationsClick = { clicked = true },
 

@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import org.junit.Assert.assertTrue
+import com.turing.campsite.data.model.Campsite
 
 
 
@@ -22,6 +23,16 @@ class OwnerCampsiteFullDetailScreenTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
+
+    private val testCampsite = Campsite(
+        id = "c1",
+        name = "Riverbend Glade",
+        location = "Dartmoor, Devon",
+        maxOccupancy = 10,
+        description = "Beautiful riverside cabin with a lot room for your friends.",
+        tags = listOf("Riverside", "Party Friendly", "Pets Allowed"),
+        rulesText = "Don't leave the doors unlocked"
+    )
 
 
 
@@ -39,6 +50,7 @@ class OwnerCampsiteFullDetailScreenTest {
         composeTestRule.setContent {
 
             OwnerCampsiteFullDetailScreen(
+                campsite = testCampsite,
 
 
                 onBackClick = { backClicked = true },
@@ -83,6 +95,7 @@ class OwnerCampsiteFullDetailScreenTest {
         composeTestRule.setContent {
 
             OwnerCampsiteFullDetailScreen(
+                campsite = testCampsite,
                 onBackClick = {},
 
                 onEditClick = { editClicked = true },
@@ -124,6 +137,7 @@ class OwnerCampsiteFullDetailScreenTest {
 
 
             OwnerCampsiteFullDetailScreen(
+                campsite = testCampsite,
 
                 onBackClick = {},
                 onEditClick = {},

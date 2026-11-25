@@ -36,7 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.firebase.auth.FirebaseAuth
 
 import com.turing.campsite.PrimaryColor
 
@@ -57,10 +56,10 @@ private val bookedDates = setOf(23, 24, 25, 30, 31)
 
 
 /**
- * Detailed campsite information for the owner.
+ * Detailed campsite information for the owner, loaded from Firestore.
  *
- * Displays static sample data for Riverbend Glade.
- * Navigation is handled through callbacks.
+ * Loads the campsite and its lottery for [campsiteId], then shows them with
+ * the stateless overload below. Navigation is handled through callbacks.
  */
 @Composable
 fun OwnerCampsiteFullDetailScreen(
@@ -74,10 +73,6 @@ fun OwnerCampsiteFullDetailScreen(
     lotteryViewModel: LotteryViewModel,
     campsiteId: String
 ) {
-    val campsite = campsiteViewModel.selectedCampsite
-    val currentOwnerId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-    val currentLot = lotteryViewModel.selectedLottery
-
     LaunchedEffect(campsiteId) {
         campsiteViewModel.select(campsiteId)
     }
@@ -86,6 +81,34 @@ fun OwnerCampsiteFullDetailScreen(
         lotteryViewModel.selectWithCampID(campsiteId)
     }
 
+    OwnerCampsiteFullDetailScreen(
+        campsite = campsiteViewModel.selectedCampsite,
+        onBackClick = onBackClick,
+        onEditClick = onEditClick,
+        onQRCodeClick = onQRCodeClick,
+        onEditLotteryClick = onEditLotteryClick,
+        onLotteryClick = onLotteryClick,
+        onReservationsClick = onReservationsClick
+    )
+}
+
+/**
+ * Detailed campsite information for the owner.
+ *
+ * Stateless: shows the given [campsite], or a "not found" message when it is
+ * null. Kept separate from the ViewModel version so screen tests can pass a
+ * campsite directly.
+ */
+@Composable
+fun OwnerCampsiteFullDetailScreen(
+    campsite: Campsite?,
+    onBackClick: () -> Unit,
+    onEditClick: () -> Unit,
+    onQRCodeClick: () -> Unit,
+    onEditLotteryClick: () -> Unit,
+    onLotteryClick: () -> Unit,
+    onReservationsClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()

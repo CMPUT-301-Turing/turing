@@ -66,12 +66,12 @@ class CampsiteViewModelTest {
     }
 
     @Test
-    fun loadForOwner_ownerHasOne_fillsList() = runBlocking<Unit> {
+    fun listByOwner_ownerHasOne_fillsOwnerCampsites() = runBlocking<Unit> {
         doReturn(listOf(pinewood)).`when`(repository).listByOwner("owner1")
 
-        viewModel.loadForOwner("owner1")
+        viewModel.listByOwner("owner1")
 
-        assertEquals(listOf(pinewood), viewModel.campsites)
+        assertEquals(listOf(pinewood), viewModel.ownerCampsites)
     }
 
     @Test

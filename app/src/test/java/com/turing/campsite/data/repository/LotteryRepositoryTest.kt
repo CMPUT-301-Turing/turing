@@ -22,7 +22,7 @@ class LotteryRepositoryTest : FirestoreTestFixture("lotteries") {
     @Test fun getRestoresDocumentId() = runBlocking<Unit> {
         val value = Lottery(id = "stale")
         doReturn(completed(row(Lottery::class.java, value, "canonical"))).`when`(doc).get()
-        val result = LotteryRepository().get("id")
+        val result = LotteryRepository().getLottery("id")
         assertSame(value, result)
         assertEquals("canonical", result!!.id)
     }
@@ -31,7 +31,7 @@ class LotteryRepositoryTest : FirestoreTestFixture("lotteries") {
      */
     @Test fun getMissingDocumentReturnsNull() = runBlocking<Unit> {
         doReturn(completed(row(Lottery::class.java, null))).`when`(doc).get()
-        assertNull(LotteryRepository().get("id"))
+        assertNull(LotteryRepository().getLottery("id"))
     }
     /**
      * Given a failed document read, expects the same exception to reach the caller.
@@ -39,7 +39,7 @@ class LotteryRepositoryTest : FirestoreTestFixture("lotteries") {
     @Test fun getPropagatesFailure() = runBlocking<Unit> {
         val failure = IllegalStateException("read failed")
         doReturn(failed<DocumentSnapshot>(failure)).`when`(doc).get()
-        try { LotteryRepository().get("id"); fail("Expected read failure") }
+        try { LotteryRepository().getLottery("id"); fail("Expected read failure") }
         catch (actual: IllegalStateException) { assertSame(failure, actual) }
     }
 

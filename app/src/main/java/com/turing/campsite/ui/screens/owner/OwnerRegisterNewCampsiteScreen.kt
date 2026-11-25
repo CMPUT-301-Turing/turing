@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import com.turing.campsite.ui.components.CampsiteForm
 import com.turing.campsite.ui.components.CampsiteFormData
 import com.turing.campsite.ui.components.CampsiteFormMode
+import com.turing.campsite.ui.viewmodel.CampsiteViewModel
 
 /**
  * Screen for registering a new campsite.

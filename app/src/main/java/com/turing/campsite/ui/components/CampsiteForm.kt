@@ -37,8 +37,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
 import com.turing.campsite.PrimaryColor
 
 private val PageBackground = Color(0xFFF6F4ED)
@@ -62,7 +60,7 @@ enum class CampsiteFormMode {
  * This is temporary UI data, not the Firebase model.
  */
 data class CampsiteFormData(
-    val ownerId: String? = Firebase.auth.currentUser?.uid,
+    val ownerId: String? = null,
     val name: String = "",
     val maximumOccupancy: String = "",
     val description: String = "",

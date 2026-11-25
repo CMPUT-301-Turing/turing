@@ -33,9 +33,7 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.Timestamp
 
 import com.turing.campsite.PrimaryColor
-import com.turing.campsite.data.auth.DeviceAuthManager
 import com.turing.campsite.data.model.Campsite
-import com.turing.campsite.ui.viewmodel.CampsiteViewModel
 import java.util.Date
 
 private val PageBackground = Color(0xFFF6F4ED)
@@ -99,12 +97,12 @@ private val sampleCampsites = listOf(
  * The parent screen supplies the title, description,
  * action label and navigation callbacks.
  *
- * Form values are stored locally for now.
+ * Form values are stored locally for now. [campsites] are the owner's
+ * campsites the lottery can include.
  */
 @Composable
 fun LotteryForm(
-    campsiteViewModel: CampsiteViewModel,
-    deviceAuthManager: DeviceAuthManager,
+    campsites: List<Campsite> = emptyList(),
     title: String,
     description: String,
     actionLabel: String,
@@ -112,9 +110,6 @@ fun LotteryForm(
     onSubmitClick: (LotteryFormData) -> Unit,
     initialData: LotteryFormData = LotteryFormData(),
 ) {
-    val deviceAuthManager = DeviceAuthManager()
-    val currentOwnerId = deviceAuthManager.currentUid
-    val campsites = campsiteViewModel.ownerCampsites
     var formData by remember(initialData) {
         mutableStateOf(initialData)
     }
