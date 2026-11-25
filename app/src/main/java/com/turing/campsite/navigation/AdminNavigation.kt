@@ -108,7 +108,8 @@ fun NavGraphBuilder.adminGraph(
                 onBackClick = {
                     navController.popBackStack()
                 },
-                campsites = campsiteViewModel.campsites
+                campsites = campsiteViewModel.campsites,
+                isLoading = campsiteViewModel.isLoading
             )
         }
 

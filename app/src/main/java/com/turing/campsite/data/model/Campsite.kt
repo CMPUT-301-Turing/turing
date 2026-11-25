@@ -27,7 +27,6 @@ import com.google.firebase.Timestamp
  */
 data class Campsite(
     var id: String = "",
-    var owner: String = "", // brought back because UI uses it
     var name: String = "",
     var location: String = "", // brought back because UI uses it
     var ownerId: String = "", // added by teammate
