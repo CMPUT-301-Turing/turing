@@ -46,6 +46,7 @@ import com.turing.campsite.data.auth.DeviceAuthManager
 import com.turing.campsite.ui.components.CampsiteCard
 import com.turing.campsite.data.model.Campsite // real model
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
+import kotlinx.serialization.descriptors.PrimitiveKind
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
@@ -69,18 +70,14 @@ fun OwnerHomeScreen(
     deviceAuthManager: DeviceAuthManager,
     onNotificationsClick: () -> Unit,
     onProfileClick: () -> Unit,
-    onRegisterCampsiteClick: () -> Unit,
+    onRegisterCampsiteClick: (String?) -> Unit,
     onCreateLotteryClick: () -> Unit,
     campsiteViewModel: CampsiteViewModel,
     onCampsiteClick: (String) -> Unit
 ) {
-    val deviceAuthManager = DeviceAuthManager()
     val currentOwnerId = deviceAuthManager.currentUid
     val campsites = campsiteViewModel.ownerCampsites
 
-    LaunchedEffect(currentOwnerId,) {
-        campsiteViewModel.listByOwner(currentOwnerId)
-    }
 
     //val activeCampsites = campsites.filter { it.statusLabel.equals("Active", ignoreCase = true) }
 
@@ -135,7 +132,7 @@ fun OwnerHomeScreen(
         // Register new campsite
         Button(
             onClick =
-                onRegisterCampsiteClick ,
+                { onRegisterCampsiteClick(currentOwnerId) } ,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(54.dp),

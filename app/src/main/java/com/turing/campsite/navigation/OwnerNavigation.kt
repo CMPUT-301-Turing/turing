@@ -8,6 +8,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import com.turing.campsite.data.auth.DeviceAuthManager
 
 import com.turing.campsite.data.auth.TempUser
@@ -54,7 +56,10 @@ fun NavGraphBuilder.ownerGraph(
             val userViewModel: UserViewModel = viewModel(parent)
 
             LaunchedEffect(backStackEntry) {
-                campsiteViewModel.listByOwner(TempUser.UID)
+                val ownerId = TempUser.UID
+                if (ownerId.isNotBlank()){
+                    campsiteViewModel.listByOwner(ownerId)
+                }
             }
 
             OwnerHomeScreen(
@@ -84,21 +89,21 @@ fun NavGraphBuilder.ownerGraph(
             )
         }
 
-        composable("${Routes.OWNER_REGISTER_NEW_CAMPSITE}/{ownerId}")
-        { backStackEntry ->
-            val ownerId =
-                backStackEntry.arguments?.getString("ownerId").orEmpty()
-            val campsiteViewModel: CampsiteViewModel = viewModel()
-            ErrorToast(campsiteViewModel)
-
+        composable(Routes.OWNER_REGISTER_NEW_CAMPSITE) { backStackEntry ->
+            val parent = remember(backStackEntry) {
+                navController.getBackStackEntry("ownerGraph")
+            }
+            val shared: CampsiteViewModel = viewModel(parent)
             OwnerRegisterNewCampsiteScreen(
                 onBackClick = {
                     navController.popBackStack()
                 },
                 onPublishClick = { formData ->
-                    // Ignore extra taps while the first save is still running.
-                    if (!campsiteViewModel.isLoading) {
-                        campsiteViewModel.add(formData.toCampsite(TempUser.UID)) {
+
+                    val ownerId = TempUser.UID
+                 // Ignore extra taps while the first save is still running.
+                    if (!shared.isLoading && ownerId.isNotBlank()) {
+                        shared.add(formData.toCampsite(ownerId)) {
                             navController.popBackStack()
                         }
                     }
@@ -115,7 +120,6 @@ fun NavGraphBuilder.ownerGraph(
         }
 
         composable("${Routes.OWNER_CAMPSITE_FULL_DETAIL}/{campsiteId}") { backStackEntry ->
-
             val campsiteId =
                 backStackEntry.arguments?.getString("campsiteId").orEmpty()
 
