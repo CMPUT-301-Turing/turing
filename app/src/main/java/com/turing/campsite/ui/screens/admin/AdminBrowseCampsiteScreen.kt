@@ -1,8 +1,22 @@
+
+/*
+ * AI Assistance Disclosure
+ *
+ * Company: OpenAI
+ * Tool: ChatGPT (GPT-6)
+ * Date: 2026-11-24
+ * Subject: Admin campsite browsing, search implementation,
+ *          loading and empty states, Jetpack Compose state
+ *          management and code review.
+ *
+ * Scope: AI-assisted implementation and debugging of this file.
+ */
+
 package com.turing.campsite.ui.screens.admin
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,11 +32,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,73 +60,38 @@ private val CardBorder = Color(0xFFDFE2D8)
 private val SecondaryText = Color(0xFF7A8079)
 
 /**
- * Temporary campsite data used by the admin browse screen.
- */
-private val sampleCampsites = listOf(
-
-    Campsite(
-        id = "1",
-        name = "Oak Hollow",
-        location = "Brecon, Powys",
-        description = "Woodland",
-        maxOccupancy = 2,
-        ratingAverage = 0.0,
-        ratingCount = 0
-    ),
-    Campsite(
-        id = "2",
-        name = "Pinewood Retreat",
-        location = "New Forest, Hampshire",
-        description = "Woodland",
-        maxOccupancy = 7,
-        ratingAverage = 4.8,
-        ratingCount = 12
-    ),
-    Campsite(
-        id = "3",
-        name = "Willowbank Meadow",
-        location = "Bakewell, Peak District",
-        description = "Riverside",
-        maxOccupancy = 5,
-        ratingAverage = 4.7,
-        ratingCount = 8
-    ),
-    Campsite(
-        id = "4",
-        name = "Heather Ridge",
-        location = "Whitby, North Yorkshire",
-        description = "Hill views",
-        maxOccupancy = 12,
-        ratingAverage = 0.0,
-        ratingCount = 0
-    ),
-    Campsite(
-        id = "5",
-        name = "Fellside Farm",
-        location = "Keswick, Lake District",
-        description = "Hill views",
-        maxOccupancy = 10,
-        ratingAverage = 4.6,
-        ratingCount = 5
-    )
-)
-
-/**
  * Admin browse campsites screen.
  *
- * Displays a list of campsites using the shared
+ * Displays all registered campsites using the shared
  * CampsiteCard component with an admin delete button.
- * The campsites to show are passed in. Sample campsites
- * are used when none are given.
+ * Supports searching by campsite name or location.
  *
- * Search and deletion are visual placeholders.
+ * Displays a loading indicator while fetching campsites,
+ * and an empty-state message when no results are available.
+ *
+ * Deletion is currently a visual placeholder.
  * Back navigation is handled through a callback.
  */
 @Composable
 fun AdminBrowseCampsiteScreen(
     onBackClick: () -> Unit,
-    campsites: List<Campsite> = sampleCampsites
+    campsites: List<Campsite>,
+    isLoading: Boolean
 ) {
+    // Search query state
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+
+    // Filter by campsite name or location
+    val query = searchQuery.trim()
+    val filteredCampsites = if (query.isEmpty()) {
+        campsites
+    } else {
+        campsites.filter { campsite ->
+            campsite.name.contains(query, ignoreCase = true) ||
+                    campsite.location.contains(query, ignoreCase = true)
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -142,34 +127,35 @@ fun AdminBrowseCampsiteScreen(
 
         Spacer(modifier = Modifier.height(26.dp))
 
-        // Search bar (visual placeholder)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(10.dp),
-            color = CardBackground,
-            border = BorderStroke(1.dp, CardBorder)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
+        // Search bar
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = {
+                Text(
+                    text = "Search by name or location",
+                    fontSize = 12.sp,
+                    color = SecondaryText
+                )
+            },
+            leadingIcon = {
                 Icon(
                     imageVector = Icons.Outlined.Search,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp),
                     tint = PrimaryColor
                 )
-
-                Text(
-                    text = "Search by name or location",
-                    fontSize = 12.sp,
-                    color = SecondaryText
-                )
-            }
-        }
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(10.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = CardBackground,
+                unfocusedContainerColor = CardBackground,
+                focusedBorderColor = PrimaryColor,
+                unfocusedBorderColor = CardBorder
+            )
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -187,7 +173,7 @@ fun AdminBrowseCampsiteScreen(
             )
 
             Text(
-                text = "${campsites.size} campsites",
+                text = "${filteredCampsites.size} campsites",
                 fontSize = 11.sp,
                 color = SecondaryText
             )
@@ -195,19 +181,48 @@ fun AdminBrowseCampsiteScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Scrollable campsite list
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(
-                items = sampleCampsites,
-                key = { it.id }
-            ) { campsite ->
-                CampsiteCard(
-                    campsite = campsite,
-                    showDeleteButton = true
+        // Loading, empty state, or campsite list
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryColor)
+            }
+        } else if (filteredCampsites.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = if (campsites.isEmpty()) {
+                        "No campsites registered yet."
+                    } else {
+                        "No campsites match your search."
+                    },
+                    fontSize = 14.sp,
+                    color = SecondaryText
                 )
+            }
+        } else {
+            // Scrollable filtered campsite list
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(
+                    items = filteredCampsites,
+                    key = { it.id }
+                ) { campsite ->
+                    CampsiteCard(
+                        campsite = campsite,
+                        showDeleteButton = true
+                    )
+                }
             }
         }
     }

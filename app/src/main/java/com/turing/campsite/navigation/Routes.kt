@@ -17,6 +17,7 @@ object Routes {
     const val USER_EDIT_PROFILE = "UserEditProfile"
 
     // Administrator
+    const val ADMIN_GRAPH = "AdminGraph"
     const val ADMIN_HOME = "AdminHome"
     const val ADMIN_PROFILE = "AdminProfile"
     const val ADMIN_BROWSE_PROFILE = "AdminBrowseProfile"
