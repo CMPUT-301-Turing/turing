@@ -2,9 +2,11 @@
 package com.turing.campsite.ui.screens.owner
 
 import androidx.compose.runtime.Composable
+import com.turing.campsite.data.auth.DeviceAuthManager
 
 import com.turing.campsite.ui.components.LotteryForm
 import com.turing.campsite.ui.components.LotteryFormData
+import com.turing.campsite.ui.viewmodel.CampsiteViewModel
 
 /**
  * Screen for editing an existing campsite lottery.
@@ -16,11 +18,15 @@ import com.turing.campsite.ui.components.LotteryFormData
  */
 @Composable
 fun OwnerEditLotteryScreen(
+    campsiteViewModel: CampsiteViewModel,
+    deviceAuthManager: DeviceAuthManager,
     onBackClick: () -> Unit,
     initialData: LotteryFormData = LotteryFormData(),
     onUpdateClick: (LotteryFormData) -> Unit = {}
 ) {
     LotteryForm(
+        campsiteViewModel,
+        deviceAuthManager,
         title = "Edit Lottery",
         description = "Review your existing lottery. Update the campsites, dates, winner count or waitlist capacity.",
         actionLabel = "Update Lottery",

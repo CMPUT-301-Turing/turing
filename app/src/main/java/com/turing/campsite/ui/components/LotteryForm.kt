@@ -13,6 +13,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,13 +22,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.Timestamp
 
 import com.turing.campsite.PrimaryColor
+import com.turing.campsite.data.auth.DeviceAuthManager
+import com.turing.campsite.data.model.Campsite
+import com.turing.campsite.ui.viewmodel.CampsiteViewModel
+import java.util.Date
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
@@ -52,10 +61,10 @@ data class LotteryCampsitePreview(
  */
 data class LotteryFormData(
     val selectedCampsiteIds: Set<String> = emptySet(),
-    val registrationStart: String = "",
-    val registrationEnd: String = "",
-    val bookingStart: String = "",
-    val bookingEnd: String = "",
+    val registrationStart: Timestamp? = null,
+    val registrationEnd: Timestamp? = null,
+    val bookingStart: Timestamp? = null,
+    val bookingEnd: Timestamp? = null,
     val numberOfWinners: String = "",
     val maximumCapacityEnabled: Boolean = false,
     val waitlistCapacity: String = ""
@@ -94,13 +103,18 @@ private val sampleCampsites = listOf(
  */
 @Composable
 fun LotteryForm(
+    campsiteViewModel: CampsiteViewModel,
+    deviceAuthManager: DeviceAuthManager,
     title: String,
     description: String,
     actionLabel: String,
     onBackClick: () -> Unit,
     onSubmitClick: (LotteryFormData) -> Unit,
-    initialData: LotteryFormData = LotteryFormData()
+    initialData: LotteryFormData = LotteryFormData(),
 ) {
+    val deviceAuthManager = DeviceAuthManager()
+    val currentOwnerId = deviceAuthManager.currentUid
+    val campsites = campsiteViewModel.ownerCampsites
     var formData by remember(initialData) {
         mutableStateOf(initialData)
     }
@@ -161,7 +175,7 @@ fun LotteryForm(
             )
 
             LotteryCampsiteSection(
-                campsites = sampleCampsites,
+                campsites = campsites,
                 selectedIds = formData.selectedCampsiteIds,
                 onCampsiteToggled = { campsiteId ->
                     val selectedIds = formData.selectedCampsiteIds
@@ -181,9 +195,9 @@ fun LotteryForm(
                 description = "When entrants can join the waitlist.",
                 startDate = formData.registrationStart,
                 endDate = formData.registrationEnd,
-                onStartDateChange = {
+                onStartDateChange= {
                     formData = formData.copy(
-                        registrationStart = it
+                        registrationEnd = it
                     )
                 },
                 onEndDateChange = {
@@ -196,16 +210,16 @@ fun LotteryForm(
             LotteryDatePeriodSection(
                 title = "Booking Period",
                 description = "When winners can book their stay.",
-                startDate = formData.bookingStart,
-                endDate = formData.bookingEnd,
-                onStartDateChange = {
+                startDate = formData.registrationStart,
+                endDate = formData.registrationEnd,
+                onStartDateChange= {
                     formData = formData.copy(
-                        bookingStart = it
+                        registrationEnd = it
                     )
                 },
                 onEndDateChange = {
                     formData = formData.copy(
-                        bookingEnd = it
+                        registrationEnd = it
                     )
                 }
             )
@@ -305,7 +319,7 @@ private fun LotterySectionCard(
  */
 @Composable
 private fun LotteryCampsiteSection(
-    campsites: List<LotteryCampsitePreview>,
+    campsites: List<Campsite>,
     selectedIds: Set<String>,
     onCampsiteToggled: (String) -> Unit
 ) {
@@ -391,30 +405,29 @@ private fun LotteryCampsiteSection(
 private fun LotteryDatePeriodSection(
     title: String,
     description: String,
-    startDate: String,
-    endDate: String,
-    onStartDateChange: (String) -> Unit,
-    onEndDateChange: (String) -> Unit
+    startDate: Timestamp?,
+    endDate: Timestamp?,
+    onStartDateChange: (Timestamp) -> Unit,
+    onEndDateChange: (Timestamp) -> Unit
 ) {
     LotterySectionCard(
         title = title,
         description = description
     ) {
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             LotteryDateInput(
                 label = "Start Date",
-                value = startDate,
-                onValueChange = onStartDateChange,
+                onDateSelected = onStartDateChange,
                 modifier = Modifier.weight(1f)
             )
 
             LotteryDateInput(
                 label = "End Date",
-                value = endDate,
-                onValueChange = onEndDateChange,
+                onDateSelected = onEndDateChange,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -430,54 +443,41 @@ private fun LotteryDatePeriodSection(
 @Composable
 private fun LotteryDateInput(
     label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
+    onDateSelected: (Timestamp) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
+        verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
-            text = label,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Medium,
-            color = PrimaryColor
+            text = label
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+
+        val datePickerState = rememberDatePickerState()
+        val dateFormatter = remember { DatePickerDefaults.dateFormatter() }
+        DatePicker(
+            state = datePickerState,
+            dateFormatter = dateFormatter,
+            modifier = Modifier.fillMaxWidth()
         )
 
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(46.dp),
-            shape = RoundedCornerShape(7.dp),
-            color = FieldBackground,
-            border = BorderStroke(1.dp, CardBorder)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 9.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                BasicTextField(
-                    value = value,
-                    onValueChange = onValueChange,
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    textStyle = TextStyle(
-                        fontSize = 11.sp,
-                        color = PrimaryColor
-                    ),
-                    cursorBrush = SolidColor(PrimaryColor)
-                )
+        Button(
+            onClick = {
+                val selectedMillis = datePickerState.selectedDateMillis?.let { millis ->
+                    Timestamp(Date(millis))
 
-                Icon(
-                    imageVector = Icons.Outlined.CalendarMonth,
-                    contentDescription = null,
-                    modifier = Modifier.size(17.dp),
-                    tint = PrimaryColor
-                )
+                }
+                selectedMillis?.let{
+                    onDateSelected(it)
+                }
             }
+        )
+        {
+            Text("Confirm")
         }
+        Spacer(modifier = Modifier.height(12.dp))
+
     }
 }
 
