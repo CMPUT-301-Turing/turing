@@ -75,15 +75,15 @@ fun NavGraphBuilder.ownerGraph(
                 onCreateLotteryClick = {
                     navController.navigate(Routes.OWNER_CREATE_LOTTERY)
                 },
-                onActiveLotteryClick = {
-                    navController.navigate(Routes.OWNER_ACTIVE_LOTTERIES)
+                //onActiveLotteryClick = {
+               //     navController.navigate(Routes.OWNER_ACTIVE_LOTTERIES)
 
-                },
-                onOpenLotteriesClick = {
-                    navController.navigate(Routes.OWNER_OPEN_LOTTERIES)
+               // },
+               // onOpenLotteriesClick = {
+                  //  navController.navigate(Routes.OWNER_OPEN_LOTTERIES)
 
-                },
-                onCampsiteClick = { campsiteId ->
+                //},
+                onCampsiteClick = { campsiteId: String ->
                     navController.navigate(
                         "${Routes.OWNER_CAMPSITE_FULL_DETAIL}/${
                             Uri.encode(
@@ -181,7 +181,7 @@ fun NavGraphBuilder.ownerGraph(
                 }
             )
         }
-
+/**
         composable("${OWNER_LOTTERY_DETAILS}/${Uri.encode(lotteryId)}") {backStackEntry ->
             val lott
             OwnerLotteryDetailsScreen(
@@ -193,7 +193,7 @@ fun NavGraphBuilder.ownerGraph(
                 }
             )
         }
-
+**/
         // Create Lottery
         composable(Routes.OWNER_CREATE_LOTTERY) { backStackEntry ->
             val parent = remember(backStackEntry) {
@@ -220,7 +220,7 @@ fun NavGraphBuilder.ownerGraph(
                 }
             )
         }
-
+/**
         composable(Routes.OWNER_ACTIVE_LOTTERIES) { backStackEntry ->
             val parent = remember(backStackEntry) {
                 navController.getBackStackEntry("ownerGraph")
@@ -270,7 +270,7 @@ fun NavGraphBuilder.ownerGraph(
                 }
             )
         }
-
+**/
         composable(Routes.OWNER_CAMPSITE_QR_CODE) {
             OwnerCampsiteQRCodeScreen(
                 onBackClick = {

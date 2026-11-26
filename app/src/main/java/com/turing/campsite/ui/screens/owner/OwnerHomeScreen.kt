@@ -68,8 +68,8 @@ fun OwnerHomeScreen(
     onProfileClick: () -> Unit,
     onRegisterCampsiteClick: (String?) -> Unit,
     onCreateLotteryClick: () -> Unit,
-    onActiveLotteryClick: () -> Unit,
-    onOpenLotteryClick: () -> Unit,
+    //onActiveLotteryClick: () -> Unit,
+    //onOpenLotteryClick: () -> Unit,
     campsiteViewModel: CampsiteViewModel,
     onCampsiteClick: (String) -> Unit
 ) {
@@ -82,8 +82,8 @@ fun OwnerHomeScreen(
         onProfileClick = onProfileClick,
         onRegisterCampsiteClick = { onRegisterCampsiteClick(currentOwnerId) },
         onCreateLotteryClick = onCreateLotteryClick,
-        onActiveLotteryClick = onActiveLotteryClick,
-        onOpenLotteryClick = onOpenLotteryClick,
+        //onActiveLotteryClick = onActiveLotteryClick,
+        //onOpenLotteryClick = onOpenLotteryClick,
         onCampsiteClick = onCampsiteClick
     )
 }
@@ -102,8 +102,8 @@ fun OwnerHomeScreen(
     onProfileClick: () -> Unit,
     onRegisterCampsiteClick: () -> Unit,
     onCreateLotteryClick: () -> Unit,
-    onActiveLotteryClick: () -> Unit,
-    onOpenLotteryClick: () -> Unit,
+    //onActiveLotteryClick: () -> Unit,
+    //onOpenLotteryClick: () -> Unit,
     onCampsiteClick: (String) -> Unit
 ) {
     Column(
@@ -234,7 +234,7 @@ fun OwnerHomeScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
+/**
         // Existing lotteries
         Surface(
             onClick = onActiveLotteryClick,
@@ -350,7 +350,7 @@ fun OwnerHomeScreen(
                 )
             }
         }
-
+**/
 
 
         Spacer(modifier = Modifier.height(24.dp))

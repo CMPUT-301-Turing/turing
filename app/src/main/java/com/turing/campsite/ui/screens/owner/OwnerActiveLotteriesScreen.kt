@@ -43,6 +43,7 @@ fun OwnerActiveLotteriesScreen(
     onBackClick: () -> Unit,
     onLotteryClick: (String) -> Unit
 ){
+    TODO()
     OwnerActiveLotteriesScreen(
         lotteries = lotteryViewModel.lotteries,
         onBackClick = onBackClick,
@@ -56,6 +57,7 @@ fun OwnerActiveLotteriesScreen(
     onBackClick: () -> Unit,
     onLotteryClick: (String) -> Unit
 ){
+    TODO()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -86,9 +88,9 @@ fun OwnerActiveLotteriesScreen(
             .padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Spacer(modifer = Modifier.height(10.dp))
+        //Spacer(modifer = Modifier.height(10.dp))
 
 
-        )
+
     }
 }
