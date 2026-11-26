@@ -42,10 +42,13 @@ fun NavGraphBuilder.sharedGraph(
                 navController.navigate(Routes.USER_EDIT_PROFILE)
             },
             onSwitchViewClick = {
-                navController.navigate(Routes.OWNER_HOME)
+                navController.switchView(Routes.OWNER_HOME)
             },
             onBackClick = {
                 navController.popBackStack()
+            },
+            onSwitchToAdminClick = {
+                navController.switchView(Routes.ADMIN_HOME)
             }
         )
     }
@@ -58,10 +61,13 @@ fun NavGraphBuilder.sharedGraph(
                 navController.navigate(Routes.USER_EDIT_PROFILE)
             },
             onSwitchViewClick = {
-                navController.navigate(Routes.ENTRANT_HOME)
+                navController.switchView(Routes.ENTRANT_HOME)
             },
             onBackClick = {
                 navController.popBackStack()
+            },
+            onSwitchToAdminClick = {
+                navController.switchView(Routes.ADMIN_HOME)
             }
         )
     }

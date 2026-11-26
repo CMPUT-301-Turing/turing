@@ -60,10 +60,10 @@ fun NavGraphBuilder.adminGraph(
                     navController.popBackStack()
                 },
                 onSwitchToOwnerClick = {
-                    navController.navigate(Routes.OWNER_HOME)
+                    navController.switchView(Routes.OWNER_HOME)
                 },
                 onSwitchToEntrantClick = {
-                    navController.navigate(Routes.ENTRANT_HOME)
+                    navController.switchView(Routes.ENTRANT_HOME)
                 }
             )
         }
