@@ -6,31 +6,25 @@ import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.turing.campsite.data.auth.DeviceAuthManager
-
-import com.turing.campsite.data.auth.TempUser
+import com.turing.campsite.ui.screens.shared.section6Uid
 import com.turing.campsite.ui.mapper.toCampsite
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
 import com.turing.campsite.ui.screens.owner.OwnerHomeScreen
 import com.turing.campsite.ui.screens.owner.OwnerRegisterNewCampsiteScreen
 import com.turing.campsite.ui.screens.owner.OwnerCampsiteFullDetailScreen
-import com.turing.campsite.ui.screens.owner.OwnerCampsiteHistoryScreen
+import com.turing.campsite.ui.screens.owner.OwnerCampsiteHistoryRoute
 import com.turing.campsite.ui.screens.owner.OwnerMessageScreen
-import com.turing.campsite.ui.screens.owner.OwnerLotteryDetailsScreen
-import com.turing.campsite.ui.screens.owner.OwnerEditLotteryScreen
+import com.turing.campsite.ui.screens.owner.OwnerLotteryWaitlistRoute
 import com.turing.campsite.ui.screens.owner.OwnerCreateLotteryScreen
 import com.turing.campsite.ui.screens.owner.OwnerCampsiteQRCodeScreen
 import com.turing.campsite.ui.screens.owner.OwnerEditCampsiteScreen
 import com.turing.campsite.ui.screens.owner.OwnerNotificationScreen
-import com.turing.campsite.ui.viewmodel.LotteryViewModel
-import com.turing.campsite.ui.viewmodel.MessageViewModel
-import com.turing.campsite.ui.viewmodel.NotificationViewModel
-import com.turing.campsite.ui.viewmodel.ReservationViewModel
-import com.turing.campsite.ui.viewmodel.UserViewModel
 
 /**
  * Registers all campsite owner navigation destinations.
@@ -48,23 +42,24 @@ fun NavGraphBuilder.ownerGraph(
                 navController.getBackStackEntry("ownerGraph")
             }
 
-            val campsiteViewModel: CampsiteViewModel = viewModel(parent)
-            val lotteryViewModel: LotteryViewModel = viewModel(parent)
-            val messageViewModel: MessageViewModel = viewModel(parent)
-            val notificationViewModel: NotificationViewModel = viewModel(parent)
-            val reservationViewModel: ReservationViewModel = viewModel(parent)
-            val userViewModel: UserViewModel = viewModel(parent)
+            // Keep the entry list and Section 6 routes on the same authenticated account.
+            val ownerId = section6Uid()
+            val campsiteViewModel: CampsiteViewModel = viewModel(parent, key = "owner-campsites:$ownerId")
 
-            LaunchedEffect(backStackEntry) {
-                val ownerId = TempUser.UID
-                if (ownerId.isNotBlank()){
-                    campsiteViewModel.listByOwner(ownerId)
-                }
+            LaunchedEffect(backStackEntry, ownerId) {
+                if (ownerId != null) campsiteViewModel.listByOwner(ownerId)
             }
 
             OwnerHomeScreen(
-                deviceAuthManager = DeviceAuthManager(),
-                campsiteViewModel = campsiteViewModel,
+                campsites = campsiteViewModel.ownerCampsites.filter { it.ownerId == ownerId },
+                canManageCampsites = ownerId != null,
+                campsiteStatus = when {
+                    ownerId == null -> "Sign in before managing campsites."
+                    campsiteViewModel.isLoading -> "Loading your campsites…"
+                    campsiteViewModel.errorMessage != null -> "Could not load your campsites. Reopen Owner Home to retry."
+                    campsiteViewModel.ownerCampsites.isEmpty() -> "No campsites are linked to this account yet."
+                    else -> null
+                },
                 onNotificationsClick = {
                     navController.navigate(Routes.OWNER_NOTIFICATION)
                 },
@@ -93,16 +88,17 @@ fun NavGraphBuilder.ownerGraph(
             val parent = remember(backStackEntry) {
                 navController.getBackStackEntry("ownerGraph")
             }
-            val shared: CampsiteViewModel = viewModel(parent)
+            val ownerId = section6Uid()
+            val shared: CampsiteViewModel = viewModel(parent, key = "owner-campsites:$ownerId")
+            ErrorToast(shared)
             OwnerRegisterNewCampsiteScreen(
                 onBackClick = {
                     navController.popBackStack()
                 },
                 onPublishClick = { formData ->
 
-                    val ownerId = TempUser.UID
-                 // Ignore extra taps while the first save is still running.
-                    if (!shared.isLoading && ownerId.isNotBlank()) {
+                    // Refuse saves from a stale screen after the signed-in account changes.
+                    if (ownerId != null && Firebase.auth.currentUser?.uid == ownerId && !shared.isLoading) {
                         shared.add(formData.toCampsite(ownerId)) {
                             navController.popBackStack()
                         }
@@ -126,8 +122,8 @@ fun NavGraphBuilder.ownerGraph(
             val parent = remember(backStackEntry) {
                 navController.getBackStackEntry("ownerGraph")
             }
-            val shared: CampsiteViewModel = viewModel(parent)
-            val sharedLV: LotteryViewModel = viewModel(parent)
+            val ownerId = section6Uid()
+            val shared: CampsiteViewModel = viewModel(parent, key = "owner-campsites:$ownerId")
 
             OwnerCampsiteFullDetailScreen(
                 onBackClick = {
@@ -139,32 +135,30 @@ fun NavGraphBuilder.ownerGraph(
                 onQRCodeClick = {
                     navController.navigate(Routes.OWNER_CAMPSITE_QR_CODE)
                 },
-                onEditLotteryClick = {
-                    navController.navigate(Routes.OWNER_EDIT_LOTTERY)
-                },
                 onLotteryClick = {
-                    navController.navigate(Routes.OWNER_LOTTERY_DETAILS)
+                    val route = Routes.OWNER_LOTTERY_DETAILS
+                    navController.navigate("$route?campsiteId=${Uri.encode(campsiteId)}")
                 },
                 onReservationsClick = {
-                    navController.navigate(Routes.OWNER_CAMPSITE_HISTORY)
+                    navController.navigate("${Routes.OWNER_CAMPSITE_HISTORY}?campsiteId=${Uri.encode(campsiteId)}")
                 },
-                shared,
-                sharedLV,
+                campsiteViewModel = shared,
                 campsiteId = campsiteId,
+                ownerId = ownerId,
             )
         }
 
-        composable(Routes.OWNER_CAMPSITE_HISTORY) {
-            OwnerCampsiteHistoryScreen(
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onMessageClick = { reservationId ->
-                    navController.navigate(Routes.OWNER_MESSAGE)
-                },
-                onRejectClick = { reservationId ->
-                    // TODO: Implement reservation rejection and refund.
-                }
+        composable(
+            route = "${Routes.OWNER_CAMPSITE_HISTORY}?campsiteId={campsiteId}",
+            arguments = listOf(navArgument("campsiteId") {
+                type = NavType.StringType
+                defaultValue = ""
+            })
+        ) { entry ->
+            OwnerCampsiteHistoryRoute(
+                campsiteId = entry.arguments?.getString("campsiteId")?.takeIf { it.isNotBlank() },
+                onBackClick = { navController.popBackStack() },
+                onMessageClick = { navController.navigate(Routes.OWNER_MESSAGE) }
             )
         }
 
@@ -176,14 +170,16 @@ fun NavGraphBuilder.ownerGraph(
             )
         }
 
-        composable(Routes.OWNER_LOTTERY_DETAILS) {
-            OwnerLotteryDetailsScreen(
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onSendNotificationClick = {
-                    navController.navigate(Routes.OWNER_NOTIFICATION)
-                }
+        composable(
+            route = "${Routes.OWNER_LOTTERY_DETAILS}?campsiteId={campsiteId}",
+            arguments = listOf(navArgument("campsiteId") {
+                type = NavType.StringType
+                defaultValue = ""
+            })
+        ) { entry ->
+            OwnerLotteryWaitlistRoute(
+                campsiteId = entry.arguments?.getString("campsiteId").orEmpty(),
+                onBackClick = { navController.popBackStack() }
             )
         }
 
@@ -192,27 +188,12 @@ fun NavGraphBuilder.ownerGraph(
             val parent = remember(backStackEntry) {
                 navController.getBackStackEntry("ownerGraph")
             }
-            val shared: CampsiteViewModel = viewModel(parent)
+            val ownerId = section6Uid()
+            val shared: CampsiteViewModel = viewModel(parent, key = "owner-campsites:$ownerId")
 
             OwnerCreateLotteryScreen(
-                campsites = shared.ownerCampsites,
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        // Edit Lottery
-        composable(Routes.OWNER_EDIT_LOTTERY) { backStackEntry ->
-            val parent = remember(backStackEntry) {
-                navController.getBackStackEntry("ownerGraph")
-            }
-            val shared: CampsiteViewModel = viewModel(parent)
-            OwnerEditLotteryScreen(
-                campsites = shared.ownerCampsites,
-                onBackClick = {
-                    navController.popBackStack()
-                }
+                campsites = shared.ownerCampsites.filter { it.ownerId == ownerId },
+                onBackClick = { navController.popBackStack() }
             )
         }
 

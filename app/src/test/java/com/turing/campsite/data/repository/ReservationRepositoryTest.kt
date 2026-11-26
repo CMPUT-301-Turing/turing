@@ -1,3 +1,4 @@
+/* Verifies reservation queries and rejection transaction behavior with mocked Firestore. */
 package com.turing.campsite.data.repository
 
 import com.google.firebase.Timestamp
@@ -8,6 +9,7 @@ import org.junit.Assert.*
 import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.*
+import java.util.Date
 
 /**
  * Tests [ReservationRepository] against mocked Firebase boundaries.
@@ -130,6 +132,59 @@ class ReservationRepositoryTest : FirestoreTestFixture("reservations") {
         doReturn(failed<QuerySnapshot>(failure)).`when`(query).get()
         try { ReservationRepository().listByOwner("owner"); fail("Expected query failure") }
         catch (actual: IllegalStateException) { assertSame(failure, actual) }
+    }
+
+    /** An eligible booking changes only the status field in the transaction. */
+    @Test fun rejectForOwnerWritesOnlyRejectedStatus() = runBlocking<Unit> {
+        val transaction = stubRejectionTransaction(Reservation(ownerId = "owner"))
+
+        ReservationRepository().rejectForOwner("id", "owner")
+
+        verify(transaction).update(doc, "status", ReservationStatus.REJECTED.name)
+        verify(doc, never()).update(anyString(), anyPayload())
+    }
+
+    /** A cancellation received after the screen was loaded must not be overwritten. */
+    @Test fun rejectForOwnerDoesNotOverwriteAnAlreadyCancelledBooking() = runBlocking<Unit> {
+        val transaction = stubRejectionTransaction(
+            Reservation(ownerId = "owner", status = ReservationStatus.CANCELLED)
+        )
+
+        assertRejectionUnavailable()
+        verify(transaction, never()).update(doc, "status", ReservationStatus.REJECTED.name)
+    }
+
+    /** A past booking may still have a stored ACTIVE status on this release. */
+    @Test fun rejectForOwnerDoesNotRejectAnElapsedBooking() = runBlocking<Unit> {
+        val transaction = stubRejectionTransaction(
+            Reservation(ownerId = "owner", endDate = Timestamp(Date(0)))
+        )
+
+        assertRejectionUnavailable()
+        verify(transaction, never()).update(doc, "status", ReservationStatus.REJECTED.name)
+    }
+
+    private fun stubRejectionTransaction(reservation: Reservation): Transaction {
+        val transaction = mock(Transaction::class.java)
+        doReturn(row(Reservation::class.java, reservation)).`when`(transaction).get(doc)
+        doAnswer { invocation ->
+            val update = invocation.getArgument<Transaction.Function<Unit>>(0)
+            try {
+                completed(update.apply(transaction))
+            } catch (error: Exception) {
+                failed<Unit>(error)
+            }
+        }.`when`(db).runTransaction(any<Transaction.Function<Unit>>() ?: Transaction.Function { Unit })
+        return transaction
+    }
+
+    private suspend fun assertRejectionUnavailable() {
+        try {
+            ReservationRepository().rejectForOwner("id", "owner")
+            fail("Expected stale booking to be rejected without a write")
+        } catch (_: IllegalStateException) {
+            // The status check halted the transaction.
+        }
     }
 
     /**

@@ -39,14 +39,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.firebase.auth.FirebaseAuth
 
 import com.turing.campsite.PrimaryColor
-import com.turing.campsite.data.auth.DeviceAuthManager
 import com.turing.campsite.ui.components.CampsiteCard
 import com.turing.campsite.data.model.Campsite // real model
-import com.turing.campsite.ui.viewmodel.CampsiteViewModel
-import kotlinx.serialization.descriptors.PrimitiveKind
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
@@ -54,35 +50,6 @@ private val CardBorder = Color(0xFFDFE2D8)
 private val ChipBackground = Color(0xFFE8EFE3)
 private val SecondaryText = Color(0xFF7A8079)
 
-
-/**
- * Campsite owner's home screen, loaded from Firestore.
- *
- * Loads the signed-in owner's campsites, then shows them with the
- * stateless overload below. Navigation is handled through callbacks.
- */
-@Composable
-fun OwnerHomeScreen(
-    deviceAuthManager: DeviceAuthManager,
-    onNotificationsClick: () -> Unit,
-    onProfileClick: () -> Unit,
-    onRegisterCampsiteClick: (String?) -> Unit,
-    onCreateLotteryClick: () -> Unit,
-    campsiteViewModel: CampsiteViewModel,
-    onCampsiteClick: (String) -> Unit
-) {
-    val currentOwnerId = deviceAuthManager.currentUid
-
-
-    OwnerHomeScreen(
-        campsites = campsiteViewModel.ownerCampsites,
-        onNotificationsClick = onNotificationsClick,
-        onProfileClick = onProfileClick,
-        onRegisterCampsiteClick = { onRegisterCampsiteClick(currentOwnerId) },
-        onCreateLotteryClick = onCreateLotteryClick,
-        onCampsiteClick = onCampsiteClick
-    )
-}
 
 /**
  * Campsite owner's home screen.
@@ -98,7 +65,9 @@ fun OwnerHomeScreen(
     onProfileClick: () -> Unit,
     onRegisterCampsiteClick: () -> Unit,
     onCreateLotteryClick: () -> Unit,
-    onCampsiteClick: (String) -> Unit
+    onCampsiteClick: (String) -> Unit,
+    canManageCampsites: Boolean = true,
+    campsiteStatus: String? = null
 ) {
     Column(
         modifier = Modifier
@@ -149,7 +118,8 @@ fun OwnerHomeScreen(
         // Register new campsite
         Button(
             onClick =
-                onRegisterCampsiteClick ,
+                onRegisterCampsiteClick,
+            enabled = canManageCampsites,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(54.dp),
@@ -173,6 +143,7 @@ fun OwnerHomeScreen(
         // Create lottery
         Surface(
             onClick = onCreateLotteryClick,
+            enabled = canManageCampsites,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             color = CardBackground,
@@ -250,6 +221,10 @@ fun OwnerHomeScreen(
         }
 
         Spacer(modifier = Modifier.height(12.dp))
+
+        if (campsiteStatus != null) {
+            Text(campsiteStatus, fontSize = 13.sp, color = SecondaryText)
+        }
 
         // Scrollable campsite list
         LazyColumn(

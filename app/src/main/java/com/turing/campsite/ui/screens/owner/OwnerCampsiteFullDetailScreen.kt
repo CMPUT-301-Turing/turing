@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.ConfirmationNumber
 import androidx.compose.material.icons.outlined.Edit
@@ -19,7 +18,6 @@ import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.QrCode2
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Terrain
-import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,18 +39,12 @@ import com.turing.campsite.PrimaryColor
 
 import com.turing.campsite.data.model.Campsite
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
-import com.turing.campsite.ui.viewmodel.LotteryViewModel
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
 private val CardBorder = Color(0xFFDFE2D8)
 private val ChipBackground = Color(0xFFE8EFE3)
 private val SecondaryText = Color(0xFF7A8079)
-
-/**
- * Sample booked dates for October 2026.
- */
-private val bookedDates = setOf(23, 24, 25, 30, 31)
 
 
 /**
@@ -66,27 +58,23 @@ fun OwnerCampsiteFullDetailScreen(
     onBackClick: () -> Unit,
     onEditClick: () -> Unit,
     onQRCodeClick: () -> Unit,
-    onEditLotteryClick: () -> Unit,
     onLotteryClick: () -> Unit,
     onReservationsClick: () -> Unit,
     campsiteViewModel: CampsiteViewModel,
-    lotteryViewModel: LotteryViewModel,
-    campsiteId: String
+    campsiteId: String,
+    ownerId: String?
 ) {
-    LaunchedEffect(campsiteId) {
-        campsiteViewModel.select(campsiteId)
-    }
-
-    LaunchedEffect(campsiteId) {
-        lotteryViewModel.selectWithCampID(campsiteId)
+    LaunchedEffect(campsiteId, ownerId) {
+        if (ownerId != null) campsiteViewModel.select(campsiteId)
     }
 
     OwnerCampsiteFullDetailScreen(
-        campsite = campsiteViewModel.selectedCampsite,
+        campsite = campsiteViewModel.selectedCampsite?.takeIf {
+            it.id == campsiteId && ownerId != null && it.ownerId == ownerId
+        },
         onBackClick = onBackClick,
         onEditClick = onEditClick,
         onQRCodeClick = onQRCodeClick,
-        onEditLotteryClick = onEditLotteryClick,
         onLotteryClick = onLotteryClick,
         onReservationsClick = onReservationsClick
     )
@@ -105,7 +93,6 @@ fun OwnerCampsiteFullDetailScreen(
     onBackClick: () -> Unit,
     onEditClick: () -> Unit,
     onQRCodeClick: () -> Unit,
-    onEditLotteryClick: () -> Unit,
     onLotteryClick: () -> Unit,
     onReservationsClick: () -> Unit
 ) {
@@ -184,14 +171,19 @@ fun OwnerCampsiteFullDetailScreen(
                         )
 
                         CampsiteAction(
-                            label = "Edit Lottery",
+                            label = "View Waitlist",
                             icon = Icons.Outlined.ConfirmationNumber,
-                            onClick = onEditLotteryClick,
+                            onClick = onLotteryClick,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        CampsiteAction(
+                            label = "Reservations",
+                            icon = Icons.Outlined.CalendarMonth,
+                            onClick = onReservationsClick,
                             modifier = Modifier.weight(1f)
                         )
                     }
-
-                    BookedDatesSection()
 
                     CampsiteDetailsSection(
                         campsite.maxOccupancy,
@@ -200,11 +192,6 @@ fun OwnerCampsiteFullDetailScreen(
                     )
 
                     CampsiteRulesSection(campsite.rulesText)
-
-                    CampsiteViewSection(
-                        onLotteryClick = onLotteryClick,
-                        onReservationsClick = onReservationsClick
-                    )
 
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -338,150 +325,6 @@ private fun CampsiteDetailCard(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             content = content
-        )
-    }
-}
-
-/**
- * Read-only calendar showing reserved dates.
- *
- * October 2026 starts on a Thursday, so three
- * empty slots precede October 1 in a Monday-first grid.
- */
-@Composable
-private fun BookedDatesSection() {
-    val weekdays = listOf("M", "T", "W", "T", "F", "S", "S")
-
-    val calendarDays: List<Int?> =
-        List(3) { null } +
-                (1..31).map { it } +
-                listOf(null)
-
-    CampsiteDetailCard {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.CalendarMonth,
-                contentDescription = null,
-                modifier = Modifier.size(19.dp),
-                tint = PrimaryColor
-            )
-
-            Text(
-                text = "Currently Booked Dates",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = PrimaryColor
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "October 2026",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                color = PrimaryColor
-            )
-
-            Text(
-                text = "${bookedDates.size} booked dates",
-                fontSize = 11.sp,
-                color = SecondaryText
-            )
-        }
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(3.dp)
-        ) {
-            // Weekday headings
-            Row(modifier = Modifier.fillMaxWidth()) {
-                weekdays.forEach { day ->
-                    Text(
-                        text = day,
-                        modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.Center,
-                        fontSize = 11.sp,
-                        color = SecondaryText
-                    )
-                }
-            }
-
-            // Calendar weeks
-            calendarDays.chunked(7).forEach { week ->
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    week.forEach { day ->
-                        val isBooked = day != null && day in bookedDates
-
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(2.dp)
-                                .aspectRatio(1f)
-                                .background(
-                                    color = if (isBooked) {
-                                        PrimaryColor
-                                    } else {
-                                        Color.Transparent
-                                    },
-                                    shape = RoundedCornerShape(6.dp)
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (day != null) {
-                                Text(
-                                    text = day.toString(),
-                                    fontSize = 12.sp,
-                                    fontWeight = if (isBooked) {
-                                        FontWeight.SemiBold
-                                    } else {
-                                        FontWeight.Normal
-                                    },
-                                    color = if (isBooked) {
-                                        Color.White
-                                    } else {
-                                        PrimaryColor
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Calendar legend
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(7.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(9.dp)
-                    .background(
-                        PrimaryColor,
-                        RoundedCornerShape(2.dp)
-                    )
-            )
-
-            Text(
-                text = "Booked / reserved",
-                fontSize = 11.sp,
-                color = SecondaryText
-            )
-        }
-
-        HorizontalDivider(color = CardBorder)
-
-        Text(
-            text = "23–25 & 30–31 October are reserved.",
-            fontSize = 11.sp,
-            color = PrimaryColor
         )
     }
 }
@@ -706,125 +549,6 @@ private fun CampsiteRulesSection(rulesText: String) {
             fontSize = 11.sp,
             lineHeight = 16.sp,
             color = SecondaryText
-        )
-    }
-}
-
-/**
- * Links to lottery and reservation information.
- */
-@Composable
-private fun CampsiteViewSection(
-    onLotteryClick: () -> Unit,
-    onReservationsClick: () -> Unit
-) {
-    CampsiteDetailCard {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Visibility,
-                contentDescription = null,
-                modifier = Modifier.size(19.dp),
-                tint = PrimaryColor
-            )
-
-            Text(
-                text = "View",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = PrimaryColor
-            )
-        }
-
-        // Lottery and waitlist details
-        OwnerDetailLink(
-            icon = Icons.Outlined.Groups,
-            title = "Lottery & Waitlist Details",
-            subtitle = "Entrants waiting for a place",
-            count = "12",
-            onClick = onLotteryClick
-        )
-
-        HorizontalDivider(color = CardBorder)
-
-        // Reservations
-        OwnerDetailLink(
-            icon = Icons.Outlined.CalendarMonth,
-            title = "Reservations",
-            subtitle = "Review campsite reservations",
-            onClick = onReservationsClick
-        )
-    }
-}
-
-/**
- * Clickable link displayed in the campsite detail card.
- */
-@Composable
-private fun OwnerDetailLink(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-    count: String? = null
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp),
-            tint = PrimaryColor
-        )
-
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(3.dp)
-        ) {
-            Text(
-                text = title,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = PrimaryColor
-            )
-
-            Text(
-                text = subtitle,
-                fontSize = 11.sp,
-                color = SecondaryText
-            )
-        }
-
-        if (count != null) {
-            Surface(
-                shape = CircleShape,
-                color = ChipBackground
-            ) {
-                Text(
-                    text = count,
-                    modifier = Modifier.padding(
-                        horizontal = 10.dp,
-                        vertical = 6.dp
-                    ),
-                    fontSize = 11.sp,
-                    color = PrimaryColor
-                )
-            }
-        }
-
-        Icon(
-            imageVector = Icons.Default.ChevronRight,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp),
-            tint = PrimaryColor
         )
     }
 }

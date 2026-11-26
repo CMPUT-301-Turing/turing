@@ -84,6 +84,20 @@ class ReservationViewModel(
         setStatus(reservationId, ReservationStatus.REJECTED)
     }
 
+    /**
+     * Updates the on-screen status only after the guarded Firestore transaction succeeds.
+     * @param reservationId the id of the active booking
+     * @param ownerId the signed-in owner authorized to reject it
+     */
+    fun rejectOwned(reservationId: String, ownerId: String) {
+        launchCall {
+            repository.rejectForOwner(reservationId, ownerId)
+            reservations = reservations.map {
+                if (it.id == reservationId) it.copy(status = ReservationStatus.REJECTED) else it
+            }
+        }
+    }
+
     private fun setStatus(reservationId: String, status: ReservationStatus) {
         launchCall {
             repository.setStatus(reservationId, status)

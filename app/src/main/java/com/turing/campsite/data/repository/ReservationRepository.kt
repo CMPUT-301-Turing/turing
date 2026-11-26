@@ -3,6 +3,8 @@ package com.turing.campsite.data.repository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.turing.campsite.data.model.Reservation
 import com.turing.campsite.data.model.ReservationStatus
+import com.turing.campsite.data.model.reservationDayStart
+import com.turing.campsite.data.model.statusForOwnerHistory
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -12,7 +14,8 @@ import kotlinx.coroutines.tasks.await
  * reject bookings on their campsites.
  */
 class ReservationRepository {
-    private val reservations = FirebaseFirestore.getInstance().collection("reservations")
+    private val firestore = FirebaseFirestore.getInstance()
+    private val reservations = firestore.collection("reservations")
 
     /**
      * Loads one reservation by id.
@@ -83,6 +86,27 @@ class ReservationRepository {
         reservation.id = doc.id
         doc.set(reservation).await()
         return doc.id
+    }
+
+    /**
+     * Re-reads the booking in a transaction and rejects it only if still active and owned by [ownerId].
+     * Changes the status without deleting the record, issuing a refund, or sending a notification.
+     * @param id the reservation document id
+     * @param ownerId the signed-in owner expected to own the reservation
+     */
+    suspend fun rejectForOwner(id: String, ownerId: String) {
+        require(id.isNotBlank() && ownerId.isNotBlank())
+        val ref = reservations.document(id)
+        firestore.runTransaction { transaction ->
+            val row = transaction.get(ref).toObject(Reservation::class.java)
+            check(row != null && row.ownerId == ownerId &&
+                row.statusForOwnerHistory(reservationDayStart()) == ReservationStatus.ACTIVE
+            ) {
+                "This reservation can no longer be rejected."
+            }
+            transaction.update(ref, "status", ReservationStatus.REJECTED.name)
+            Unit
+        }.await()
     }
 
     /**

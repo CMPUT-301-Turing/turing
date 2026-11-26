@@ -1,6 +1,8 @@
 package com.turing.campsite.data.model
 
 import com.google.firebase.Timestamp
+import java.util.Calendar
+import java.util.Date
 
 /**
  * The states a reservation can be in.
@@ -40,3 +42,26 @@ data class Reservation(
     var rulesAccepted: Boolean = false,
     var createdAt: Timestamp = Timestamp.now()
 )
+
+/** The start of the current local calendar date, using the same zone as the booking UI. */
+internal fun reservationDayStart(): Date = Calendar.getInstance().apply {
+    set(Calendar.HOUR_OF_DAY, 0)
+    set(Calendar.MINUTE, 0)
+    set(Calendar.SECOND, 0)
+    set(Calendar.MILLISECOND, 0)
+}.time
+
+/**
+ * Returns the display status for owner history without modifying the stored reservation.
+ *
+ * An active booking becomes past only after its last booked night. A missing end date
+ * does not make an active reservation past.
+ * @param dayStart midnight at the start of the local calendar date
+ * @return the effective status used for tabs and rejection eligibility
+ */
+internal fun Reservation.statusForOwnerHistory(dayStart: Date): ReservationStatus =
+    if (status == ReservationStatus.ACTIVE && endDate?.toDate()?.before(dayStart) == true) {
+        ReservationStatus.COMPLETED
+    } else {
+        status
+    }

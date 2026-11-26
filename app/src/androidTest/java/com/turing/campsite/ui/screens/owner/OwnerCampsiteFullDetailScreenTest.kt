@@ -1,3 +1,4 @@
+/* Checks navigation callbacks exposed by the campsite details UI. */
 package com.turing.campsite.ui.screens.owner
 
 import org.junit.Rule
@@ -58,7 +59,6 @@ class OwnerCampsiteFullDetailScreenTest {
 
                 onEditClick = {},
                 onQRCodeClick = {},
-                onEditLotteryClick = {},
                 
                 onLotteryClick = {},
                 onReservationsClick = {}
@@ -101,7 +101,6 @@ class OwnerCampsiteFullDetailScreenTest {
                 onEditClick = { editClicked = true },
 
                 onQRCodeClick = {},
-                onEditLotteryClick = {},
 
                 onLotteryClick = {},
                 onReservationsClick = {}
@@ -142,7 +141,6 @@ class OwnerCampsiteFullDetailScreenTest {
                 onBackClick = {},
                 onEditClick = {},
                 onQRCodeClick = {},
-                onEditLotteryClick = {},
 
                 onLotteryClick = { lotteryClicked = true },
 
@@ -153,10 +151,10 @@ class OwnerCampsiteFullDetailScreenTest {
 
 
         // the link is at the bottom of the page, so scroll down to it first
-        composeTestRule.onNodeWithText("Lottery & Waitlist Details").performScrollTo()
+        composeTestRule.onNodeWithText("View Waitlist").performScrollTo()
 
         // click the button
-        composeTestRule.onNodeWithText("Lottery & Waitlist Details").performClick()
+        composeTestRule.onNodeWithText("View Waitlist").performClick()
 
 
         // check if clicked

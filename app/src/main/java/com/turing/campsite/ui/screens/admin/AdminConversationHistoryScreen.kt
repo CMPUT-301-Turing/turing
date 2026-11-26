@@ -38,7 +38,6 @@ import com.turing.campsite.ui.components.ConversationMessageBubble
 import com.turing.campsite.data.model.Message
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 private val PageBackground = Color(0xFFF6F4ED)
@@ -47,42 +46,20 @@ private val CardBorder = Color(0xFFDFE2D8)
 private val ChipBackground = Color(0xFFE8EFE3)
 private val SecondaryText = Color(0xFF7A8079)
 
-private val sampleMessages = listOf(
-    Message(
-        id = "message-1",
-        body = "Hi Jane, just confirming your check-in time for tomorrow. When will you arrive?",
-        fromUserId = "owner-id",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 1200000))
-    ),
-    Message(
-        id = "message-2",
-        body = "Hi John! We plan to arrive at 3 PM. Is parking close to the pitch?",
-        fromUserId = "entrant-id",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 1000000))
-    ),
-    Message(
-        id = "message-3",
-        body = "Yes, parking is right beside pitch 12. I'll meet you at the gate at 3 PM.",
-        fromUserId = "owner-id",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 800000))
-    ),
-    Message(
-        id = "message-4",
-        body = "Perfect, see you at 3 PM tomorrow! Thanks for your help.",
-        fromUserId = "entrant-id",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 600000))
-    )
-)
-
 private fun formatTime(timestamp: Timestamp?): String {
     if (timestamp == null) return ""
-    return SimpleDateFormat("HH:mm", Locale.getDefault()).format(timestamp.toDate())
+    return SimpleDateFormat("MMM d, HH:mm", Locale.getDefault()).format(timestamp.toDate())
 }
 
+/**
+ * Displays the supplied outgoing owner messages for a reservation in the admin audit.
+ * The route supplies already-filtered records; this screen does not load or send messages.
+ */
 @Composable
 fun AdminConversationHistoryScreen(
-    messages: List<Message> = sampleMessages,
-    onBackClick: () -> Unit
+    messages: List<Message> = emptyList(),
+    onBackClick: () -> Unit,
+    status: String? = null
 ) {
     Column(
         modifier = Modifier
@@ -121,7 +98,7 @@ fun AdminConversationHistoryScreen(
 
         if (messages.isEmpty()) {
             Text(
-                text = "Conversation not found.",
+                text = status ?: "No owner-to-entrant messages for this reservation.",
                 fontSize = 14.sp,
                 color = SecondaryText
             )
@@ -149,14 +126,14 @@ fun AdminConversationHistoryScreen(
                         verticalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
                         Text(
-                            text = "Owner: John Smith →",
+                            text = "Owner: ${messages.first().fromUserId}",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = PrimaryColor
                         )
 
                         Text(
-                            text = "Entrant: Jane Doe",
+                            text = "Entrant: ${messages.first().toUserId}",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = PrimaryColor
@@ -169,7 +146,7 @@ fun AdminConversationHistoryScreen(
                             color = ChipBackground
                         ) {
                             Text(
-                                text = "Banff Campsite · Oct 25–27",
+                                text = "Reservation: ${messages.first().reservationId}",
                                 modifier = Modifier.padding(
                                     horizontal = 7.dp,
                                     vertical = 4.dp
@@ -191,7 +168,7 @@ fun AdminConversationHistoryScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "October 24, 2026",
+                    text = "Oldest first",
                     fontSize = 13.sp,
                     color = PrimaryColor
                 )
@@ -211,17 +188,11 @@ fun AdminConversationHistoryScreen(
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 items(messages, key = { it.id }) { message ->
-                    val isEntrant = message.fromUserId != "owner-id"
-
                     ConversationMessageBubble(
                         message = message.body,
                         timestamp = formatTime(message.createdAt),
-                        senderLabel = if (isEntrant) {
-                            "Entrant · Jane Doe"
-                        } else {
-                            "Owner · John Smith"
-                        },
-                        alignRight = isEntrant
+                        senderLabel = "Owner · ${message.fromUserId}",
+                        alignRight = false
                     )
                 }
 

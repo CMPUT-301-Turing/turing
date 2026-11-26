@@ -28,7 +28,6 @@ import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.EventAvailable
 import androidx.compose.material.icons.outlined.EventBusy
 import androidx.compose.material.icons.outlined.NotificationsNone
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -52,7 +51,6 @@ import com.turing.campsite.data.model.Notification
 import com.turing.campsite.data.model.NotificationType
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 private val PageBackground = Color(0xFFF6F4ED)
@@ -75,49 +73,6 @@ private enum class NotificationLogFilter(val label: String) {
 /**
  * Sample notification history matching the Figma design.
  */
-private val sampleNotificationLogs = listOf(
-    Notification(
-        id = "notification-1",
-        title = "You have won the lottery for Banff Campsite!",
-        body = "You have won the lottery for Banff Campsite!",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 1000000)),
-        type = NotificationType.LOTTERY_WON,
-        read = false
-    ),
-    Notification(
-        id = "notification-2",
-        title = "You were not selected in the Banff Campsite lottery.",
-        body = "You were not selected in the Banff Campsite lottery.",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 2000000)),
-        type = NotificationType.LOTTERY_LOST,
-        read = false
-    ),
-    Notification(
-        id = "notification-3",
-        title = "Your Pinewood reservation for Nov 6–8 is confirmed.",
-        body = "Your Pinewood reservation for Nov 6–8 is confirmed.",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 3000000)),
-        type = NotificationType.RESERVATION_CONFIRMED,
-        read = false
-    ),
-    Notification(
-        id = "notification-4",
-        title = "Winter bookings open on Nov 1. Plan your next escape.",
-        body = "Winter bookings open on Nov 1. Plan your next escape.",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 4000000)),
-        type = NotificationType.OWNER_MESSAGE,
-        read = false
-    ),
-    Notification(
-        id = "notification-5",
-        title = "Your Lake Louise reservation for Nov 2–4 is cancelled.",
-        body = "Your Lake Louise reservation for Nov 2–4 is cancelled.",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 5000000)),
-        type = NotificationType.RESERVATION_CANCELLED,
-        read = false
-    )
-)
-
 private fun getIconForType(type: NotificationType): ImageVector {
     return when (type) {
         NotificationType.LOTTERY_WON -> Icons.Outlined.EmojiEvents
@@ -138,18 +93,19 @@ private fun formatDate(timestamp: Timestamp?): String {
  * Admin notification history screen.
  *
  * Displays a read-only notification audit log.
- * Category filtering is implemented with sample data.
- * Search and database integration are placeholders.
+ * Receives live records from the admin route.
  */
 @Composable
 fun AdminNotificationLogScreen(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    notifications: List<Notification> = emptyList(),
+    status: String? = null
 ) {
     var selectedFilter by remember {
         mutableStateOf(NotificationLogFilter.ALL)
     }
 
-    val visibleLogs = sampleNotificationLogs.filter { notification ->
+    val visibleLogs = notifications.sortedByDescending { it.createdAt }.filter { notification ->
         when (selectedFilter) {
             NotificationLogFilter.ALL -> true
 
@@ -222,37 +178,6 @@ fun AdminNotificationLogScreen(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Search bar (visual placeholder)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(10.dp),
-            color = CardBackground,
-            border = BorderStroke(1.dp, CardBorder)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Search,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = PrimaryColor
-                )
-
-                Text(
-                    text = "Search by name or email",
-                    fontSize = 12.sp,
-                    color = SecondaryText
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
         // Date and sort order
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -260,7 +185,7 @@ fun AdminNotificationLogScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "October 24, 2026",
+                text = "${visibleLogs.size} notifications",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
                 color = PrimaryColor
@@ -279,6 +204,9 @@ fun AdminNotificationLogScreen(
         LazyColumn(
             modifier = Modifier.weight(1f)
         ) {
+            if (status != null || visibleLogs.isEmpty()) {
+                item { Text(status ?: "No notifications in this category.") }
+            }
             items(
                 items = visibleLogs,
                 key = { it.id }
@@ -360,14 +288,14 @@ private fun NotificationLogEntry(
                 verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 Text(
-                    text = "Sent to: John Doe",
+                    text = "To: ${notification.toUserId.ifBlank { "Unknown recipient" }}",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = PrimaryColor
                 )
 
                 Text(
-                    text = notification.body,
+                    text = listOf(notification.title, notification.body).filter { it.isNotBlank() }.joinToString("\n"),
                     fontSize = 12.sp,
                     color = PrimaryColor,
                     lineHeight = 16.sp

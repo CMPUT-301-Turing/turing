@@ -2,8 +2,6 @@ package com.turing.campsite.data.repository
 
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
 import com.turing.campsite.data.model.EntryResult
 import com.turing.campsite.data.model.Lottery
 import com.turing.campsite.data.model.LotteryEntry
@@ -37,19 +35,16 @@ class LotteryRepository {
     }
 
     /**
-     * Finds a lottery ID using a given campsiteID
+     * Finds the first lottery linked to a campsite, or null when there is none.
      * @param campsiteId the campsiteID field value
-     * @return the lotteryID with this campsiteID
      */
-    suspend fun findLot(campsiteId: String): Lottery?{
-        val db = Firebase.firestore
-        val snapshot = db.collection("lotteries")
-            .whereEqualTo("campsiteID",campsiteId)
+    suspend fun findLot(campsiteId: String): Lottery? {
+        val document = lotteries.whereEqualTo("campsiteID", campsiteId)
+            .limit(1)
             .get()
             .await()
-        val document = snapshot.documents.firstOrNull()
-        val lottery = getLottery(document!!.id)
-        return lottery
+            .documents.firstOrNull() ?: return null
+        return document.toObject(Lottery::class.java)?.also { it.id = document.id }
     }
 
     /**

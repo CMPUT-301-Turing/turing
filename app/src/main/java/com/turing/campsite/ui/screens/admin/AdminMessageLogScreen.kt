@@ -20,16 +20,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,11 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 import com.turing.campsite.PrimaryColor
-import com.turing.campsite.ui.components.FilterChip
 import com.turing.campsite.data.model.Message
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 private val PageBackground = Color(0xFFF6F4ED)
@@ -53,79 +46,25 @@ private val CardBorder = Color(0xFFDFE2D8)
 private val SecondaryText = Color(0xFF7A8079)
 private val ChipBackground = Color(0xFFE8EFE3)
 
-/**
- * Available message log filters.
- */
-private enum class MessageLogFilter(val label: String) {
-    ALL("All"),
-    ACTIVE("Active Reservations"),
-    INACTIVE("Inactive Reservations")
-}
-
-/**
- * Sample conversations for the administrator's message log.
- */
-private val sampleMessageLogs = listOf(
-    Message(
-        id = "message-1",
-        body = "Perfect, see you at 3 PM tomorrow! Thanks for your help.",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 3600000)),
-        fromUserId = "owner-1"
-    ),
-    Message(
-        id = "message-2",
-        body = "The gate code is in your arrival guide.",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 7200000)),
-        fromUserId = "owner-2"
-    ),
-    Message(
-        id = "message-3",
-        body = "Thanks! We'll bring our own firewood.",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 10800000)),
-        fromUserId = "owner-3"
-    ),
-    Message(
-        id = "message-4",
-        body = "Yes, parking is beside your reserved pitch.",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 14400000)),
-        fromUserId = "owner-4"
-    ),
-    Message(
-        id = "message-5",
-        body = "Thank you again for staying with us!",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 18000000)),
-        fromUserId = "owner-5"
-    ),
-    Message(
-        id = "message-6",
-        body = "Glad you enjoyed your stay.",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 21600000)),
-        fromUserId = "owner-6"
-    )
-)
-
 private fun formatTime(timestamp: Timestamp?): String {
     if (timestamp == null) return ""
-    return SimpleDateFormat("HH:mm", Locale.getDefault()).format(timestamp.toDate())
+    return SimpleDateFormat("MMM d, HH:mm", Locale.getDefault()).format(timestamp.toDate())
 }
 
 /**
  * Administrator's read-only message log.
  *
  * Displays conversations associated with reservations.
- * Filtering operates on temporary sample data.
  * Selecting a conversation invokes the navigation callback.
  */
 @Composable
 fun AdminMessageLogScreen(
     onBackClick: () -> Unit,
-    onConversationClick: (String) -> Unit
+    onConversationClick: (String) -> Unit,
+    messages: List<Message> = emptyList(),
+    status: String? = null
 ) {
-    var selectedFilter by remember {
-        mutableStateOf(MessageLogFilter.ALL)
-    }
-
-    val visibleLogs = sampleMessageLogs
+    val visibleLogs = messages.sortedByDescending { it.createdAt }.distinctBy { it.reservationId }
 
     Column(
         modifier = Modifier
@@ -162,77 +101,8 @@ fun AdminMessageLogScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Reservation filters
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            MessageLogFilter.entries.forEach { filter ->
-                FilterChip(
-                    label = filter.label,
-                    selected = selectedFilter == filter,
-                    onClick = {
-                        selectedFilter = filter
-                    }
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // Search bar (visual placeholder)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(10.dp),
-            color = CardBackground,
-            border = BorderStroke(1.dp, CardBorder)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Search,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = PrimaryColor
-                )
-
-                Text(
-                    text = "Search sender or receiver",
-                    fontSize = 12.sp,
-                    color = SecondaryText
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Date and sorting information
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "October 24, 2026",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                color = PrimaryColor
-            )
-
-            Text(
-                text = "Newest first",
-                fontSize = 11.sp,
-                color = SecondaryText
-            )
-        }
-
+        val countLabel = if (visibleLogs.size == 1) "1 conversation" else "${visibleLogs.size} conversations"
+        Text("$countLabel · Newest first", color = SecondaryText)
         Spacer(modifier = Modifier.height(12.dp))
 
         // Conversation list
@@ -240,6 +110,9 @@ fun AdminMessageLogScreen(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            if (status != null || visibleLogs.isEmpty()) {
+                item { Text(status ?: "No owner-to-entrant conversations.") }
+            }
             items(
                 items = visibleLogs,
                 key = { it.id }
@@ -247,7 +120,7 @@ fun AdminMessageLogScreen(
                 MessageLogCard(
                     message = message,
                     onClick = {
-                        onConversationClick(message.id)
+                        onConversationClick(message.reservationId)
                     }
                 )
             }
@@ -256,7 +129,7 @@ fun AdminMessageLogScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "All conversations · Read-only audit log",
+                    text = "Owner-to-entrant · Read-only audit log",
                     modifier = Modifier.fillMaxWidth(),
                     fontSize = 11.sp,
                     color = SecondaryText,
@@ -309,7 +182,7 @@ private fun MessageLogCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Owner: John Smith →",
+                        text = "Owner: ${message.fromUserId}",
                         modifier = Modifier.weight(1f),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -328,7 +201,7 @@ private fun MessageLogCard(
                 }
 
                 Text(
-                    text = "Entrant: Jane Doe",
+                    text = "Entrant: ${message.toUserId}",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = PrimaryColor
@@ -340,7 +213,7 @@ private fun MessageLogCard(
                     color = ChipBackground
                 ) {
                     Text(
-                        text = "Banff Campsite · Oct 25–27",
+                        text = "Reservation: ${message.reservationId}",
                         modifier = Modifier.padding(
                             horizontal = 6.dp,
                             vertical = 3.dp

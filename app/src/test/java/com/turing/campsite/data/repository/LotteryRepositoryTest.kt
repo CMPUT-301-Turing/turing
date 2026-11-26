@@ -1,3 +1,4 @@
+/* Verifies lottery repository operations with mocked Firestore documents and queries. */
 package com.turing.campsite.data.repository
 
 import com.google.firebase.Timestamp
@@ -41,6 +42,31 @@ class LotteryRepositoryTest : FirestoreTestFixture("lotteries") {
         doReturn(failed<DocumentSnapshot>(failure)).`when`(doc).get()
         try { LotteryRepository().getLottery("id"); fail("Expected read failure") }
         catch (actual: IllegalStateException) { assertSame(failure, actual) }
+    }
+
+    /** Looking up an owned campsite without a lottery is a valid empty state. */
+    @Test fun findLotReturnsNullForEmptyCampsite() = runBlocking<Unit> {
+        stubCampsiteLotteryQuery()
+
+        assertNull(LotteryRepository().findLot("site-1"))
+        verify(collection, never()).document(anyString())
+    }
+
+    /** Uses the query result's canonical ID without re-fetching the same document. */
+    @Test fun findLotUsesSnapshotIdWithoutSecondRead() = runBlocking<Unit> {
+        val value = Lottery(id = "stale", campsiteID = "site-1")
+        stubCampsiteLotteryQuery(row(Lottery::class.java, value, "real-lottery"))
+
+        assertEquals("real-lottery", LotteryRepository().findLot("site-1")?.id)
+        verify(collection, never()).document(anyString())
+    }
+
+    private fun stubCampsiteLotteryQuery(vararg rows: DocumentSnapshot) {
+        val matchingSite = mock(Query::class.java)
+        val firstMatch = mock(Query::class.java)
+        doReturn(matchingSite).`when`(collection).whereEqualTo("campsiteID", "site-1")
+        doReturn(firstMatch).`when`(matchingSite).limit(1)
+        doReturn(completed(snapshot(*rows))).`when`(firstMatch).get()
     }
 
     /**

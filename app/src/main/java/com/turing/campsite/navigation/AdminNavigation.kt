@@ -1,5 +1,6 @@
 package com.turing.campsite.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -9,16 +10,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
-import com.turing.campsite.ui.viewmodel.UserViewModel
 
 import com.turing.campsite.ui.screens.admin.AdminHomeScreen
 import com.turing.campsite.ui.screens.admin.AdminProfileScreen
-import com.turing.campsite.ui.screens.admin.AdminBrowseProfilesScreen
+import com.turing.campsite.ui.screens.admin.AdminOwnerModerationRoute
 import com.turing.campsite.ui.screens.admin.AdminBrowseCampsiteScreen
-import com.turing.campsite.ui.screens.admin.AdminMessageLogScreen
+import com.turing.campsite.ui.screens.admin.AdminMessageAuditRoute
 import com.turing.campsite.ui.screens.admin.AdminBrowseImageScreen
-import com.turing.campsite.ui.screens.admin.AdminNotificationLogScreen
-import com.turing.campsite.ui.screens.admin.AdminConversationHistoryScreen
+import com.turing.campsite.ui.screens.admin.AdminNotificationAuditRoute
+import com.turing.campsite.ui.screens.admin.AdminMessageConversationRoute
 
 /**
  * Registers all administrator navigation destinations.
@@ -68,27 +68,8 @@ fun NavGraphBuilder.adminGraph(
             )
         }
 
-        // Browse all user profiles
         composable(Routes.ADMIN_BROWSE_PROFILE) {
-            // Every user document is read from the database.
-            backStackEntry ->
-            val parent = remember(backStackEntry) {
-                navController.getBackStackEntry(Routes.ADMIN_GRAPH)
-            }
-            val userViewModel: UserViewModel = viewModel(parent)
-
-            LaunchedEffect(Unit) {
-                userViewModel.loadAll()
-            }
-
-            ErrorToast(userViewModel)
-
-            AdminBrowseProfilesScreen(
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                profiles = userViewModel.users
-            )
+            AdminOwnerModerationRoute(onBackClick = { navController.popBackStack() })
         }
 
         composable(Routes.ADMIN_BROWSE_CAMPSITE) {
@@ -114,13 +95,13 @@ fun NavGraphBuilder.adminGraph(
         }
 
         composable(Routes.ADMIN_MESSAGE_LOG) {
-            AdminMessageLogScreen(
+            AdminMessageAuditRoute(
                 onBackClick = {
                     navController.popBackStack()
                 },
                 onConversationClick = { conversationId ->
                     navController.navigate(
-                        "${Routes.ADMIN_CONVERSATION_HISTORY}/$conversationId"
+                        "${Routes.ADMIN_CONVERSATION_HISTORY}/${Uri.encode(conversationId)}"
                     )
                 }
             )
@@ -135,16 +116,16 @@ fun NavGraphBuilder.adminGraph(
         }
 
         composable(Routes.ADMIN_NOTIFICATION_LOG) {
-            AdminNotificationLogScreen(
+            AdminNotificationAuditRoute(
                 onBackClick = {
                     navController.popBackStack()
                 }
             )
         }
 
-        composable("${Routes.ADMIN_CONVERSATION_HISTORY}/{conversationId}") {
-            // TODO: load the messages of this conversation. Sample messages are shown for now.
-            AdminConversationHistoryScreen(
+        composable("${Routes.ADMIN_CONVERSATION_HISTORY}/{conversationId}") { entry ->
+            AdminMessageConversationRoute(
+                reservationId = entry.arguments?.getString("conversationId").orEmpty(),
                 onBackClick = {
                     navController.popBackStack()
                 }

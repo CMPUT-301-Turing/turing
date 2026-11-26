@@ -1,5 +1,8 @@
+/* Checks callbacks on the reusable lottery details screen; it does not send notifications. */
 package com.turing.campsite.ui.screens.owner
 
+import com.turing.campsite.data.model.Lottery
+import com.turing.campsite.data.model.LotteryEntry
 import org.junit.Rule
 import org.junit.Test
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -51,7 +54,7 @@ class OwnerLotteryDetailsScreenTest {
 
 
     /**
-     * Tests send notification button
+     * Tests send notification navigation with an explicit waitlist fixture.
      */
     @Test
     fun ownerLotteryDetailsScreen_sendNotificationButtonClicks() {
@@ -64,7 +67,9 @@ class OwnerLotteryDetailsScreenTest {
             OwnerLotteryDetailsScreen(
                 onBackClick = {},
 
-                onSendNotificationClick = { clickedA = true }
+                onSendNotificationClick = { clickedA = true },
+                lottery = Lottery(id = "lottery-1"),
+                entries = listOf(LotteryEntry(id = "entrant-1", entrantId = "entrant-1"))
             )
 
         }

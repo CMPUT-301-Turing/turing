@@ -20,10 +20,12 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,15 +38,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import com.google.firebase.Timestamp
 import com.turing.campsite.PrimaryColor
-
-// reservation model
 import com.turing.campsite.data.model.Reservation
 import com.turing.campsite.data.model.ReservationStatus
+import com.turing.campsite.data.model.reservationDayStart
+import com.turing.campsite.data.model.statusForOwnerHistory
 
-// timestamp
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 private val PageBackground = Color(0xFFF6F4ED)
@@ -57,103 +58,7 @@ private val RejectColor = Color(0xFFB45345)
 private val CancelledBackground = Color(0xFFF7E9E5)
 private val CompletedBackground = Color(0xFFE9EBE5)
 
-/**
- * Available reservation categories.
- */
-private enum class ReservationSection(
-    val label: String,
-    val heading: String,
-    val description: String
-) {
-    ACTIVE(
-        label = "Active",
-        heading = "Upcoming stays",
-        description = "Reject cancels the booking and issues a refund to the entrant."
-    ),
-    PAST(
-        label = "Past",
-        heading = "Completed stays",
-        description = "These stays have ended. You can still message each entrant."
-    ),
-    CANCELLED(
-        label = "Cancelled",
-        heading = "Cancelled bookings",
-        description = "These bookings are no longer active. Message entrants for any follow-up."
-    )
-}
-
-/**
- * Temporary reservation information for the owner.
- */
-
-private val sampleReservations = listOf(
-    Reservation(
-        id = "reservation-1",
-        entrantId = "Oliver Bennett",
-        campsiteId = "Pinewood Retreat",
-        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
-        status = ReservationStatus.ACTIVE
-    ),
-    Reservation(
-        id = "reservation-2",
-        entrantId = "Amelia Clarke",
-        campsiteId = "Riverbend Glade",
-        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
-        status = ReservationStatus.ACTIVE
-    ),
-    Reservation(
-        id = "reservation-3",
-        entrantId = "Noah Williams",
-        campsiteId = "Riverbend Glade",
-        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
-        status = ReservationStatus.ACTIVE
-    ),
-    Reservation(
-        id = "reservation-4",
-        entrantId = "Sophie Turner",
-        campsiteId = "Pinewood Retreat",
-        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
-        status = ReservationStatus.COMPLETED
-    ),
-    Reservation(
-        id = "reservation-5",
-        entrantId = "Ethan Brooks",
-        campsiteId = "Willowbank Meadow",
-        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
-        status = ReservationStatus.COMPLETED
-    ),
-    Reservation(
-        id = "reservation-6",
-        entrantId = "Isla Morgan",
-        campsiteId = "Riverbend Glade",
-        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
-        status = ReservationStatus.COMPLETED
-    ),
-    Reservation(
-        id = "reservation-7",
-        entrantId = "Grace Wilson",
-        campsiteId = "Pinewood Retreat",
-        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
-        status = ReservationStatus.CANCELLED
-    ),
-    Reservation(
-        id = "reservation-8",
-        entrantId = "Jack Davies",
-        campsiteId = "Willowbank Meadow",
-        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
-        status = ReservationStatus.CANCELLED
-    ),
-    Reservation(
-        id = "reservation-9",
-        entrantId = "Freya Ellis",
-        campsiteId = "Riverbend Glade",
-        startDate = com.google.firebase.Timestamp(Date(System.currentTimeMillis())),
-        status = ReservationStatus.CANCELLED
-    )
-)
-
-
-private fun formatDate(timestamp: com.google.firebase.Timestamp?): String {
+private fun formatDate(timestamp: Timestamp?): String {
     if (timestamp == null) return "No date"
 
     val date = timestamp.toDate()
@@ -163,26 +68,45 @@ private fun formatDate(timestamp: com.google.firebase.Timestamp?): String {
 }
 
 /**
- * Displays reservations for campsites owned by the user.
+ * Displays reservations for campsites owned by the user. The caller supplies the owner-scoped list.
  */
 @Composable
 fun OwnerCampsiteHistoryScreen(
     onBackClick: () -> Unit,
     onMessageClick: (String) -> Unit,
-    onRejectClick: (String) -> Unit
+    onRejectClick: (String) -> Unit,
+    reservations: List<Reservation>,
+    isLoading: Boolean = false,
+    statusMessage: String? = null
 ) {
     var selectedSection by rememberSaveable {
-        mutableStateOf(ReservationSection.ACTIVE)
+        mutableStateOf(OwnerReservationTab.ACTIVE)
     }
 
-
-    val visibleReservations = sampleReservations.filter {
-        when (selectedSection) {
-            ReservationSection.ACTIVE -> it.status == ReservationStatus.ACTIVE
-            ReservationSection.PAST -> it.status == ReservationStatus.COMPLETED
-            ReservationSection.CANCELLED -> it.status == ReservationStatus.CANCELLED || it.status == ReservationStatus.REJECTED
-        }
+    var pendingRejectionId by rememberSaveable { mutableStateOf<String?>(null) }
+    val dayStart = reservationDayStart()
+    val pendingRejection = reservations.firstOrNull {
+        it.id == pendingRejectionId && it.statusForOwnerHistory(dayStart) == ReservationStatus.ACTIVE
     }
+
+    if (pendingRejection != null && !isLoading) {
+        AlertDialog(
+            onDismissRequest = { pendingRejectionId = null },
+            title = { Text("Reject reservation?") },
+            text = { Text("This booking will no longer be active.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    pendingRejectionId = null
+                    onRejectClick(pendingRejection.id)
+                }) { Text("Reject reservation") }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingRejectionId = null }) { Text("Keep booking") }
+            }
+        )
+    }
+
+    val visibleReservations = selectedSection.select(reservations, dayStart)
 
     Column(
         modifier = Modifier
@@ -210,7 +134,7 @@ fun OwnerCampsiteHistoryScreen(
             Spacer(modifier = Modifier.width(8.dp))
 
             Text(
-                text = "Campsite Details",
+                text = "Reservations",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = PrimaryColor
@@ -243,7 +167,7 @@ fun OwnerCampsiteHistoryScreen(
             )
 
             Text(
-                text = "${visibleReservations.size} bookings",
+                text = if (isLoading) "Loading…" else "${visibleReservations.size} bookings",
                 fontSize = 11.sp,
                 color = SecondaryText
             )
@@ -252,30 +176,43 @@ fun OwnerCampsiteHistoryScreen(
         Spacer(modifier = Modifier.height(6.dp))
 
         Text(
-            text = "All campsites · As of 20 Oct 2026",
+            text = "All your campsites",
             fontSize = 11.sp,
             color = SecondaryText
         )
 
         Spacer(modifier = Modifier.height(14.dp))
 
+        if (statusMessage != null) {
+            Text(text = statusMessage, color = RejectColor, fontSize = 13.sp)
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+
         // Filtered reservation list
         LazyColumn(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            if (visibleReservations.isEmpty() && !isLoading && statusMessage == null) {
+                item {
+                    Text(text = "No bookings in this tab.", color = SecondaryText)
+                }
+            }
+
             items(
                 items = visibleReservations,
                 key = { it.id }
             ) { reservation ->
                 OwnerReservationCard(
                     reservation = reservation,
+                    status = reservation.statusForOwnerHistory(dayStart),
                     onMessageClick = {
                         onMessageClick(reservation.id)
                     },
                     onRejectClick = {
-                        onRejectClick(reservation.id)
-                    }
+                        pendingRejectionId = reservation.id
+                    },
+                    canReject = !isLoading && reservation.id.isNotBlank()
                 )
             }
 
@@ -315,14 +252,14 @@ fun OwnerCampsiteHistoryScreen(
  */
 @Composable
 private fun ReservationSectionTabs(
-    selectedSection: ReservationSection,
-    onSectionSelected: (ReservationSection) -> Unit
+    selectedSection: OwnerReservationTab,
+    onSectionSelected: (OwnerReservationTab) -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        ReservationSection.entries.forEach { section ->
+        OwnerReservationTab.entries.forEach { section ->
             val selected = selectedSection == section
 
             Surface(
@@ -372,8 +309,10 @@ private fun ReservationSectionTabs(
 @Composable
 private fun OwnerReservationCard(
     reservation: Reservation,
+    status: ReservationStatus,
     onMessageClick: () -> Unit,
-    onRejectClick: () -> Unit
+    onRejectClick: () -> Unit,
+    canReject: Boolean
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -402,7 +341,8 @@ private fun OwnerReservationCard(
                     )
 
                     Text(
-                        text = reservation.campsiteId,
+                        text = reservation.campsiteId.takeIf { it.isNotBlank() }
+                            ?.let { "Campsite ref: $it" } ?: "Campsite unavailable",
                         fontSize = 12.sp,
                         color = PrimaryColor
                     )
@@ -414,7 +354,7 @@ private fun OwnerReservationCard(
                     )
                 }
 
-                ReservationStatusBadge(reservation.status)
+                ReservationStatusBadge(status)
             }
 
             Surface(
@@ -437,7 +377,7 @@ private fun OwnerReservationCard(
                 )
 
 
-                if (reservation.status == ReservationStatus.ACTIVE) {
+                if (canReject && status == ReservationStatus.ACTIVE) {
                     ReservationActionButton(
                         label = "Reject",
                         icon = Icons.Outlined.Close,

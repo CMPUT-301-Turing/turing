@@ -1,6 +1,8 @@
 package com.turing.campsite.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldValue
+import com.turing.campsite.data.model.UserRole
 import com.turing.campsite.data.model.User
 import kotlinx.coroutines.tasks.await
 
@@ -12,7 +14,8 @@ import kotlinx.coroutines.tasks.await
  * Auth uid from DeviceAuthManager.
  */
 class UserRepository {
-    private val users = FirebaseFirestore.getInstance().collection("users")
+    private val firestore = FirebaseFirestore.getInstance()
+    private val users = firestore.collection("users")
 
     /**
      * Loads one user by uid.
@@ -68,6 +71,31 @@ class UserRepository {
         return snapshot.documents.mapNotNull { doc ->
             doc.toObject(User::class.java)?.also { it.id = doc.id }
         }
+    }
+
+    /**
+     * Revokes the owner role without deleting the account or its historical data.
+     * The transaction records the acting admin and server timestamp alongside the role change.
+     * Firestore rules use this suspension for hosting writes; this action does not unlist campsites.
+     * @param uid the hosting account to suspend
+     * @param adminId the administrator who authorized the change
+     */
+    suspend fun removeOwnerAccess(uid: String, adminId: String) {
+        require(uid.isNotBlank() && adminId.isNotBlank() && uid != adminId)
+        val target = users.document(uid)
+        val suspension = firestore.collection("ownerSuspensions").document(uid)
+        firestore.runTransaction { transaction ->
+            val roles = transaction.get(target).toObject(User::class.java)?.roles.orEmpty()
+            check(UserRole.OWNER in roles && UserRole.ADMIN !in roles) {
+                "This profile is not an eligible owner."
+            }
+            transaction.update(target, "roles", (roles - UserRole.OWNER).map { it.name })
+            transaction.set(suspension, mapOf(
+                "removedBy" to adminId,
+                "removedAt" to FieldValue.serverTimestamp()
+            ))
+            Unit
+        }.await()
     }
 
     /**

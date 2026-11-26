@@ -11,9 +11,21 @@ service cloud.firestore {
         // keep uppercase to match User.kt
         && 'ADMIN' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles;
     }
+    function hostingAllowed(uid) {
+      return isSelf(uid) && !exists(/databases/$(database)/documents/ownerSuspensions/$(uid));
+    }
+    match /ownerSuspensions/{uid} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin() && !isSelf(uid)
+        && request.resource.data.removedBy == request.auth.uid;
+      allow delete: if isAdmin();
+    }
     match /users/{uid} {
       allow read: if signedIn();
-      allow create: if isSelf(uid);
+      allow create: if isSelf(uid)
+        && request.resource.data.roles is list
+        && request.resource.data.roles.hasOnly(['ENTRANT', 'OWNER'])
+        && (!('OWNER' in request.resource.data.roles) || hostingAllowed(uid));
 
 
       allow update: if (request.resource.data.roles == resource.data.roles && isSelf(uid)) || isAdmin();
@@ -25,10 +37,10 @@ service cloud.firestore {
       allow read: if signedIn();
 
 
-      allow create: if request.resource.data.ownerId == request.auth.uid && signedIn();
+      allow create: if hostingAllowed(request.resource.data.ownerId);
 
       allow update, delete: if signedIn()
-        && (resource.data.ownerId == request.auth.uid || isAdmin());
+        && (hostingAllowed(resource.data.ownerId) || isAdmin());
       match /reviews/{reviewId} {
         allow read: if signedIn();
         allow create: if signedIn();
@@ -39,10 +51,10 @@ service cloud.firestore {
       allow read: if signedIn();
 
 
-      allow create: if request.resource.data.ownerId == request.auth.uid && signedIn();
+      allow create: if hostingAllowed(request.resource.data.ownerId);
 
       allow update, delete: if signedIn()
-        && (resource.data.ownerId == request.auth.uid || isAdmin());
+        && (hostingAllowed(resource.data.ownerId) || isAdmin());
       match /entries/{entrantId} {
         allow read: if signedIn();
         allow create, delete: if isSelf(entrantId);
@@ -53,8 +65,13 @@ service cloud.firestore {
       allow read, create: if signedIn();
       allow update: if signedIn()
         && (resource.data.entrantId == request.auth.uid
-            || resource.data.ownerId == request.auth.uid
-            || isAdmin());
+            || hostingAllowed(resource.data.ownerId)
+            || isAdmin())
+        && (resource.data.status == request.resource.data.status
+            || request.resource.data.status != 'REJECTED'
+            || (resource.data.status == 'ACTIVE'
+                && (hostingAllowed(resource.data.ownerId) || isAdmin())
+                && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])));
     }
 
     match /notifications/{id} {

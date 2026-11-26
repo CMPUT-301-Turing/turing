@@ -1,131 +1,38 @@
+/* Exercises audit grouping, navigation, and the empty state with fixture messages. */
 package com.turing.campsite.ui.screens.admin
 
-import org.junit.Rule
-import org.junit.Test
-import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.turing.campsite.data.model.Message
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
 
-
-/**
- * AdminMessageLogScreen UI test
- *
- * Testing the functionality of buttons and the hardcoded data filters...
- */
 class AdminMessageLogScreenTest {
+    @get:Rule val compose = createComposeRule()
 
-    // ...
-    @get:Rule
-    val composeTestRule = createComposeRule()
-
-    /**
-     * Test if screen show the important text from sample data
-     */
     @Test
-    fun adminMessageLogScreen_displaysCorrectText() {
-        composeTestRule.setContent {
-
-            AdminMessageLogScreen(
-                onBackClick = {},
-
-                onConversationClick = {}
-            )
+    fun groupsByReservationAndOpensReservationIdNotMessageId() {
+        val fixtures = listOf(
+            Message(id = "message-1", reservationId = "reservation-9",
+                fromUserId = "owner-a", toUserId = "entrant-a", body = "Gate is open."),
+            Message(id = "message-2", reservationId = "reservation-9",
+                fromUserId = "owner-a", toUserId = "entrant-a", body = "Check in at noon.")
+        )
+        var opened: String? = null
+        compose.setContent {
+            AdminMessageLogScreen({}, { opened = it }, fixtures)
         }
-
-        // check header and search bar
-        composeTestRule.onNodeWithText("Message Logs").assertIsDisplayed()
-
-        composeTestRule.onNodeWithText("Search sender or receiver").assertIsDisplayed()
-
-
-
-        // check sample data visible
-
-        // every card shows the owner line, so look at the first one
-        composeTestRule.onAllNodesWithText("Owner: John Smith →").onFirst().assertIsDisplayed()
-
-        composeTestRule.onAllNodesWithText("Entrant: Jane Doe").onFirst().assertIsDisplayed()
-
-        // the newest message text
-        composeTestRule.onNodeWithText("Perfect, see you at 3 PM tomorrow! Thanks for your help.").assertIsDisplayed()
+        compose.onNodeWithText("1 conversation · Newest first").assertIsDisplayed()
+        compose.onNodeWithText("Reservation: reservation-9").performClick()
+        compose.runOnIdle { assertEquals("reservation-9", opened) }
     }
 
-
-
-    /**
-     * Tests if back button triggers the callback correctly
-     */
     @Test
-    fun adminMessageLogScreen_backButtonClicks() {
-
-        var backWasClicked = false
-
-        composeTestRule.setContent {
-
-            AdminMessageLogScreen(
-                onBackClick = { backWasClicked = true },
-                onConversationClick = {}
-            )
-        }
-
-        // Click back arrow
-        composeTestRule.onNodeWithContentDescription("Back to admin home").performClick()
-
-        assertTrue(backWasClicked)
-    }
-
-
-
-    /**
-     * Tests if clicking a message box trigger onConversationClick with correct ID
-     */
-    @Test
-    fun adminMessageLogScreen_boxClickPassesCorrectId() {
-
-        var clickedId = ""
-
-        composeTestRule.setContent {
-            AdminMessageLogScreen(
-                onBackClick = {},
-
-                onConversationClick = { id -> clickedId = id }
-            )
-        }
-
-        // click first owner
-        composeTestRule.onNodeWithText("Perfect, see you at 3 PM tomorrow! Thanks for your help.").performClick()
-
-        // check if it passed the message
-        assertEquals("message-1", clickedId)
-    }
-
-    /**
-     * Test that the filter buttons can be clicked and the list stays on screen.
-     * Messages have no reservation status yet, so the filters do not hide anything.
-     */
-    @Test
-    fun adminMessageLogScreen_filterButtonsCanBeClicked() {
-
-        composeTestRule.setContent {
-            AdminMessageLogScreen(
-                onBackClick = {},
-                onConversationClick = {}
-            )
-        }
-
-        // click each filter button
-        composeTestRule.onNodeWithText("Active Reservations").performClick()
-        composeTestRule.onNodeWithText("Inactive Reservations").performClick()
-        composeTestRule.onNodeWithText("All").performClick()
-
-        // the newest message is still there
-        composeTestRule.onNodeWithText("Perfect, see you at 3 PM tomorrow! Thanks for your help.").assertIsDisplayed()
+    fun emptyAuditLogShowsEmptyState() {
+        compose.setContent { AdminMessageLogScreen({}, {}) }
+        compose.onNodeWithText("No owner-to-entrant conversations.").assertIsDisplayed()
     }
 }

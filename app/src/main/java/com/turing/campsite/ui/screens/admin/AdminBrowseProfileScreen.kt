@@ -21,11 +21,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -83,16 +89,36 @@ private val sampleProfiles = listOf(
 /**
  * Admin browse profiles screen.
  *
- * Displays a list of user profiles with search and deletion
- * placeholders. The profiles to show are passed in. Sample
- * profiles are used when none are given. Navigation back to
- * the admin home screen is handled through a callback.
+ * Displays the supplied profiles and optionally exposes an owner-role removal
+ * action. The supplied callback runs only after confirmation. The default
+ * profiles are for previews; the navigation route passes real state.
  */
 @Composable
 fun AdminBrowseProfilesScreen(
     onBackClick: () -> Unit,
-    profiles: List<User> = sampleProfiles
+    profiles: List<User> = sampleProfiles,
+    ownerRemovalEnabled: Boolean = false,
+    statusMessage: String? = null,
+    onRemoveOwner: (User) -> Unit = {}
 ) {
+    var selectedOwnerId by rememberSaveable { mutableStateOf<String?>(null) }
+    val selectedOwner = profiles.firstOrNull { it.id == selectedOwnerId }
+    if (selectedOwner != null && ownerRemovalEnabled) {
+        AlertDialog(
+            onDismissRequest = { selectedOwnerId = null },
+            title = { Text("Remove owner access?") },
+            text = { Text("Remove hosting access for ${selectedOwner.name}? Their account and booking history will be kept.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    selectedOwnerId = null
+                    onRemoveOwner(selectedOwner)
+                }) { Text("Remove owner access") }
+            },
+            dismissButton = {
+                TextButton(onClick = { selectedOwnerId = null }) { Text("Cancel") }
+            }
+        )
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -181,6 +207,11 @@ fun AdminBrowseProfilesScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        if (statusMessage != null) {
+            Text(statusMessage, color = PrimaryColor)
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
         // Scrollable profile list
         LazyColumn(
             modifier = Modifier.weight(1f),
@@ -190,7 +221,12 @@ fun AdminBrowseProfilesScreen(
                 items = profiles,
                 key = { it.id }
             ) { profile ->
-                AdminProfileCard(profile)
+                AdminProfileCard(
+                    profile,
+                    if (ownerRemovalEnabled && canRemoveOwner(profile, "")) {
+                        { selectedOwnerId = profile.id }
+                    } else null
+                )
             }
         }
     }
@@ -199,11 +235,10 @@ fun AdminBrowseProfilesScreen(
 /**
  * Displays an individual user profile for administrators.
  *
- * Delete icon is a visual placeholder until functionality
- * is implemented.
+ * Offers a confirmed owner-access action for eligible profiles.
  */
 @Composable
-private fun AdminProfileCard(profile: User) {
+private fun AdminProfileCard(profile: User, onRemoveOwner: (() -> Unit)?) {
     val initials = profile.name.split(" ")
         .mapNotNull { it.firstOrNull()?.uppercase() }
         .joinToString("")
@@ -268,13 +303,15 @@ private fun AdminProfileCard(profile: User) {
                 )
             }
 
-            // Delete profile icon (visual placeholder)
-            Icon(
-                imageVector = Icons.Outlined.DeleteOutline,
-                contentDescription = null,
-                modifier = Modifier.size(21.dp),
-                tint = DeleteColor
-            )
+            if (onRemoveOwner != null) {
+                IconButton(onClick = onRemoveOwner) {
+                    Icon(
+                        imageVector = Icons.Outlined.DeleteOutline,
+                        contentDescription = "Remove owner access for ${profile.name}",
+                        tint = DeleteColor
+                    )
+                }
+            }
         }
     }
 }
