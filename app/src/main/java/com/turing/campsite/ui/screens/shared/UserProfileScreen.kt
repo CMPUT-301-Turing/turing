@@ -13,6 +13,7 @@ import androidx.compose.material.icons.outlined.Article
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.ManageAccounts
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.SwapHoriz
@@ -60,13 +61,17 @@ enum class UserView {
  * can switch to and whether a back button is shown.
  *
  * Navigation is handled through callbacks.
+ *
+ * @param onSwitchToAdminClick opens the admin view; when null the
+ * admin option is not shown
  */
 @Composable
 fun UserProfileScreen(
     currentView: UserView,
     onEditProfileClick: () -> Unit,
     onSwitchViewClick: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onSwitchToAdminClick: (() -> Unit)? = null
 ) {
     val switchTitle: String
     val switchDescription: String
@@ -227,6 +232,16 @@ fun UserProfileScreen(
             icon = Icons.Outlined.SwapHoriz,
             onClick = onSwitchViewClick
         )
+
+        // Every user can open the admin view for now, until admin roles are set up
+        if (onSwitchToAdminClick != null) {
+            ProfileOption(
+                title = "Switch to admin view",
+                description = "Manage campsites and profiles in the admin view.",
+                icon = Icons.Outlined.ManageAccounts,
+                onClick = onSwitchToAdminClick
+            )
+        }
 
         ProfileOption(
             title = "View app policy and guidelines",
