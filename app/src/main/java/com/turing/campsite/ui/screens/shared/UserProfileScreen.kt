@@ -65,7 +65,7 @@ enum class UserView {
 fun UserProfileScreen(
     currentView: UserView,
     onEditProfileClick: () -> Unit,
-    onPolicyClick: () -> Unit,
+    onPolicyClick: () -> Unit = {},
     onSwitchViewClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
