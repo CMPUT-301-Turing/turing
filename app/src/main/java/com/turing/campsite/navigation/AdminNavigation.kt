@@ -87,7 +87,8 @@ fun NavGraphBuilder.adminGraph(
                 onBackClick = {
                     navController.popBackStack()
                 },
-                profiles = userViewModel.users
+                profiles = userViewModel.users,
+                isLoading = userViewModel.isLoading
             )
         }
 
@@ -109,7 +110,10 @@ fun NavGraphBuilder.adminGraph(
                     navController.popBackStack()
                 },
                 campsites = campsiteViewModel.campsites,
-                isLoading = campsiteViewModel.isLoading
+                isLoading = campsiteViewModel.isLoading,
+                onDeleteCampsite = { campsiteId ->
+                    campsiteViewModel.delete(campsiteId)
+                }
             )
         }
 

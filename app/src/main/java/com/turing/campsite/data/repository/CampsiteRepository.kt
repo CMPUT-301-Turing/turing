@@ -1,7 +1,18 @@
+/*
+ * AI Assistance Disclosure
+ *
+ * Company: OpenAI
+ * Tool: ChatGPT (GPT-6)
+ * Date: 2026-11-25
+ * Subject: Admin campsite deletion and associated review cleanup.
+ *
+ * Scope: AI-assisted implementation of deleteWithReviews() using
+ * an atomic Firestore batched write. Existing methods are preserved.
+ */
+
 package com.turing.campsite.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.Firebase
 import com.turing.campsite.data.model.Campsite
 import com.turing.campsite.data.model.Review
 import kotlinx.coroutines.tasks.await
@@ -56,7 +67,7 @@ class CampsiteRepository {
     /**
      * Adds a new campsite with a generated id.
      *
-     * @param campsite the campsite to add; its id is filled in by this call
+     * @param campsite the campsite to add; its id is filled in by the repository
      * @return the generated document id
      */
     suspend fun add(campsite: Campsite): String {
@@ -76,12 +87,41 @@ class CampsiteRepository {
     }
 
     /**
-     * Deletes a campsite document.
+     * Deletes a campsite document without removing its reviews.
      *
      * @param id the Firestore document id of the campsite
      */
     suspend fun delete(id: String) {
         campsites.document(id).delete().await()
+    }
+
+    /**
+     * Deletes a campsite and all of its reviews in a single batched write.
+     *
+     * A Firestore batch supports up to 500 writes. We need one write for the
+     * campsite, leaving room for at most 499 review documents. If there are
+     * more reviews, deletion fails without changing any documents.
+     *
+     * This method does not check lotteries or reservations; the deletion
+     * service is responsible for enforcing those rules before calling it.
+     *
+     * @param campsiteId the Firestore document id of the campsite
+     * @throws IllegalStateException if there are too many reviews for one batch
+     */
+    suspend fun deleteWithReviews(campsiteId: String) {
+        val campsiteDoc = campsites.document(campsiteId)
+        val reviewDocs = campsiteDoc.collection("reviews").get().await().documents
+
+        check(reviewDocs.size <= 499) {
+            "Cannot delete campsite: more than 499 reviews require bulk cleanup"
+        }
+
+        val batch = FirebaseFirestore.getInstance().batch()
+        reviewDocs.forEach { reviewDoc ->
+            batch.delete(reviewDoc.reference)
+        }
+        batch.delete(campsiteDoc)
+        batch.commit().await()
     }
 
     /**
@@ -104,7 +144,7 @@ class CampsiteRepository {
      * and the campsite's ratingAverage and ratingCount are updated.
      *
      * @param campsiteId the Firestore document id of the campsite
-     * @param review the review to add; its id is filled in by this call
+     * @param review the review to add; its id is filled in by the repository
      */
     suspend fun addReview(campsiteId: String, review: Review) {
         val reviews = campsites.document(campsiteId).collection("reviews")
