@@ -48,6 +48,8 @@ class UserProfileScreenTest {
 
                     onEditProfileClick = {},
 
+                    onPolicyClick = {},
+
                     onSwitchViewClick = {},
                     onBackClick = { backClicked = true }
 
@@ -63,6 +65,32 @@ class UserProfileScreenTest {
 
         // check if back button clicked
         assertTrue(backClicked) }
+
+
+
+    /**
+     * Tests that the app policy option opens the policy screen
+     */
+    @Test
+    fun userProfileScreen_policyClicks() {
+        var policyClicked = false
+
+        composeTestRule.setContent {
+            UserProfileScreen(
+                currentView = UserView.ENTRANT,
+                onEditProfileClick = {},
+                onPolicyClick = { policyClicked = true },
+                onSwitchViewClick = {},
+                onBackClick = {}
+            )
+        }
+
+        composeTestRule.onNodeWithText("View app policy and guidelines")
+            .performScrollTo()
+            .performClick()
+
+        assertTrue(policyClicked)
+    }
 
 
 
@@ -86,6 +114,8 @@ class UserProfileScreenTest {
                     currentView = UserView.ENTRANT,
 
                     onEditProfileClick = {},
+
+                    onPolicyClick = {},
 
 
                     onSwitchViewClick = { switchClicked = true },
