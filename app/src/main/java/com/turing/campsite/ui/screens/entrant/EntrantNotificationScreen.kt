@@ -21,7 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-import com.google.firebase.auth.FirebaseAuth
+import com.turing.campsite.data.auth.LocalCurrentUid
 import com.turing.campsite.PrimaryColor
 import com.turing.campsite.ui.components.NotificationCard
 import com.turing.campsite.ui.viewmodel.NotificationViewModel
@@ -33,7 +33,7 @@ private val SecondaryText = Color(0xFF7A8079)
 fun EntrantNotificationScreen(
     notificationViewModel: NotificationViewModel
 ) {
-    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+    val currentUserId = LocalCurrentUid.current
     val notifications = notificationViewModel.notifications
 
     LaunchedEffect(currentUserId) {

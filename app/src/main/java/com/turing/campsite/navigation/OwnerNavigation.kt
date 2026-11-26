@@ -10,9 +10,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.turing.campsite.data.auth.DeviceAuthManager
 
-import com.turing.campsite.data.auth.TempUser
+import com.turing.campsite.data.auth.LocalCurrentUid
 import com.turing.campsite.ui.mapper.toCampsite
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
 import com.turing.campsite.ui.screens.owner.OwnerHomeScreen
@@ -55,15 +54,14 @@ fun NavGraphBuilder.ownerGraph(
             val reservationViewModel: ReservationViewModel = viewModel(parent)
             val userViewModel: UserViewModel = viewModel(parent)
 
-            LaunchedEffect(backStackEntry) {
-                val ownerId = TempUser.UID
+            val ownerId = LocalCurrentUid.current
+            LaunchedEffect(backStackEntry, ownerId) {
                 if (ownerId.isNotBlank()){
                     campsiteViewModel.listByOwner(ownerId)
                 }
             }
 
             OwnerHomeScreen(
-                deviceAuthManager = DeviceAuthManager(),
                 campsiteViewModel = campsiteViewModel,
                 onNotificationsClick = {
                     navController.navigate(Routes.OWNER_NOTIFICATION)
@@ -94,14 +92,13 @@ fun NavGraphBuilder.ownerGraph(
                 navController.getBackStackEntry("ownerGraph")
             }
             val shared: CampsiteViewModel = viewModel(parent)
+            val ownerId = LocalCurrentUid.current
             OwnerRegisterNewCampsiteScreen(
                 onBackClick = {
                     navController.popBackStack()
                 },
                 onPublishClick = { formData ->
-
-                    val ownerId = TempUser.UID
-                 // Ignore extra taps while the first save is still running.
+                    // Ignore extra taps while the first save is still running.
                     if (!shared.isLoading && ownerId.isNotBlank()) {
                         shared.add(formData.toCampsite(ownerId)) {
                             navController.popBackStack()

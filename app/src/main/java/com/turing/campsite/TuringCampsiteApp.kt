@@ -2,37 +2,63 @@ package com.turing.campsite
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 
+import com.turing.campsite.data.auth.LocalCurrentUid
 import com.turing.campsite.navigation.Routes
 import com.turing.campsite.navigation.AppScaffold
 import com.turing.campsite.navigation.entrantGraph
 import com.turing.campsite.navigation.ownerGraph
 import com.turing.campsite.navigation.adminGraph
 import com.turing.campsite.navigation.sharedGraph
+import com.turing.campsite.ui.screens.shared.SignInScreen
+import com.turing.campsite.ui.viewmodel.AuthViewModel
 
 /**
- * Root navigation host for the Turing Campsite application.
+ * Root of the Turing Campsite application.
  *
- * Initializes the navigation controller and registers
- * shared and role-specific navigation destinations.
+ * Signs the phone in first. Until that has finished, only the sign-in screen
+ * is shown. After that, the navigation host is shown and every screen can
+ * read the signed-in uid from LocalCurrentUid.
+ *
+ * @param authViewModel signs the phone in and holds its uid
  */
 @Composable
-fun TuringCampsiteApp() {
-    val navController = rememberNavController()
+fun TuringCampsiteApp(
+    authViewModel: AuthViewModel = viewModel()
+) {
+    LaunchedEffect(Unit) {
+        authViewModel.signIn()
+    }
 
-    AppScaffold(navController) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = Routes.LOGIN,
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            sharedGraph(navController)
-            entrantGraph(navController)
-            ownerGraph(navController)
-            adminGraph(navController)
+    val uid = authViewModel.uid
+    if (uid == null) {
+        SignInScreen(
+            errorMessage = authViewModel.errorMessage,
+            onRetryClick = { authViewModel.signIn() }
+        )
+        return
+    }
+
+    CompositionLocalProvider(LocalCurrentUid provides uid) {
+        val navController = rememberNavController()
+
+        AppScaffold(navController) { innerPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = Routes.LOGIN,
+                modifier = Modifier.padding(innerPadding)
+            ) {
+                sharedGraph(navController)
+                entrantGraph(navController)
+                ownerGraph(navController)
+                adminGraph(navController)
+            }
         }
     }
 }
