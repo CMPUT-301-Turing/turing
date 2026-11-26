@@ -1,3 +1,15 @@
+/*
+ * AI Assistance Disclosure
+ *
+ * Company: OpenAI
+ * Tool: ChatGPT (GPT-6)
+ *
+ * Subjects:
+ * 2026-11-25: Admin profile browsing, search, and UI states (US 03.05.01).
+ *
+ * Scope: AI-assisted implementation, debugging, and code review.
+ */
+
 package com.turing.campsite.ui.screens.admin
 
 import androidx.compose.foundation.BorderStroke
@@ -19,13 +31,19 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,71 +53,44 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.turing.campsite.PrimaryColor
 import com.turing.campsite.data.model.User
-import com.turing.campsite.data.model.UserRole
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
 private val CardBorder = Color(0xFFDFE2D8)
 private val AvatarBackground = Color(0xFFE8EFE3)
 private val SecondaryText = Color(0xFF7A8079)
-private val DeleteColor = Color(0xFFB45345)
 
 /**
- * Sample profiles shown when no profiles are passed in.
- */
-private val sampleProfiles = listOf(
-    User(
-        id = "1",
-        name = "Priya Shah",
-        email = "priya.s@example.com",
-        roles = listOf(UserRole.OWNER)
-    ),
-    User(
-        id = "2",
-        name = "Will Smith",
-        email = "willthesmith3@example.com",
-        roles = listOf(UserRole.OWNER)
-    ),
-    User(
-        id = "3",
-        name = "Maya Bennett",
-        email = "maya.b@example.com",
-        roles = listOf(UserRole.ENTRANT)
-    ),
-    User(
-        id = "4",
-        name = "Harry Potter",
-        email = "harrypotter67@example.com",
-        roles = listOf(UserRole.ENTRANT)
-    ),
-    User(
-        id = "5",
-        name = "Sophie Chen",
-        email = "sophie.c@example.com",
-        roles = listOf(UserRole.ENTRANT)
-    )
-)
-
-/**
- * Admin browse profiles screen.
+ * Displays registered user profiles for administrators.
  *
- * Displays a list of user profiles with search and deletion
- * placeholders. The profiles to show are passed in. Sample
- * profiles are used when none are given. Navigation back to
- * the admin home screen is handled through a callback.
+ * Filters the supplied profiles locally by name or email and provides loading,
+ * empty-database, and no-search-results states. The caller loads the profiles.
+ * Profile deletion belongs to a separate admin feature.
  */
 @Composable
 fun AdminBrowseProfilesScreen(
     onBackClick: () -> Unit,
-    profiles: List<User> = sampleProfiles
+    profiles: List<User> = emptyList(),
+    isLoading: Boolean = false
 ) {
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+
+    val query = searchQuery.trim()
+    val filteredProfiles = if (query.isEmpty()) {
+        profiles
+    } else {
+        profiles.filter { profile ->
+            profile.name.contains(query, ignoreCase = true) ||
+                    profile.email.contains(query, ignoreCase = true)
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(PageBackground)
             .padding(horizontal = 24.dp, vertical = 20.dp)
     ) {
-        // Header with back button on the left
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -128,38 +119,37 @@ fun AdminBrowseProfilesScreen(
 
         Spacer(modifier = Modifier.height(26.dp))
 
-        // Search bar (visual placeholder)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(10.dp),
-            color = CardBackground,
-            border = BorderStroke(1.dp, CardBorder)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = {
+                Text(
+                    text = "Search by name or email",
+                    fontSize = 12.sp,
+                    color = SecondaryText
+                )
+            },
+            leadingIcon = {
                 Icon(
                     imageVector = Icons.Outlined.Search,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp),
                     tint = PrimaryColor
                 )
-
-                Text(
-                    text = "Search by name or email",
-                    fontSize = 12.sp,
-                    color = SecondaryText
-                )
-            }
-        }
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(10.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = CardBackground,
+                unfocusedContainerColor = CardBackground,
+                focusedBorderColor = PrimaryColor,
+                unfocusedBorderColor = CardBorder
+            )
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Profile list heading
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -173,7 +163,7 @@ fun AdminBrowseProfilesScreen(
             )
 
             Text(
-                text = "${profiles.size} profiles",
+                text = "${filteredProfiles.size} profiles",
                 fontSize = 11.sp,
                 color = SecondaryText
             )
@@ -181,37 +171,67 @@ fun AdminBrowseProfilesScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Scrollable profile list
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(
-                items = profiles,
-                key = { it.id }
-            ) { profile ->
-                AdminProfileCard(profile)
+        when {
+            isLoading -> {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = PrimaryColor)
+                }
+            }
+
+            filteredProfiles.isEmpty() -> {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (profiles.isEmpty()) {
+                            "No profiles registered yet."
+                        } else {
+                            "No profiles match your search."
+                        },
+                        fontSize = 14.sp,
+                        color = SecondaryText
+                    )
+                }
+            }
+
+            else -> {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(
+                        items = filteredProfiles,
+                        key = { it.id }
+                    ) { profile ->
+                        AdminProfileCard(profile)
+                    }
+                }
             }
         }
     }
 }
 
-/**
- * Displays an individual user profile for administrators.
- *
- * Delete icon is a visual placeholder until functionality
- * is implemented.
- */
+/** Displays one user's name, email, and assigned roles. */
 @Composable
 private fun AdminProfileCard(profile: User) {
-    val initials = profile.name.split(" ")
+    val displayName = profile.name.ifBlank { "Unnamed profile" }
+    val initials = displayName.trim()
+        .split(Regex("\\s+"))
         .mapNotNull { it.firstOrNull()?.uppercase() }
         .joinToString("")
         .take(2)
 
     val roleText = profile.roles.joinToString(", ") {
         it.name.lowercase().replaceFirstChar { char -> char.uppercase() }
-    }
+    }.ifBlank { "No roles assigned" }
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -224,7 +244,6 @@ private fun AdminProfileCard(profile: User) {
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Profile avatar
             Box(
                 modifier = Modifier
                     .size(42.dp)
@@ -239,13 +258,12 @@ private fun AdminProfileCard(profile: User) {
                 )
             }
 
-            // Profile information
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = profile.name,
+                    text = displayName,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = PrimaryColor,
@@ -254,7 +272,7 @@ private fun AdminProfileCard(profile: User) {
                 )
 
                 Text(
-                    text = profile.email,
+                    text = profile.email.ifBlank { "No email provided" },
                     fontSize = 11.sp,
                     color = SecondaryText,
                     maxLines = 1,
@@ -267,14 +285,6 @@ private fun AdminProfileCard(profile: User) {
                     color = PrimaryColor
                 )
             }
-
-            // Delete profile icon (visual placeholder)
-            Icon(
-                imageVector = Icons.Outlined.DeleteOutline,
-                contentDescription = null,
-                modifier = Modifier.size(21.dp),
-                tint = DeleteColor
-            )
         }
     }
 }

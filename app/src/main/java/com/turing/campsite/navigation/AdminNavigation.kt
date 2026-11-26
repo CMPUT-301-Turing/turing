@@ -87,7 +87,8 @@ fun NavGraphBuilder.adminGraph(
                 onBackClick = {
                     navController.popBackStack()
                 },
-                profiles = userViewModel.users
+                profiles = userViewModel.users,
+                isLoading = userViewModel.isLoading
             )
         }
 
