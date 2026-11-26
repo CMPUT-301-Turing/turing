@@ -109,7 +109,10 @@ fun NavGraphBuilder.adminGraph(
                     navController.popBackStack()
                 },
                 campsites = campsiteViewModel.campsites,
-                isLoading = campsiteViewModel.isLoading
+                isLoading = campsiteViewModel.isLoading,
+                onDeleteCampsite = { campsiteId ->
+                    campsiteViewModel.delete(campsiteId)
+                }
             )
         }
 
