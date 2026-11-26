@@ -65,6 +65,7 @@ enum class UserView {
 fun UserProfileScreen(
     currentView: UserView,
     onEditProfileClick: () -> Unit,
+    onPolicyClick: () -> Unit,
     onSwitchViewClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -231,7 +232,8 @@ fun UserProfileScreen(
         ProfileOption(
             title = "View app policy and guidelines",
             description = "Read our privacy policy and community guidelines.",
-            icon = Icons.Outlined.Article
+            icon = Icons.Outlined.Article,
+            onClick = onPolicyClick
         )
 
         ProfileOption(
