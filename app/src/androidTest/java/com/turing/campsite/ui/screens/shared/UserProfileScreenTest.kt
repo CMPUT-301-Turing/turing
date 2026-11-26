@@ -4,12 +4,16 @@ import org.junit.Rule
 import org.junit.Test
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
 import com.turing.campsite.data.model.User
 import org.junit.Assert.assertEquals
 import androidx.compose.ui.test.onNodeWithContentDescription
 
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import org.junit.Assert.assertTrue
 
 
@@ -71,6 +75,94 @@ class UserProfileScreenTest {
 
         // name, email and phone are all empty
         assertEquals(3, composeTestRule.onAllNodesWithText("Not added").fetchSemanticsNodes().size)
+    }
+
+
+
+    /**
+     * Shows the entrant profile for a user with the given notification setting
+     */
+    private fun setProfileWithNotifications(
+        user: User?,
+        onNotificationsChange: (Boolean) -> Unit = {}
+    ) {
+        composeTestRule.setContent {
+            UserProfileScreen(
+                currentView = UserView.ENTRANT,
+                user = user,
+                onNotificationsChange = onNotificationsChange,
+                onEditProfileClick = {},
+                onSwitchViewClick = {},
+                onBackClick = {}
+            )
+        }
+    }
+
+
+
+    /**
+     * Tests that notifications are on for a new user
+     */
+    @Test
+    fun userProfileScreen_notificationsOnByDefault() {
+        setProfileWithNotifications(User(id = "u1"))
+
+        composeTestRule.onNodeWithText("Receive notifications").assertIsOn()
+    }
+
+
+
+    /**
+     * Tests that an opted out user sees the switch off
+     */
+    @Test
+    fun userProfileScreen_optedOutShowsOff() {
+        setProfileWithNotifications(User(id = "u1", notificationsEnabled = false))
+
+        composeTestRule.onNodeWithText("Receive notifications").assertIsOff()
+        composeTestRule.onNodeWithText("You opted out. You won't get any notifications.").assertExists()
+    }
+
+
+
+    /**
+     * Tests that tapping the switch opts the user out
+     */
+    @Test
+    fun userProfileScreen_tapSwitchOptsOut() {
+        var newSetting: Boolean? = null
+        setProfileWithNotifications(User(id = "u1")) { newSetting = it }
+
+        composeTestRule.onNodeWithText("Receive notifications").performScrollTo().performClick()
+
+        assertEquals(false, newSetting)
+    }
+
+
+
+    /**
+     * Tests that tapping the switch again turns notifications back on
+     */
+    @Test
+    fun userProfileScreen_tapSwitchOptsBackIn() {
+        var newSetting: Boolean? = null
+        setProfileWithNotifications(User(id = "u1", notificationsEnabled = false)) { newSetting = it }
+
+        composeTestRule.onNodeWithText("Receive notifications").performScrollTo().performClick()
+
+        assertEquals(true, newSetting)
+    }
+
+
+
+    /**
+     * Tests that the switch can't be used before the profile loads
+     */
+    @Test
+    fun userProfileScreen_switchDisabledWhileLoading() {
+        setProfileWithNotifications(null)
+
+        composeTestRule.onNodeWithText("Receive notifications").assertIsNotEnabled()
     }
 
 
