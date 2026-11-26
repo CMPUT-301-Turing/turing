@@ -104,6 +104,27 @@ class UserViewModelTest {
     }
 
     @Test
+    fun updateProfile_saved_callsOnSaved() = runBlocking<Unit> {
+        var saved = false
+
+        viewModel.updateProfile("u1", "Alice", "", "", onSaved = { saved = true })
+
+        assertTrue(saved)
+    }
+
+    @Test
+    fun updateProfile_repositoryFails_doesNotCallOnSaved() = runBlocking<Unit> {
+        doThrow(IllegalStateException("no internet")).`when`(repository)
+            .updateProfile("u1", "Alice", "", "")
+        var saved = false
+
+        viewModel.updateProfile("u1", "Alice", "", "", onSaved = { saved = true })
+
+        assertFalse(saved) // the edit screen stays open so the user can try again
+        assertEquals("no internet", viewModel.errorMessage)
+    }
+
+    @Test
     fun setNotificationsEnabled_turnedOff_userOptedOut() = runBlocking<Unit> {
         doReturn(alice).`when`(repository).get("u1")
         viewModel.load("u1")
