@@ -1,7 +1,9 @@
 package com.turing.campsite.ui.mapper
 
 import com.turing.campsite.data.model.Campsite
+import com.turing.campsite.data.model.Lottery
 import com.turing.campsite.ui.components.CampsiteFormData
+import com.turing.campsite.ui.components.LotteryFormData
 
 /**
  * Turns what the owner typed in the campsite form into a new campsite to save.
@@ -26,3 +28,5 @@ fun CampsiteFormData.toCampsite(ownerId: String): Campsite {
         active = isActive
     )
 }
+
+

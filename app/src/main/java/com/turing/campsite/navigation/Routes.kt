@@ -50,5 +50,7 @@ object Routes {
     const val OWNER_CAMPSITE_QR_CODE = "OwnerCampsiteQRCode"
     const val OWNER_EDIT_CAMPSITE = "OwnerEditCampsiteScreen"
     const val OWNER_NOTIFICATION = "OwnerNotification"
+    const val OWNER_ACTIVE_LOTTERIES ="ActiveLotteries"
+    const val OWNER_OPEN_LOTTERIES =   "OpenLotteries"
 }
 
