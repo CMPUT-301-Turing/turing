@@ -1,6 +1,8 @@
 
 package com.turing.campsite.navigation
 
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -11,6 +13,8 @@ import com.turing.campsite.ui.screens.shared.LogOutScreen
 import com.turing.campsite.ui.screens.shared.UserProfileScreen
 import com.turing.campsite.ui.screens.shared.UserEditProfileScreen
 import com.turing.campsite.ui.screens.shared.UserView
+import com.turing.campsite.ui.viewmodel.UserViewModel
+import com.turing.campsite.data.auth.LocalCurrentUid
 
 /**
  * Registers shared navigation destinations.
@@ -36,8 +40,17 @@ fun NavGraphBuilder.sharedGraph(
 
     // User profile when accessed from Entrant view
     composable(Routes.ENTRANT_PROFILE) {
+        val uid = LocalCurrentUid.current
+        val userViewModel: UserViewModel = viewModel()
+
+        // Reloads every time the profile is opened, so saved edits show up
+        LaunchedEffect(uid) {
+            userViewModel.load(uid)
+        }
+
         UserProfileScreen(
             currentView = UserView.ENTRANT,
+            user = userViewModel.user,
             onEditProfileClick = {
                 navController.navigate(Routes.USER_EDIT_PROFILE)
             },
@@ -52,8 +65,17 @@ fun NavGraphBuilder.sharedGraph(
 
     // User profile when accessed from Owner view
     composable(Routes.OWNER_PROFILE) {
+        val uid = LocalCurrentUid.current
+        val userViewModel: UserViewModel = viewModel()
+
+        // Reloads every time the profile is opened, so saved edits show up
+        LaunchedEffect(uid) {
+            userViewModel.load(uid)
+        }
+
         UserProfileScreen(
             currentView = UserView.OWNER,
+            user = userViewModel.user,
             onEditProfileClick = {
                 navController.navigate(Routes.USER_EDIT_PROFILE)
             },
@@ -68,7 +90,27 @@ fun NavGraphBuilder.sharedGraph(
 
     // Shared edit profile screen
     composable(Routes.USER_EDIT_PROFILE) {
+        val uid = LocalCurrentUid.current
+        val userViewModel: UserViewModel = viewModel()
+
+        LaunchedEffect(uid) {
+            userViewModel.load(uid)
+        }
+
+        val user = userViewModel.user
+
         UserEditProfileScreen(
+            initialName = user?.name ?: "",
+            initialEmail = user?.email ?: "",
+            initialPhone = user?.phone ?: "",
+            // isLoading is also true while the profile loads, only show saving once it has loaded
+            isSaving = userViewModel.isLoading && user != null,
+            errorMessage = userViewModel.errorMessage,
+            onSaveClick = { name, email, phone ->
+                userViewModel.updateProfile(uid, name, email, phone, onSaved = {
+                    navController.popBackStack()
+                })
+            },
             onBackClick = {
                 navController.popBackStack()
             }
