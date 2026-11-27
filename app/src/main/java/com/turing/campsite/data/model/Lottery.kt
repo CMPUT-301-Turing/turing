@@ -39,14 +39,12 @@ data class Lottery(
     var bookingStart: Timestamp? = null,
     var bookingEnd: Timestamp? = null,
     var winnerCount: Int = 0,
-    var capOn: Boolean = false,
-    var lotteryCap: Int = 0,
-    //var waitlistCap: Long = 0, // how many ppl can join the waitlist after lottery cap is reached
-    var status: String = "closed",
-    var multi: Boolean = false,
+    var capOn: Boolean = false, //dictates if we have a cap
+    var lotteryCap: Int = 0, // what the cap is
+    var status: String = "closed", // -> will need to make a check that changes this to active with the timestamps reg start to end
+    var multi: Boolean = false, // for implementation of multiple owners' campsites
     var ownerList: List<String> = emptyList(), // list of the owners with campsites in this lottery
-    var lotteryList: List<LotteryEntry> = emptyList(),
-    var waitlist: List<LotteryEntry> = emptyList()
+    var waitlist: List<LotteryEntry> = emptyList() // actual waitlist
 ) {
     /**
      * Checks whether entrants can still join the lottery at a given time.

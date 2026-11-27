@@ -110,6 +110,7 @@ class CampsiteViewModel(
             return
         }
         launchCall {
+            val generatedId = repository.add(campsite)
             ownerCampsites = repository.listByOwner(campsite.ownerId)
             campsites = campsites + campsite
             onDone()
