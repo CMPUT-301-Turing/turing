@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Campsite cascade integration and required ownerId compatibility updates.
+ */
 package com.turing.campsite.data.model
 
 import com.google.firebase.Timestamp
@@ -20,7 +23,7 @@ class LotteryModelTest {
     @Test fun defaultsAreClosedUnlimitedAndUndated() {
         val lottery = Lottery()
         assertEquals("", lottery.id)
-        assertEquals("", lottery.owner)
+        assertEquals("", lottery.ownerId)
         assertEquals("", lottery.campsiteID)
         assertNull(lottery.registrationStart)
         assertNull(lottery.registrationEnd)
@@ -121,9 +124,9 @@ class LotteryModelTest {
 
     /** Verifies that copying a lottery with a selected site and draw configuration retains those values. */
     @Test fun selectedSiteAndDrawConfigurationAreRetained() {
-        val lottery = subject().copy(id = "lottery-1", owner = "owner-1", campsiteID = "site-1", winnerCount = 2, waitlistCap = 10)
+        val lottery = subject().copy(id = "lottery-1", ownerId = "owner-1", campsiteID = "site-1", winnerCount = 2, waitlistCap = 10)
         assertEquals("lottery-1", lottery.id)
-        assertEquals("owner-1", lottery.owner)
+        assertEquals("owner-1", lottery.ownerId)
         assertEquals("site-1", lottery.campsiteID)
         assertEquals(2, lottery.winnerCount)
         assertEquals(10L, lottery.waitlistCap)

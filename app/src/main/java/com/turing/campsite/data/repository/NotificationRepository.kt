@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Campsite cascade integration and required ownerId compatibility updates.
+ */
 package com.turing.campsite.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
@@ -77,6 +80,30 @@ class NotificationRepository {
         for (uid in userIds) {
             add(notification.copy(toUserId = uid))
         }
+    }
+
+    /** Reads the campsite checkpoint, not another user's private inbox. */
+    suspend fun sendCampsiteRemoval(campsiteId: String, notification: Notification) {
+        val db = FirebaseFirestore.getInstance()
+        val campsiteRef = db.collection("campsites").document(campsiteId)
+        val key = java.security.MessageDigest.getInstance("SHA-256")
+            .digest("$campsiteId:${notification.toUserId}".toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it) }
+        val notificationRef = notifications.document("campsite_removed_$key")
+        db.runTransaction { tx ->
+            val snapshot = tx.get(campsiteRef)
+            check(snapshot.getBoolean("deletion.recipientsCaptured") == true) {
+                "Deletion recipients have not been captured"
+            }
+            val recipients = snapshot.get("deletion.recipientIds") as? List<*> ?: emptyList<Any>()
+            check(notification.toUserId in recipients) { "Recipient is not in the deletion snapshot" }
+            val delivered = snapshot.get("deletion.notifiedRecipientIds") as? List<*> ?: emptyList<Any>()
+            if (notification.toUserId !in delivered) {
+                tx.set(notificationRef, notification.copy(id = notificationRef.id))
+                tx.update(campsiteRef, "deletion.notifiedRecipientIds",
+                    com.google.firebase.firestore.FieldValue.arrayUnion(notification.toUserId))
+            }
+        }.await()
     }
 
     /**

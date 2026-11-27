@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Campsite deletion gates and saved recipient/lottery recovery checkpoints.
+ */
 /*
  * AI Assistance Disclosure
  *
@@ -23,6 +26,12 @@ import kotlinx.coroutines.tasks.await
  * Owners use it to manage their campsites, entrants use it to browse and
  * review them, and admins use it to remove campsites.
  */
+/** Persisted before any relationship is removed, so retry can find detached lotteries. */
+data class CampsiteDeletionPlan(
+    val recipientIds: List<String>,
+    val lotteryIds: List<String>
+)
+
 class CampsiteRepository {
     private val campsites = FirebaseFirestore.getInstance().collection("campsites")
 
@@ -122,6 +131,74 @@ class CampsiteRepository {
         }
         batch.delete(campsiteDoc)
         batch.commit().await()
+    }
+
+    /** Starts the gate once. Null means discovery has not been checkpointed yet. */
+    suspend fun beginDeletion(campsiteId: String): CampsiteDeletionPlan? {
+        val ref = campsites.document(campsiteId)
+        return FirebaseFirestore.getInstance().runTransaction { tx ->
+            val snapshot = tx.get(ref)
+            check(snapshot.exists()) { "Campsite no longer exists" }
+            if (!snapshot.contains("deletion")) {
+                tx.update(ref, "deletion", mapOf(
+                    "recipientsCaptured" to false,
+                    "recipientIds" to emptyList<String>(),
+                    "lotteryIds" to emptyList<String>(),
+                    "notifiedRecipientIds" to emptyList<String>()
+                ))
+                null
+            } else if (snapshot.getBoolean("deletion.recipientsCaptured") == true) {
+                snapshot.deletionPlan()
+            } else null
+        }.await()
+    }
+
+    /** Save recipients and affected lotteries together before cleanup can detach any links. */
+    suspend fun captureDeletionRecipients(
+        campsiteId: String,
+        recipientIds: List<String>,
+        lotteryIds: List<String> = emptyList()
+    ): CampsiteDeletionPlan {
+        val ref = campsites.document(campsiteId)
+        return FirebaseFirestore.getInstance().runTransaction { tx ->
+            val snapshot = tx.get(ref)
+            check(snapshot.exists() && snapshot.contains("deletion")) { "Deletion gate is missing" }
+            if (snapshot.getBoolean("deletion.recipientsCaptured") == true) {
+                snapshot.deletionPlan()
+            } else {
+                val plan = CampsiteDeletionPlan(recipientIds.distinct(), lotteryIds.distinct())
+                tx.update(ref, mapOf(
+                    "deletion.recipientIds" to plan.recipientIds,
+                    "deletion.lotteryIds" to plan.lotteryIds,
+                    "deletion.recipientsCaptured" to true
+                ))
+                plan
+            }
+        }.await()
+    }
+
+    private fun com.google.firebase.firestore.DocumentSnapshot.deletionPlan(): CampsiteDeletionPlan {
+        fun strings(field: String): List<String> {
+            val values = get("deletion.$field") as? List<*>
+                ?: error("Deletion $field snapshot is missing; cleanup cannot safely resume")
+            return values.map { value ->
+                check(value is String && value.isNotBlank()) { "Invalid deletion $field snapshot" }
+                value
+            }
+        }
+        return CampsiteDeletionPlan(strings("recipientIds"), strings("lotteryIds"))
+    }
+
+    /** Bounded batches allow retry after interruption without the old 499-review limit. */
+    suspend fun deleteReviews(campsiteId: String) {
+        val reviews = campsites.document(campsiteId).collection("reviews")
+        while (true) {
+            val documents = reviews.limit(400).get(com.google.firebase.firestore.Source.SERVER).await().documents
+            if (documents.isEmpty()) return
+            val batch = FirebaseFirestore.getInstance().batch()
+            documents.forEach { batch.delete(it.reference) }
+            batch.commit().await()
+        }
     }
 
     /**

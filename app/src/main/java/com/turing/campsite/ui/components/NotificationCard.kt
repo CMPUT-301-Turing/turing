@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Campsite cascade integration and required ownerId compatibility updates.
+ */
 package com.turing.campsite.ui.components
 
 import androidx.compose.foundation.BorderStroke
@@ -67,7 +70,7 @@ fun NotificationCard(
         NotificationType.LOTTERY_WON -> Icons.Outlined.EmojiEvents
         NotificationType.LOTTERY_LOST -> Icons.Outlined.ConfirmationNumber
         NotificationType.RESERVATION_CONFIRMED -> Icons.Outlined.EventAvailable
-        NotificationType.RESERVATION_CANCELLED -> Icons.Outlined.EventBusy
+        NotificationType.RESERVATION_CANCELLED, NotificationType.CAMPSITE_REMOVED -> Icons.Outlined.EventBusy
         NotificationType.OWNER_MESSAGE -> Icons.Outlined.NotificationsNone
     }
 

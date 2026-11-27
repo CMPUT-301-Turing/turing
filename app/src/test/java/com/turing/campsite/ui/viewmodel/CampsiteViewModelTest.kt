@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Campsite cascade integration and required ownerId compatibility updates.
+ */
 /*
  * AI Assistance Disclosure
  *
@@ -186,36 +189,6 @@ class CampsiteViewModelTest {
 
         assertNull(viewModel.selectedCampsite)
         assertTrue(viewModel.reviews.isEmpty())
-    }
-
-    @Test
-    fun delete_blockedByLottery_keepsListAndReportsReason() = runBlocking<Unit> {
-        doReturn(listOf(pinewood, lakeside)).`when`(repository).listAll()
-        doReturn(CampsiteDeletionResult.BlockedByLottery).`when`(deletionService).delete("c1")
-        viewModel.loadAll()
-
-        viewModel.delete("c1")
-
-        assertEquals(listOf(pinewood, lakeside), viewModel.campsites)
-        assertEquals(
-            "Cannot delete campsite while it has an active lottery or booking period.",
-            viewModel.errorMessage
-        )
-    }
-
-    @Test
-    fun delete_blockedByReservation_keepsListAndReportsReason() = runBlocking<Unit> {
-        doReturn(listOf(pinewood, lakeside)).`when`(repository).listAll()
-        doReturn(CampsiteDeletionResult.BlockedByReservation).`when`(deletionService).delete("c1")
-        viewModel.loadAll()
-
-        viewModel.delete("c1")
-
-        assertEquals(listOf(pinewood, lakeside), viewModel.campsites)
-        assertEquals(
-            "Cannot delete campsite while it has active reservations.",
-            viewModel.errorMessage
-        )
     }
 
     @Test

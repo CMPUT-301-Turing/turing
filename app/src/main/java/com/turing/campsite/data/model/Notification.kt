@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Campsite cascade integration and required ownerId compatibility updates.
+ */
 package com.turing.campsite.data.model
 
 import com.google.firebase.Timestamp
@@ -9,7 +12,7 @@ import com.google.firebase.Timestamp
  * changes. OWNER_MESSAGE is written by an owner to their entrants.
  */
 enum class NotificationType {
-    LOTTERY_WON, LOTTERY_LOST, RESERVATION_CONFIRMED, RESERVATION_CANCELLED, OWNER_MESSAGE
+    LOTTERY_WON, LOTTERY_LOST, RESERVATION_CONFIRMED, RESERVATION_CANCELLED, OWNER_MESSAGE, CAMPSITE_REMOVED
 }
 
 /**

@@ -1,221 +1,105 @@
-/*
- * AI Assistance Disclosure
- *
- * Company: OpenAI
- * Tool: ChatGPT (GPT-6)
- *
- * Subjects:
- * 2026-11-25: Campsite deletion policy unit tests.
- *
- * Scope: AI-assisted implementation, debugging, and code review.
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Four campsite cascade coordination tests. Firebase permissions are not mocked proof.
  */
-
 package com.turing.campsite.data.service
 
-import com.google.firebase.Timestamp
-import com.turing.campsite.data.model.Lottery
-import com.turing.campsite.data.model.Reservation
-import com.turing.campsite.data.repository.CampsiteRepository
-import com.turing.campsite.data.repository.LotteryRepository
-import com.turing.campsite.data.repository.ReservationRepository
+import com.turing.campsite.data.model.*
+import com.turing.campsite.data.repository.*
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertSame
-import org.junit.Assert.fail
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito.doReturn
-import org.mockito.Mockito.doThrow
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.never
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 
-/**
- * Unit tests for [CampsiteDeletionService]. Repositories are mocked, so these
- * tests verify deletion policy and coordination, not Firestore permissions.
- */
 class CampsiteDeletionServiceTest {
-
-    private val campsiteId = "campsite-1"
-    private val currentTime = Timestamp(1_800_000_000L, 0)
-    private val beforeBooking = Timestamp(1_799_000_000L, 0)
-    private val afterBooking = Timestamp(1_801_000_000L, 0)
-
-    private lateinit var campsiteRepository: CampsiteRepository
-    private lateinit var lotteryRepository: LotteryRepository
-    private lateinit var reservationRepository: ReservationRepository
+    private val campsites = mock(CampsiteRepository::class.java)
+    private val lotteries = mock(LotteryRepository::class.java)
+    private val reservations = mock(ReservationRepository::class.java)
+    private val messages = mock(MessageRepository::class.java)
+    private val users = mock(UserRepository::class.java)
+    private val notifier = mock(CampsiteRemovalNotifier::class.java)
+    private val campsite = Campsite(id = "site", ownerId = "owner", name = "Pinewood")
+    private val lottery = Lottery(id = "lottery", campsiteID = "site", ownerId = "owner")
+    private val reservation = Reservation(id = "reservation", campsiteId = "site", entrantId = "entrant")
     private lateinit var service: CampsiteDeletionService
 
-    @Before
-    fun setUp() = runBlocking<Unit> {
-        campsiteRepository = mock(CampsiteRepository::class.java)
-        lotteryRepository = mock(LotteryRepository::class.java)
-        reservationRepository = mock(ReservationRepository::class.java)
-
-        service = CampsiteDeletionService(
-            campsiteRepository = campsiteRepository,
-            lotteryRepository = lotteryRepository,
-            reservationRepository = reservationRepository,
-            now = { currentTime }
-        )
-
-        // By default there are no dependencies preventing deletion.
-        doReturn(emptyList<Lottery>()).`when`(lotteryRepository).listByCampsite(campsiteId)
-        doReturn(emptyList<Reservation>()).`when`(reservationRepository)
-            .listActiveForCampsite(campsiteId)
+    @Before fun setUp() = runBlocking<Unit> {
+        service = CampsiteDeletionService(campsites, lotteries, reservations, messages, users, notifier) { "owner" }
+        doReturn(User(id = "owner")).`when`(users).get("owner")
+        doReturn(campsite).`when`(campsites).get("site")
+        doReturn(null).`when`(campsites).beginDeletion("site")
+        doReturn(listOf(lottery)).`when`(lotteries).listByCampsiteForDeletion("site")
+        doReturn(listOf(LotteryEntry(entrantId = "entrant"))).`when`(lotteries).listEntriesForDeletion("lottery")
+        doReturn(listOf(reservation)).`when`(reservations).listByCampsite("site")
+        doReturn(listOf(reservation)).`when`(reservations).listByLottery("lottery")
+        doReturn(listOf("owner", "entrant")).`when`(campsites)
+            .captureDeletionRecipients("site", listOf("owner", "entrant"))
     }
 
-    @Test
-    fun delete_noDependencies_deletesCampsiteAndReviews() = runBlocking<Unit> {
-        val result = service.delete(campsiteId)
-
-        assertEquals(CampsiteDeletionResult.Deleted, result)
-        verify(lotteryRepository).listByCampsite(campsiteId)
-        verify(reservationRepository).listActiveForCampsite(campsiteId)
-        verify(campsiteRepository).deleteWithReviews(campsiteId)
+    @Test fun cascade_checkpointsBeforeDeletingAndRemovesChildrenBeforeParents() = runBlocking<Unit> {
+        // The administrator can remove someone else's campsite, including active dependencies.
+        doReturn(User(id = "owner", roles = listOf(UserRole.ADMIN))).`when`(users).get("owner")
+        campsite.ownerId = "different-owner"
+        doReturn(listOf("different-owner", "entrant")).`when`(campsites)
+            .captureDeletionRecipients("site", listOf("different-owner", "entrant"))
+        assertEquals(CampsiteDeletionResult.Deleted, service.delete("site"))
+        val ordered = inOrder(campsites, reservations, messages, lotteries, notifier)
+        ordered.verify(campsites).beginDeletion("site")
+        ordered.verify(campsites).captureDeletionRecipients("site", listOf("different-owner", "entrant"))
+        ordered.verify(messages).deleteForReservation("reservation")
+        ordered.verify(reservations).delete("reservation")
+        ordered.verify(lotteries).deleteEntries("lottery")
+        ordered.verify(lotteries).delete("lottery")
+        ordered.verify(notifier).notify(campsite, listOf("different-owner", "entrant"), "owner")
+        ordered.verify(campsites).deleteReviews("site")
+        ordered.verify(campsites).delete("site")
+        verify(reservations, times(1)).delete("reservation")
     }
 
-    @Test
-    fun delete_openLottery_blocksDeletion() = runBlocking<Unit> {
-        doReturn(listOf(lottery(status = "open"))).`when`(lotteryRepository)
-            .listByCampsite(campsiteId)
-
-        val result = service.delete(campsiteId)
-
-        assertEquals(CampsiteDeletionResult.BlockedByLottery, result)
-        verify(reservationRepository, never()).listActiveForCampsite(campsiteId)
-        verify(campsiteRepository, never()).deleteWithReviews(campsiteId)
+    @Test fun recipients_deduplicatesOwnerWaitlistAndBookingsAcrossLotteries() = runBlocking<Unit> {
+        doReturn(listOf(lottery, lottery.copy(id = "lottery2"))).`when`(lotteries).listByCampsiteForDeletion("site")
+        doReturn(listOf(LotteryEntry(entrantId = "owner"), LotteryEntry(entrantId = "entrant")))
+            .`when`(lotteries).listEntriesForDeletion("lottery2")
+        doReturn(emptyList<Reservation>()).`when`(reservations).listByLottery("lottery2")
+        service.delete("site")
+        verify(campsites).captureDeletionRecipients("site", listOf("owner", "entrant"))
+        verify(notifier).notify(campsite, listOf("owner", "entrant"), "owner")
+        verify(lotteries).delete("lottery2")
     }
 
-    @Test
-    fun delete_drawnLottery_blocksEvenIfBookingPeriodEnded() = runBlocking<Unit> {
-        doReturn(
-            listOf(lottery(status = "drawn", start = beforeBooking, end = beforeBooking))
-        ).`when`(lotteryRepository).listByCampsite(campsiteId)
-
-        val result = service.delete(campsiteId)
-
-        assertEquals(CampsiteDeletionResult.BlockedByLottery, result)
-        verify(campsiteRepository, never()).deleteWithReviews(campsiteId)
-    }
-
-    @Test
-    fun delete_closedLotteryDuringBookingPeriod_blocksDeletion() = runBlocking<Unit> {
-        doReturn(
-            listOf(lottery(status = "closed", start = beforeBooking, end = afterBooking))
-        ).`when`(lotteryRepository).listByCampsite(campsiteId)
-
-        val result = service.delete(campsiteId)
-
-        assertEquals(CampsiteDeletionResult.BlockedByLottery, result)
-        verify(campsiteRepository, never()).deleteWithReviews(campsiteId)
-    }
-
-    @Test
-    fun delete_closedLotteryAfterBookingPeriod_succeeds() = runBlocking<Unit> {
-        doReturn(
-            listOf(lottery(status = "closed", start = beforeBooking, end = beforeBooking))
-        ).`when`(lotteryRepository).listByCampsite(campsiteId)
-
-        val result = service.delete(campsiteId)
-
-        assertEquals(CampsiteDeletionResult.Deleted, result)
-        verify(campsiteRepository).deleteWithReviews(campsiteId)
-    }
-
-    @Test
-    fun delete_oneBlockingLotteryAmongSeveral_blocksDeletion() = runBlocking<Unit> {
-        doReturn(
-            listOf(
-                lottery(status = "closed", start = beforeBooking, end = beforeBooking),
-                lottery(status = "OPEN")
-            )
-        ).`when`(lotteryRepository).listByCampsite(campsiteId)
-
-        val result = service.delete(campsiteId)
-
-        assertEquals(CampsiteDeletionResult.BlockedByLottery, result)
-        verify(campsiteRepository, never()).deleteWithReviews(campsiteId)
-    }
-
-    @Test
-    fun delete_activeReservation_blocksDeletion() = runBlocking<Unit> {
-        doReturn(listOf(Reservation(id = "reservation-1", campsiteId = campsiteId)))
-            .`when`(reservationRepository).listActiveForCampsite(campsiteId)
-
-        val result = service.delete(campsiteId)
-
-        assertEquals(CampsiteDeletionResult.BlockedByReservation, result)
-        verify(campsiteRepository, never()).deleteWithReviews(campsiteId)
-    }
-
-    @Test
-    fun delete_lotteryQueryFails_propagatesErrorAndDoesNotDelete() = runBlocking<Unit> {
-        val failure = IllegalStateException("lottery query failed")
-        doThrow(failure).`when`(lotteryRepository).listByCampsite(campsiteId)
-
+    @Test fun unauthorizedActor_performsNoCleanupOrNotification() = runBlocking<Unit> {
+        doReturn(User(id = "owner", roles = listOf(UserRole.ENTRANT))).`when`(users).get("owner")
         try {
-            service.delete(campsiteId)
-            fail("Expected lottery query failure")
-        } catch (actual: IllegalStateException) {
-            assertSame(failure, actual)
-        }
-
-        verify(reservationRepository, never()).listActiveForCampsite(campsiteId)
-        verify(campsiteRepository, never()).deleteWithReviews(campsiteId)
+            service.delete("site")
+            fail("Expected authorization failure")
+        } catch (_: SecurityException) { }
+        verify(campsites, never()).beginDeletion("site")
+        verify(campsites, never()).delete("site")
+        verifyNoInteractions(lotteries, reservations, messages, notifier)
     }
 
-    @Test
-    fun delete_reservationQueryFails_propagatesErrorAndDoesNotDelete() = runBlocking<Unit> {
-        val failure = IllegalStateException("reservation query failed")
-        doThrow(failure).`when`(reservationRepository)
-            .listActiveForCampsite(campsiteId)
-
+    @Test fun interruptedCleanup_keepsParentAndRetryUsesSavedRecipients() = runBlocking<Unit> {
+        doThrow(IllegalStateException("connection lost")).doReturn(Unit).`when`(notifier)
+            .notify(campsite, listOf("owner", "entrant"), "owner")
         try {
-            service.delete(campsiteId)
-            fail("Expected reservation query failure")
-        } catch (actual: IllegalStateException) {
-            assertSame(failure, actual)
+            service.delete("site")
+            fail("Expected partial-failure report")
+        } catch (failure: IllegalStateException) {
+            assertTrue(failure.message!!.contains("retry deletion"))
+            assertEquals("connection lost", failure.cause!!.message)
         }
-
-        verify(campsiteRepository, never()).deleteWithReviews(campsiteId)
+        // Dependencies were removed, but the parent preserves the recipients for retry.
+        verify(reservations).delete("reservation")
+        verify(lotteries).delete("lottery")
+        verify(campsites, never()).delete("site")
+        doReturn(listOf("owner", "entrant")).`when`(campsites).beginDeletion("site")
+        doReturn(emptyList<Lottery>()).`when`(lotteries).listByCampsiteForDeletion("site")
+        doReturn(emptyList<Reservation>()).`when`(reservations).listByCampsite("site")
+        assertEquals(CampsiteDeletionResult.Deleted, service.delete("site"))
+        verify(lotteries, times(1)).listEntriesForDeletion("lottery")
+        verify(campsites, times(1)).captureDeletionRecipients("site", listOf("owner", "entrant"))
+        // The notifier must resume its own atomic delivery checkpoints on the second call.
+        verify(notifier, times(2)).notify(campsite, listOf("owner", "entrant"), "owner")
+        verify(campsites).delete("site")
     }
-
-    @Test
-    fun delete_campsiteDeletionFails_propagatesError() = runBlocking<Unit> {
-        val failure = IllegalStateException("delete failed")
-        doThrow(failure).`when`(campsiteRepository).deleteWithReviews(campsiteId)
-
-        try {
-            service.delete(campsiteId)
-            fail("Expected campsite deletion failure")
-        } catch (actual: IllegalStateException) {
-            assertSame(failure, actual)
-        }
-    }
-
-    @Test
-    fun delete_blankId_rejectsRequestWithoutAccessingRepositories() = runBlocking<Unit> {
-        try {
-            service.delete("  ")
-            fail("Expected invalid campsite ID")
-        } catch (actual: IllegalArgumentException) {
-            assertEquals("Campsite ID cannot be blank", actual.message)
-        }
-
-        verify(lotteryRepository, never()).listByCampsite("  ")
-        verify(reservationRepository, never()).listActiveForCampsite("  ")
-        verify(campsiteRepository, never()).deleteWithReviews("  ")
-    }
-
-    private fun lottery(
-        status: String,
-        start: Timestamp? = null,
-        end: Timestamp? = null
-    ) = Lottery(
-        campsiteID = campsiteId,
-        status = status,
-        bookingStart = start,
-        bookingEnd = end
-    )
 }

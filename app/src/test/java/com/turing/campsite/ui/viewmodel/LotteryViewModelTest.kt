@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Campsite cascade integration and required ownerId compatibility updates.
+ */
 package com.turing.campsite.ui.viewmodel
 
 import com.google.firebase.firestore.DocumentReference
@@ -37,7 +40,7 @@ class LotteryViewModelTest {
         Dispatchers.setMain(UnconfinedTestDispatcher()) // run background calls right away
         repository = mock(LotteryRepository::class.java)
         viewModel = LotteryViewModel(repository)
-        lottery = Lottery(id = "l1", owner = "owner1", winnerCount = 2)
+        lottery = Lottery(id = "l1", ownerId = "owner1", winnerCount = 2)
         entry = LotteryEntry(id = "u1", entrantId = "u1")
     }
 

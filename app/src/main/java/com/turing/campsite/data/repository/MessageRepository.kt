@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Campsite cascade integration and required ownerId compatibility updates.
+ */
 package com.turing.campsite.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
@@ -24,6 +27,18 @@ class MessageRepository {
         return snapshot.documents.mapNotNull { doc ->
             doc.toObject(Message::class.java)?.also { it.id = doc.id }
         }.sortedBy { it.createdAt }
+    }
+
+    /** Keeps the reservation in place until its messages have all been removed. */
+    suspend fun deleteForReservation(reservationId: String) {
+        while (true) {
+            val documents = messages.whereEqualTo("reservationId", reservationId).limit(400)
+                .get(com.google.firebase.firestore.Source.SERVER).await().documents
+            if (documents.isEmpty()) return
+            val batch = FirebaseFirestore.getInstance().batch()
+            documents.forEach { batch.delete(it.reference) }
+            batch.commit().await()
+        }
     }
 
     /**

@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Campsite cascade integration and required ownerId compatibility updates.
+ */
 package com.turing.campsite.data.repository
 
 import com.google.firebase.Timestamp
@@ -105,7 +108,8 @@ class LotteryRepositoryTest : FirestoreTestFixture("lotteries") {
     @Test fun listByOwnerMapsIdsAndSkipsNullObjects() = runBlocking<Unit> {
         val query = mock(Query::class.java)
         val owner = mock(DocumentReference::class.java)
-        doReturn(query).`when`(collection).whereEqualTo("owner", owner)
+        doReturn("owner-1").`when`(owner).id
+        doReturn(query).`when`(collection).whereEqualTo("ownerId", "owner-1")
         val value = Lottery(id = "stale")
         doReturn(completed(snapshot(row(Lottery::class.java, null), row(Lottery::class.java, value, "canonical")))).`when`(query).get()
         val result = LotteryRepository().listByOwner(owner)
@@ -118,7 +122,8 @@ class LotteryRepositoryTest : FirestoreTestFixture("lotteries") {
     @Test fun listByOwnerReturnsEmptyList() = runBlocking<Unit> {
         val query = mock(Query::class.java)
         val owner = mock(DocumentReference::class.java)
-        doReturn(query).`when`(collection).whereEqualTo("owner", owner)
+        doReturn("owner-1").`when`(owner).id
+        doReturn(query).`when`(collection).whereEqualTo("ownerId", "owner-1")
         doReturn(completed(snapshot())).`when`(query).get()
         assertTrue(LotteryRepository().listByOwner(owner).isEmpty())
     }
@@ -128,7 +133,8 @@ class LotteryRepositoryTest : FirestoreTestFixture("lotteries") {
     @Test fun listByOwnerPropagatesQueryFailure() = runBlocking<Unit> {
         val query = mock(Query::class.java)
         val owner = mock(DocumentReference::class.java)
-        doReturn(query).`when`(collection).whereEqualTo("owner", owner)
+        doReturn("owner-1").`when`(owner).id
+        doReturn(query).`when`(collection).whereEqualTo("ownerId", "owner-1")
         val failure = IllegalStateException("query failed")
         doReturn(failed<QuerySnapshot>(failure)).`when`(query).get()
         try { LotteryRepository().listByOwner(owner); fail("Expected query failure") }
@@ -186,7 +192,7 @@ class LotteryRepositoryTest : FirestoreTestFixture("lotteries") {
     private fun lottery(capacity: Int?) {
         val now = Timestamp.now()
         doReturn(completed(row(Lottery::class.java, Lottery(
-            owner = "owner", campsiteID = "site-1", winnerCount = 1,
+            ownerId = "owner", campsiteID = "site-1", winnerCount = 1,
             registrationStart = Timestamp(now.seconds - 86_400, now.nanoseconds),
             registrationEnd = Timestamp(now.seconds + 86_400, now.nanoseconds),
             status = "open", waitlistCap = (capacity ?: 0).toLong())))).`when`(doc).get()

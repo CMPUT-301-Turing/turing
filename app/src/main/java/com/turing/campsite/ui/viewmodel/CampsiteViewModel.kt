@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Campsite cascade integration and required ownerId compatibility updates.
+ */
 /*
  * AI Assistance Disclosure
  *
@@ -7,7 +10,7 @@
  * Subject: Admin campsite deletion integration and result handling.
  *
  * Scope: AI-assisted integration of CampsiteDeletionService into the
- * CampsiteViewModel, including blocked-deletion feedback and UI state updates.
+ * CampsiteViewModel, including cascade deletion feedback and UI state updates.
  */
 
 package com.turing.campsite.ui.viewmodel
@@ -133,8 +136,7 @@ class CampsiteViewModel(
     /**
      * Requests campsite deletion through the deletion service.
      *
-     * A blocked deletion leaves all campsite state untouched and sets an
-     * explanatory error message. A successful deletion updates the loaded lists
+     * Failed cleanup reports an error through launchCall. Success updates the loaded lists
      * and clears the selected campsite and reviews, if applicable.
      *
      * @param campsiteId the Firestore document ID of the campsite
@@ -150,12 +152,7 @@ class CampsiteViewModel(
                         reviews = emptyList()
                     }
                 }
-                CampsiteDeletionResult.BlockedByLottery -> {
-                    errorMessage = "Cannot delete campsite while it has an active lottery or booking period."
-                }
-                CampsiteDeletionResult.BlockedByReservation -> {
-                    errorMessage = "Cannot delete campsite while it has active reservations."
-                }
+
             }
         }
     }

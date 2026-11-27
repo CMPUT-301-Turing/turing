@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Campsite cascade integration and required ownerId compatibility updates.
+ */
 package com.turing.campsite.data.model
 
 import com.google.firebase.Timestamp
@@ -31,7 +34,7 @@ enum class LotteryStatus { OPEN, DRAWN, CLOSED }
  */
 data class Lottery(
     var id: String = "",
-    var owner: String = "",
+    var ownerId: String = "",
     var campsiteID: String= "",
     var registrationStart: Timestamp? = null,
     var registrationEnd: Timestamp? = null,

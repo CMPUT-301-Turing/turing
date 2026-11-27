@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Confirmation text for campsite deletion and shared-lottery preservation.
+ */
 /*
  * AI Assistance Disclosure
  *
@@ -245,9 +248,7 @@ fun AdminBrowseCampsiteScreen(
             text = {
                 Text(
                     "Are you sure you want to delete \"${campsite.name}\"? " +
-                            "This will permanently delete the campsite and its reviews. " +
-                            "Deletion is blocked if there are active lotteries, booking " +
-                            "periods, or reservations."
+                            "This will permanently delete the campsite, its reviews, reservations and reservation messages. Shared lotteries will continue without this campsite; lotteries with no campsites remaining and their entries will be deleted. The owner and all affected lottery participants will be notified."
                 )
             },
             confirmButton = {

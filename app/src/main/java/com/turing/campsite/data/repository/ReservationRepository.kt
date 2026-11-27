@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Campsite cascade integration and required ownerId compatibility updates.
+ */
 package com.turing.campsite.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
@@ -70,6 +73,29 @@ class ReservationRepository {
         return snapshot.documents.mapNotNull { doc ->
             doc.toObject(Reservation::class.java)?.also { it.id = doc.id }
         }
+    }
+
+    /** Includes every status so removal cannot leave historical references behind. */
+    suspend fun listByCampsite(campsiteId: String): List<Reservation> =
+        listMatching("campsiteId", campsiteId)
+
+    suspend fun listByLottery(lotteryId: String): List<Reservation> =
+        listMatching("lotteryId", lotteryId)
+
+    private suspend fun listMatching(field: String, id: String): List<Reservation> {
+        val snapshot = reservations.whereEqualTo(field, id)
+            .get(com.google.firebase.firestore.Source.SERVER).await()
+        return snapshot.documents.map { doc ->
+            requireNotNull(doc.toObject(Reservation::class.java)) { "Invalid reservation ${doc.id}" }
+                .also {
+                    it.id = doc.id
+                    check(it.entrantId.isNotBlank()) { "Reservation ${doc.id} has no entrant" }
+                }
+        }
+    }
+
+    suspend fun delete(id: String) {
+        reservations.document(id).delete().await()
     }
 
     /**

@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Scalar/array lottery discovery, participant capture and transactional campsite removal.
+ */
 
 /*
  * AI Assistance Disclosure
@@ -31,6 +34,11 @@ import kotlinx.coroutines.tasks.await
  * leave waitlists. Each entry document is keyed by the entrant's uid so an
  * entrant can only be on a waitlist once.
  */
+/** Deliberately independent of Lottery's scalar/list schema during lottery-system integration. */
+data class CampsiteLotteryLink(val id: String, val campsiteIds: List<String>)
+
+enum class CampsiteLotteryRemoval { RETAINED, DELETE_LOTTERY, ALREADY_REMOVED }
+
 class LotteryRepository {
     private val lotteries = FirebaseFirestore.getInstance().collection("lotteries")
 
@@ -71,7 +79,7 @@ class LotteryRepository {
      * Loads all lotteries associated with a campsite.
      *
      * Includes lotteries regardless of their status. The caller is
-     * responsible for determining whether a lottery blocks deletion.
+     * responsible for coordinating lifecycle cleanup.
      *
      * @param campsiteId the Firestore ID of the campsite
      * @return all matching lotteries, or an empty list if none exist
@@ -86,6 +94,113 @@ class LotteryRepository {
             doc.toObject(Lottery::class.java)?.also {
                 it.id = doc.id
             }
+        }
+    }
+
+    /** Supports today's scalar link and lottery_system's array without deserializing Lottery. */
+    suspend fun listByCampsiteForDeletion(campsiteId: String): List<CampsiteLotteryLink> {
+        val scalar = lotteries.whereEqualTo("campsiteID", campsiteId)
+            .get(com.google.firebase.firestore.Source.SERVER).await()
+        val multiple = lotteries.whereArrayContains("campsiteID", campsiteId)
+            .get(com.google.firebase.firestore.Source.SERVER).await()
+        return (scalar.documents + multiple.documents).distinctBy { it.id }.map { doc ->
+            CampsiteLotteryLink(doc.id, doc.campsiteIds())
+        }
+    }
+
+    /** Freeze participation before taking the notification recipient snapshot. */
+    suspend fun beginCampsiteRemoval(lotteryId: String, campsiteId: String) {
+        val ref = lotteries.document(lotteryId)
+        FirebaseFirestore.getInstance().runTransaction { tx ->
+            val snapshot = tx.get(ref)
+            check(snapshot.exists() && campsiteId in snapshot.campsiteIds()) {
+                "Lottery changed before participant capture; retry campsite deletion"
+            }
+            tx.update(ref, "removingCampsiteIds",
+                com.google.firebase.firestore.FieldValue.arrayUnion(campsiteId))
+        }.await()
+    }
+
+    /** Includes entries and the embedded participant lists present on lottery_system. */
+    suspend fun listParticipantIdsForRemoval(lotteryId: String): List<String> {
+        val doc = lotteries.document(lotteryId)
+            .get(com.google.firebase.firestore.Source.SERVER).await()
+        check(doc.exists()) { "Lottery disappeared before participant capture" }
+        val embedded = listOf("lotteryList", "waitlist").flatMap { field ->
+            val raw = doc.get(field) ?: return@flatMap emptyList<String>()
+            check(raw is List<*>) { "Invalid lottery $field" }
+            raw.map { value ->
+                val entrantId = (value as? Map<*, *>)?.get("entrantId")
+                check(entrantId is String && entrantId.isNotBlank()) { "Invalid participant in $field" }
+                entrantId
+            }
+        }
+        return (listEntriesForDeletion(lotteryId).map { it.entrantId } + embedded).distinct()
+    }
+
+    /** Transactions prevent concurrent removals from overwriting each other's campsite lists. */
+    suspend fun removeCampsite(lotteryId: String, campsiteId: String): CampsiteLotteryRemoval {
+        val ref = lotteries.document(lotteryId)
+        return FirebaseFirestore.getInstance().runTransaction { tx ->
+            val snapshot = tx.get(ref)
+            if (!snapshot.exists() || campsiteId !in snapshot.campsiteIds()) {
+                CampsiteLotteryRemoval.ALREADY_REMOVED
+            } else {
+                val locked = snapshot.get("removingCampsiteIds") as? List<*> ?: emptyList<Any>()
+                check(campsiteId in locked) { "Lottery removal gate is missing" }
+                val remaining = snapshot.campsiteIds().filterNot { it == campsiteId }
+                if (remaining.isEmpty()) {
+                    // Keep the last link and gate until entries are explicitly deleted.
+                    CampsiteLotteryRemoval.DELETE_LOTTERY
+                } else {
+                    tx.update(ref, mapOf(
+                        "campsiteID" to remaining,
+                        "removingCampsiteIds" to locked.filterNot { it == campsiteId }
+                    ))
+                    CampsiteLotteryRemoval.RETAINED
+                }
+            }
+        }.await()
+    }
+
+    /** Recheck the last link before finalizing removal of a now-empty lottery. */
+    suspend fun deleteForCampsiteRemoval(lotteryId: String, campsiteId: String) {
+        val ref = lotteries.document(lotteryId)
+        FirebaseFirestore.getInstance().runTransaction { tx ->
+            val snapshot = tx.get(ref)
+            if (snapshot.exists()) {
+                check(snapshot.campsiteIds() == listOf(campsiteId)) { "Lottery still contains other campsites" }
+                check(campsiteId in (snapshot.get("removingCampsiteIds") as? List<*> ?: emptyList<Any>())) {
+                    "Lottery removal gate is missing"
+                }
+                tx.delete(ref)
+            }
+        }.await()
+    }
+
+    private fun com.google.firebase.firestore.DocumentSnapshot.campsiteIds(): List<String> {
+        val value = get("campsiteID")
+        val ids = when (value) {
+            is String -> listOf(value)
+            is List<*> -> value.map {
+                check(it is String && it.isNotBlank()) { "Invalid lottery campsite ID" }
+                it
+            }
+            else -> error("Invalid lottery campsite links")
+        }
+        check(ids.isNotEmpty() && ids.all { it.isNotBlank() } && ids.distinct().size == ids.size) {
+            "Lottery campsite links are empty or duplicated"
+        }
+        return ids
+    }
+
+    suspend fun listEntriesForDeletion(lotteryId: String): List<LotteryEntry> {
+        return entries(lotteryId).get(com.google.firebase.firestore.Source.SERVER).await().documents.map { doc ->
+            requireNotNull(doc.toObject(LotteryEntry::class.java)) { "Invalid entry ${doc.id}" }
+                .also {
+                    it.id = doc.id
+                    check(it.entrantId.isNotBlank()) { "Entry ${doc.id} has no entrant" }
+                }
         }
     }
 
@@ -115,7 +230,7 @@ class LotteryRepository {
      */
     suspend fun listByOwner(ownerReference: DocumentReference): List<Lottery> {
         val snapshot = lotteries
-            .whereEqualTo("owner", ownerReference)
+            .whereEqualTo("ownerId", ownerReference.id)
             .get()
             .await()
 
@@ -224,6 +339,22 @@ class LotteryRepository {
                 it.id = doc.id
             }
         }
+    }
+
+    /** Deletes entries explicitly; deleting a lottery never deletes its subcollections. */
+    suspend fun deleteEntries(lotteryId: String) {
+        while (true) {
+            val documents = entries(lotteryId).limit(400)
+                .get(com.google.firebase.firestore.Source.SERVER).await().documents
+            if (documents.isEmpty()) return
+            val batch = FirebaseFirestore.getInstance().batch()
+            documents.forEach { batch.delete(it.reference) }
+            batch.commit().await()
+        }
+    }
+
+    suspend fun delete(lotteryId: String) {
+        lotteries.document(lotteryId).delete().await()
     }
 
     /**
