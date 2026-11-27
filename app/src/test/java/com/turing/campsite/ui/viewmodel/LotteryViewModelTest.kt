@@ -1,6 +1,7 @@
 package com.turing.campsite.ui.viewmodel
 
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.Timestamp
 import com.turing.campsite.data.model.Lottery
 import com.turing.campsite.data.model.LotteryEntry
 import com.turing.campsite.data.model.LotteryStatus
@@ -31,13 +32,27 @@ class LotteryViewModelTest {
     private lateinit var lottery: Lottery
     private lateinit var entry: LotteryEntry
 
+
     // Set up a fake repository, one open lottery and one entry before every single test
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher()) // run background calls right away
         repository = mock(LotteryRepository::class.java)
         viewModel = LotteryViewModel(repository)
-        lottery = Lottery(id = "l1", owner = "owner1", winnerCount = 2)
+        lottery = Lottery(
+            name = "Test Lottery",
+            id = "l1",
+            owner = "owner1",
+            campsiteID = listOf("TestCampsite"),
+            registrationStart = Timestamp(1000L, 0),
+            registrationEnd = Timestamp(2000L, 0),
+            bookingStart = Timestamp(3000L, 0),
+            bookingEnd = Timestamp(4000L, 0),
+            winnerCount = 2,
+            capOn = false,
+            lotteryCap = 0,
+            status = "closed"
+        )
         entry = LotteryEntry(id = "u1", entrantId = "u1")
     }
 
@@ -72,7 +87,7 @@ class LotteryViewModelTest {
 
         viewModel.loadForOwner(owner)
 
-        assertEquals(listOf(lottery), viewModel.lotteries)
+        assertEquals(listOf(lottery), viewModel.ownerLot)
     }
 
     @Test

@@ -33,7 +33,7 @@ data class Lottery(
     var name: String = "",
     var id: String = "",
     var owner: String = "",
-    var campsiteID: List<String>, // this will have other owner's campsites added to it in the multi option
+    var campsiteID: List<String> = emptyList(), // this will have other owner's campsites added to it in the multi option
     var registrationStart: Timestamp? = null,
     var registrationEnd: Timestamp? = null,
     var bookingStart: Timestamp? = null,
