@@ -177,9 +177,7 @@ class LotteryRepository {
             return false
         }
 
-        if (lottery.waitlistCap > 0 &&
-            listEntries(lotteryId).size.toLong() >= lottery.waitlistCap
-        ) {
+        if(lottery.lotteryCap > 0 && listEntries(lotteryId).size.toLong() >= lottery.lotteryCap){
             return false
         }
 
@@ -225,6 +223,21 @@ class LotteryRepository {
             }
         }
     }
+
+    suspend fun listByOwner(ownerId: String?): List<Lottery>{
+        val snapshot = lotteries.whereEqualTo("owner",ownerId).get().await()
+        return snapshot.documents.mapNotNull { doc ->
+            doc.toObject(Lottery::class.java)?.also {it.id = doc.id}
+        }
+    }
+/**
+    suspend fun openParticipant(ownerId: String?): List<Lottery>{
+        val snapshot= lotteries.whereArrayContains(ownerList, ownerId).get.await()
+        return snapshot.documents.mapNotNull { doc ->
+            doc.toObject(Lottery::class.java)?.also {it.id = doc.id}
+        }
+    }
+    **/
 
     /**
      * Checks whether an entrant is already on the waitlist.

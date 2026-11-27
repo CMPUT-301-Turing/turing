@@ -213,7 +213,7 @@ class CampsiteDeletionServiceTest {
         start: Timestamp? = null,
         end: Timestamp? = null
     ) = Lottery(
-        campsiteID = campsiteId,
+        campsiteID = emptyList(),
         status = status,
         bookingStart = start,
         bookingEnd = end
