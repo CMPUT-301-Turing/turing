@@ -198,6 +198,7 @@ fun NavGraphBuilder.ownerGraph(
             }
             val shared: CampsiteViewModel = viewModel(parent)
             val sharedLV: LotteryViewModel = viewModel(parent)
+            val ownerId = LocalCurrentUid.current
 
             OwnerCreateLotteryScreen(
                 lotteryViewModel = sharedLV,
@@ -206,7 +207,6 @@ fun NavGraphBuilder.ownerGraph(
                     navController.popBackStack()
                 },
                 onPublishClick = { formData ->
-                    val ownerId = TempUser.UID
                     if (!shared.isLoading && !sharedLV.isLoading && ownerId.isNotBlank()) {
                         sharedLV.add(
                             formData.toLottery(ownerId,formData.selectedCampsiteIds.toList() )
