@@ -31,7 +31,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.turing.campsite.PrimaryColor
-import com.turing.campsite.data.auth.TempUser
 import com.turing.campsite.data.model.Lottery
 import com.turing.campsite.ui.components.CampsiteCard
 import com.turing.campsite.ui.viewmodel.LotteryViewModel

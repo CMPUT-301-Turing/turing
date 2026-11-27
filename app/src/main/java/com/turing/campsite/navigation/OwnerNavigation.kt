@@ -181,9 +181,8 @@ fun NavGraphBuilder.ownerGraph(
                 }
             )
         }
-/**
-        composable("${OWNER_LOTTERY_DETAILS}/${Uri.encode(lotteryId)}") {backStackEntry ->
-            val lott
+
+        composable(Routes.OWNER_LOTTERY_DETAILS) {
             OwnerLotteryDetailsScreen(
                 onBackClick = {
                     navController.popBackStack()
@@ -193,7 +192,7 @@ fun NavGraphBuilder.ownerGraph(
                 }
             )
         }
-**/
+
         // Create Lottery
         composable(Routes.OWNER_CREATE_LOTTERY) { backStackEntry ->
             val parent = remember(backStackEntry) {
