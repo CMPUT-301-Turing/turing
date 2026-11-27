@@ -1,24 +1,32 @@
+/*
+ * AI Assistance Disclosure
+ *
+ * Company: OpenAI
+ * Tool: ChatGPT (GPT-6)
+ *
+ * Subjects:
+ * 2026-11-25: Batched campsite and review deletion tests.
+ *
+ * Scope: AI-assisted implementation, debugging, and code review.
+ */
+
 package com.turing.campsite.data.repository
 
-import com.google.firebase.Timestamp
 import com.google.firebase.firestore.*
 import com.turing.campsite.data.model.*
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Test
-import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.*
 
 /**
  * Tests [CampsiteRepository] against mocked Firebase boundaries.
  *
- * Covers local mapping, branching and error behavior; does not verify live persistence or security rules.
+ * Covers local mapping, branching, and error behavior; does not verify live
+ * persistence or security rules.
  */
 class CampsiteRepositoryTest : FirestoreTestFixture("campsites") {
 
-    /**
-     * Given a mapped document with a stale model ID, expects the returned object to use the snapshot ID.
-     */
     @Test fun getRestoresDocumentId() = runBlocking<Unit> {
         val value = Campsite(id = "stale")
         doReturn(completed(row(Campsite::class.java, value, "canonical"))).`when`(doc).get()
@@ -26,16 +34,12 @@ class CampsiteRepositoryTest : FirestoreTestFixture("campsites") {
         assertSame(value, result)
         assertEquals("canonical", result!!.id)
     }
-    /**
-     * Given a snapshot that cannot map to a model, expects a null result.
-     */
+
     @Test fun getMissingDocumentReturnsNull() = runBlocking<Unit> {
         doReturn(completed(row(Campsite::class.java, null))).`when`(doc).get()
         assertNull(CampsiteRepository().get("id"))
     }
-    /**
-     * Given a failed document read, expects the same exception to reach the caller.
-     */
+
     @Test fun getPropagatesFailure() = runBlocking<Unit> {
         val failure = IllegalStateException("read failed")
         doReturn(failed<DocumentSnapshot>(failure)).`when`(doc).get()
@@ -43,9 +47,6 @@ class CampsiteRepositoryTest : FirestoreTestFixture("campsites") {
         catch (actual: IllegalStateException) { assertSame(failure, actual) }
     }
 
-    /**
-     * Given a successful write, expects the generated document ID on the input model and as the return value.
-     */
     @Test fun addAssignsAndReturnsGeneratedId() = runBlocking<Unit> {
         val value = Campsite(id = "previous")
         assertEquals("generated", CampsiteRepository().add(value))
@@ -55,9 +56,7 @@ class CampsiteRepositoryTest : FirestoreTestFixture("campsites") {
         verify(collection, never()).document(anyString())
         verify(doc, never()).set(anyPayload())
     }
-    /**
-     * Given a failed write, expects the same exception without promising when the input ID changes.
-     */
+
     @Test fun addPropagatesWriteFailure() = runBlocking<Unit> {
         val value = Campsite()
         val failure = IllegalStateException("write failed")
@@ -66,9 +65,6 @@ class CampsiteRepositoryTest : FirestoreTestFixture("campsites") {
         catch (actual: IllegalStateException) { assertSame(failure, actual) }
     }
 
-    /**
-     * Given mapped and unmappable results from the all-records query, expects only mapped records with snapshot IDs.
-     */
     @Test fun listAllMapsIdsAndSkipsNullObjects() = runBlocking<Unit> {
         val value = Campsite(id = "stale")
         doReturn(completed(snapshot(row(Campsite::class.java, null), row(Campsite::class.java, value, "canonical")))).`when`(collection).get()
@@ -76,16 +72,12 @@ class CampsiteRepositoryTest : FirestoreTestFixture("campsites") {
         assertEquals(listOf(value), result)
         assertEquals("canonical", result.single().id)
     }
-    /**
-     * Given no results from the all-records query, expects an empty list.
-     */
+
     @Test fun listAllReturnsEmptyList() = runBlocking<Unit> {
         doReturn(completed(snapshot())).`when`(collection).get()
         assertTrue(CampsiteRepository().listAll().isEmpty())
     }
-    /**
-     * Given failure of the all-records query, expects the same exception to propagate.
-     */
+
     @Test fun listAllPropagatesQueryFailure() = runBlocking<Unit> {
         val failure = IllegalStateException("query failed")
         doReturn(failed<QuerySnapshot>(failure)).`when`(collection).get()
@@ -93,9 +85,6 @@ class CampsiteRepositoryTest : FirestoreTestFixture("campsites") {
         catch (actual: IllegalStateException) { assertSame(failure, actual) }
     }
 
-    /**
-     * Given mapped and unmappable results from the owner-filtered query, expects only mapped records with snapshot IDs.
-     */
     @Test fun listByOwnerMapsIdsAndSkipsNullObjects() = runBlocking<Unit> {
         val query = mock(Query::class.java)
         doReturn(query).`when`(collection).whereEqualTo("ownerId", "owner")
@@ -105,18 +94,14 @@ class CampsiteRepositoryTest : FirestoreTestFixture("campsites") {
         assertEquals(listOf(value), result)
         assertEquals("canonical", result.single().id)
     }
-    /**
-     * Given no results from the owner-filtered query, expects an empty list.
-     */
+
     @Test fun listByOwnerReturnsEmptyList() = runBlocking<Unit> {
         val query = mock(Query::class.java)
         doReturn(query).`when`(collection).whereEqualTo("ownerId", "owner")
         doReturn(completed(snapshot())).`when`(query).get()
         assertTrue(CampsiteRepository().listByOwner("owner").isEmpty())
     }
-    /**
-     * Given failure of the owner-filtered query, expects the same exception to propagate.
-     */
+
     @Test fun listByOwnerPropagatesQueryFailure() = runBlocking<Unit> {
         val query = mock(Query::class.java)
         doReturn(query).`when`(collection).whereEqualTo("ownerId", "owner")
@@ -126,17 +111,12 @@ class CampsiteRepositoryTest : FirestoreTestFixture("campsites") {
         catch (actual: IllegalStateException) { assertSame(failure, actual) }
     }
 
-    /**
-     * Given an existing model ID, expects a full document set using that model.
-     */
     @Test fun updateReplacesDocument() = runBlocking<Unit> {
         val value = Campsite(id = "id")
         CampsiteRepository().update(value)
         verify(doc).set(value)
     }
-    /**
-     * Given a failed replacement write, expects the same exception to propagate.
-     */
+
     @Test fun updatePropagatesFailure() = runBlocking<Unit> {
         val value = Campsite(id = "id")
         val failure = IllegalStateException("write failed")
@@ -145,16 +125,11 @@ class CampsiteRepositoryTest : FirestoreTestFixture("campsites") {
         catch (actual: IllegalStateException) { assertSame(failure, actual) }
     }
 
-    /**
-     * Given a document ID, expects deletion of that document.
-     */
     @Test fun deleteDeletesRequestedDocument() = runBlocking<Unit> {
         CampsiteRepository().delete("id")
         verify(doc).delete()
     }
-    /**
-     * Given a failed deletion, expects the same exception to propagate.
-     */
+
     @Test fun deletePropagatesFailure() = runBlocking<Unit> {
         val failure = IllegalStateException("delete failed")
         doReturn(failed<Void>(failure)).`when`(doc).delete()
@@ -162,15 +137,94 @@ class CampsiteRepositoryTest : FirestoreTestFixture("campsites") {
         catch (actual: IllegalStateException) { assertSame(failure, actual) }
     }
 
-    /** Stubs the current campsite document’s reviews subcollection. */
+    /** Stubs the current campsite document's reviews subcollection. */
     private fun reviews(): CollectionReference {
         val reviews = mock(CollectionReference::class.java)
         doReturn(reviews).`when`(doc).collection("reviews")
         return reviews
     }
+
     /**
-     * Given mapped and unmappable review snapshots, expects only mapped reviews with snapshot IDs.
+     * Creates a successful review query and batched commit, with the supplied
+     * review document references. Callers can override the commit result.
      */
+    private fun deletionBatch(vararg reviewRefs: DocumentReference): WriteBatch {
+        val reviewRows = reviewRefs.map { ref ->
+            mock(DocumentSnapshot::class.java).also { row ->
+                doReturn(ref).`when`(row).reference
+            }
+        }
+        val reviewCollection = reviews()
+        doReturn(completed(snapshot(*reviewRows.toTypedArray()))).`when`(reviewCollection).get()
+
+        val batch = mock(WriteBatch::class.java)
+        doReturn(batch).`when`(db).batch()
+        doReturn(completed<Void?>(null)).`when`(batch).commit()
+        return batch
+    }
+
+    @Test fun deleteWithReviews_noReviews_deletesCampsiteInBatch() = runBlocking<Unit> {
+        val batch = deletionBatch()
+
+        CampsiteRepository().deleteWithReviews("id")
+
+        verify(batch).delete(doc)
+        verify(batch).commit()
+        verify(doc, never()).delete()
+    }
+
+    @Test fun deleteWithReviews_twoReviews_deletesAllInOneBatch() = runBlocking<Unit> {
+        val firstReview = mock(DocumentReference::class.java)
+        val secondReview = mock(DocumentReference::class.java)
+        val batch = deletionBatch(firstReview, secondReview)
+
+        CampsiteRepository().deleteWithReviews("id")
+
+        val order = inOrder(batch)
+        order.verify(batch).delete(firstReview)
+        order.verify(batch).delete(secondReview)
+        order.verify(batch).delete(doc)
+        order.verify(batch).commit()
+    }
+
+    @Test fun deleteWithReviews_reviewQueryFails_neverStartsBatch() = runBlocking<Unit> {
+        val failure = IllegalStateException("review read failed")
+        val reviewCollection = reviews()
+        doReturn(failed<QuerySnapshot>(failure)).`when`(reviewCollection).get()
+
+        try { CampsiteRepository().deleteWithReviews("id"); fail("Expected read failure") }
+        catch (actual: IllegalStateException) { assertSame(failure, actual) }
+
+        verify(db, never()).batch()
+    }
+
+    @Test fun deleteWithReviews_tooManyReviews_rejectsWithoutWriting() = runBlocking<Unit> {
+        val reviewRows = Array(500) { mock(DocumentSnapshot::class.java) }
+        val reviewCollection = reviews()
+        doReturn(completed(snapshot(*reviewRows))).`when`(reviewCollection).get()
+
+        try {
+            CampsiteRepository().deleteWithReviews("id")
+            fail("Expected limit error")
+        } catch (actual: IllegalStateException) {
+            assertTrue(actual.message.orEmpty().contains("more than 499 reviews"))
+        }
+
+        verify(db, never()).batch()
+    }
+
+    @Test fun deleteWithReviews_commitFails_propagatesFailure() = runBlocking<Unit> {
+        val batch = deletionBatch()
+        val failure = IllegalStateException("commit failed")
+        doReturn(failed<Void>(failure)).`when`(batch).commit()
+
+        try { CampsiteRepository().deleteWithReviews("id"); fail("Expected commit failure") }
+        catch (actual: IllegalStateException) { assertSame(failure, actual) }
+
+        verify(batch).delete(doc)
+        verify(batch).commit()
+    }
+
     @Test fun listReviewsRestoresIdsAndSkipsNullObjects() = runBlocking<Unit> {
         val reviews = reviews()
         val value = Review(rating = 3)
@@ -178,9 +232,7 @@ class CampsiteRepositoryTest : FirestoreTestFixture("campsites") {
         assertEquals(listOf(value), CampsiteRepository().listReviews("id"))
         assertEquals("review", value.id)
     }
-    /**
-     * Given ratings 2 and 5, expects review creation before aggregation, then an average of 3.5 and count of 2.
-     */
+
     @Test fun addReviewSavesReviewThenUpdatesAverageAndCount() = runBlocking<Unit> {
         val reviews = reviews()
         val reviewDoc = mock(DocumentReference::class.java)
@@ -200,9 +252,7 @@ class CampsiteRepositoryTest : FirestoreTestFixture("campsites") {
         order.verify(reviews).get()
         order.verify(doc).update("ratingAverage", 3.5, "ratingCount", 2)
     }
-    /**
-     * Given a failed review write, expects the same exception and verifies the rating-source query is not reached.
-     */
+
     @Test fun failedReviewWriteDoesNotReadOrUpdateRatings() = runBlocking<Unit> {
         val reviews = reviews()
         val reviewDoc = mock(DocumentReference::class.java)
@@ -217,21 +267,20 @@ class CampsiteRepositoryTest : FirestoreTestFixture("campsites") {
         verify(doc, atLeastOnce()).collection("reviews")
         verifyNoMoreInteractions(doc)
     }
-    /** Does not overwrite the rating aggregate when the saved reviews cannot be read. */
+
     @Test fun failedReviewReadDoesNotUpdateRatings() = runBlocking<Unit> {
         val reviews = reviews()
         val reviewDoc = generatedDocument("new-review")
         doReturn(reviewDoc).`when`(reviews).document()
         val failure = IllegalStateException("review read failed")
         doReturn(failed<QuerySnapshot>(failure)).`when`(reviews).get()
-        try { CampsiteRepository().addReview("id", Review(rating = 4)); fail("Expected read failure") }
+        try { CampsiteRepository().addReview("id", Review(rating = 4)); fail("Expected review read failure") }
         catch (actual: IllegalStateException) { assertSame(failure, actual) }
         verify(reviewDoc).set(anyPayload())
         verify(doc, atLeastOnce()).collection("reviews")
         verifyNoMoreInteractions(doc)
     }
 
-    /** Computes the first valid review as average 4.0 and count 1, excluding an unmappable row. */
     @Test fun firstReviewAggregateExcludesUnmappedRows() = runBlocking<Unit> {
         val reviews = reviews()
         val reviewDoc = generatedDocument("new-review")
@@ -246,7 +295,6 @@ class CampsiteRepositoryTest : FirestoreTestFixture("campsites") {
         verify(doc).update("ratingAverage", 4.0, "ratingCount", 1)
     }
 
-    /** Propagates a failed aggregate update even though the review write itself succeeded. */
     @Test fun failedRatingUpdateReachesCaller() = runBlocking<Unit> {
         val reviews = reviews()
         val reviewDoc = generatedDocument("new-review")
@@ -260,7 +308,6 @@ class CampsiteRepositoryTest : FirestoreTestFixture("campsites") {
         verify(reviewDoc).set(review)
     }
 
-    /** Propagates a failed review listing without fabricating an empty list. */
     @Test fun listReviewsPropagatesFailure() = runBlocking<Unit> {
         val reviews = reviews()
         val failure = IllegalStateException("review list failed")
@@ -268,5 +315,4 @@ class CampsiteRepositoryTest : FirestoreTestFixture("campsites") {
         try { CampsiteRepository().listReviews("id"); fail("Expected review-list failure") }
         catch (actual: IllegalStateException) { assertSame(failure, actual) }
     }
-
 }

@@ -33,7 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-import com.google.firebase.auth.FirebaseAuth
+import com.turing.campsite.data.auth.LocalCurrentUid
 import com.turing.campsite.PrimaryColor
 import com.turing.campsite.data.model.Campsite
 import com.turing.campsite.data.model.Lottery
@@ -57,7 +57,7 @@ fun EntrantCampsiteDetailsScreen(
         onEnterLotteryClick: () -> Unit = {}
     ) {
         val campsite = campsiteViewModel.selectedCampsite
-        val currentEntrantId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+        val currentEntrantId = LocalCurrentUid.current
         val currentLot = lotteryViewModel.selectedLottery
 
     LaunchedEffect(campsiteId) {

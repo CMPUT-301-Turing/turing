@@ -1,3 +1,17 @@
+
+/*
+ * AI Assistance Disclosure
+ *
+ * Company: OpenAI
+ * Tool: ChatGPT (GPT-6)
+ * Date: 2026-11-25
+ * Subject: Lottery repository queries for campsite deletion
+ *          dependency checking.
+ *
+ * Scope: AI-assisted implementation of listByCampsite()
+ * and review of the repository.
+ */
+
 package com.turing.campsite.data.repository
 
 import com.google.firebase.firestore.DocumentReference
@@ -41,15 +55,38 @@ class LotteryRepository {
      * @param campsiteId the campsiteID field value
      * @return the lotteryID with this campsiteID
      */
-    suspend fun findLot(campsiteId: String): Lottery?{
+    suspend fun findLot(campsiteId: String): Lottery? {
         val db = Firebase.firestore
         val snapshot = db.collection("lotteries")
-            .whereEqualTo("campsiteID",campsiteId)
+            .whereEqualTo("campsiteID", campsiteId)
             .get()
             .await()
+
         val document = snapshot.documents.firstOrNull()
         val lottery = getLottery(document!!.id)
         return lottery
+    }
+
+    /**
+     * Loads all lotteries associated with a campsite.
+     *
+     * Includes lotteries regardless of their status. The caller is
+     * responsible for determining whether a lottery blocks deletion.
+     *
+     * @param campsiteId the Firestore ID of the campsite
+     * @return all matching lotteries, or an empty list if none exist
+     */
+    suspend fun listByCampsite(campsiteId: String): List<Lottery> {
+        val snapshot = lotteries
+            .whereEqualTo("campsiteID", campsiteId)
+            .get()
+            .await()
+
+        return snapshot.documents.mapNotNull { doc ->
+            doc.toObject(Lottery::class.java)?.also {
+                it.id = doc.id
+            }
+        }
     }
 
     /**
@@ -62,8 +99,9 @@ class LotteryRepository {
             .whereEqualTo("status", "open")
             .get()
             .await()
+
         return snapshot.documents.mapNotNull { doc ->
-            doc.toObject(Lottery :: class.java)?.also{
+            doc.toObject(Lottery::class.java)?.also {
                 it.id = doc.id
             }
         }
@@ -76,7 +114,7 @@ class LotteryRepository {
      * @return the lotteries whose ownerId matches
      */
     suspend fun listByOwner(ownerReference: DocumentReference): List<Lottery> {
-        val  snapshot =lotteries
+        val snapshot = lotteries
             .whereEqualTo("owner", ownerReference)
             .get()
             .await()
@@ -135,8 +173,7 @@ class LotteryRepository {
     suspend fun join(lotteryId: String, entrantId: String): Boolean {
         val lottery = getLottery(lotteryId) ?: return false
 
-        if (!lottery.isRegistrationOpen())
-        {
+        if (!lottery.isRegistrationOpen()) {
             return false
         }
 
@@ -144,19 +181,20 @@ class LotteryRepository {
             return false
         }
 
-        if(hasJoined(lotteryId, entrantId)) {
+        if (hasJoined(lotteryId, entrantId)) {
             return false
         }
 
         val entry = LotteryEntry(
             id = entrantId,
-            entrantId =  entrantId
+            entrantId = entrantId
         )
 
         entries(lotteryId)
             .document(entrantId)
             .set(entry)
             .await()
+
         return true
     }
 
@@ -178,8 +216,11 @@ class LotteryRepository {
      */
     suspend fun listEntries(lotteryId: String): List<LotteryEntry> {
         val snapshot = entries(lotteryId).get().await()
+
         return snapshot.documents.mapNotNull { doc ->
-            doc.toObject(LotteryEntry::class.java)?.also { it.id = doc.id }
+            doc.toObject(LotteryEntry::class.java)?.also {
+                it.id = doc.id
+            }
         }
     }
 
@@ -203,10 +244,14 @@ class LotteryRepository {
      *
      * @param lotteryId the Firestore document id of the lottery
      * @param entrantId the uid of the entrant
-     * @return true if the entrant has an entry document, false otherwise
+     * @return true if the entrant has an entry document
      */
     suspend fun hasJoined(lotteryId: String, entrantId: String): Boolean {
-        return entries(lotteryId).document(entrantId).get().await().exists()
+        return entries(lotteryId)
+            .document(entrantId)
+            .get()
+            .await()
+            .exists()
     }
 
     /**
@@ -216,7 +261,14 @@ class LotteryRepository {
      * @param entrantId the uid of the entrant
      * @param result the new result, for example WON or LOST
      */
-    suspend fun setEntryResult(lotteryId: String, entrantId: String, result: EntryResult) {
-        entries(lotteryId).document(entrantId).update("result", result.name).await()
+    suspend fun setEntryResult(
+        lotteryId: String,
+        entrantId: String,
+        result: EntryResult
+    ) {
+        entries(lotteryId)
+            .document(entrantId)
+            .update("result", result.name)
+            .await()
     }
 }

@@ -28,7 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.firebase.auth.FirebaseAuth
+import com.turing.campsite.data.auth.LocalCurrentUid
 import com.turing.campsite.PrimaryColor
 
 import com.turing.campsite.ui.components.ReservationCard
@@ -70,7 +70,7 @@ private val lotteryResults = listOf(
 fun EntrantCampsiteListScreen(
     reservationViewModel: ReservationViewModel
 ) {
-    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+    val currentUserId = LocalCurrentUid.current
     val allReservations = reservationViewModel.reservations
 
     LaunchedEffect(currentUserId) {

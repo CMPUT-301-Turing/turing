@@ -1,7 +1,20 @@
+/*
+ * AI Assistance Disclosure
+ *
+ * Company: OpenAI
+ * Tool: ChatGPT (GPT-6)
+ * Date: 2026-11-25
+ * Subject: Admin campsite deletion action in the shared campsite card.
+ *
+ * Scope: AI-assisted addition of an optional delete callback and an
+ * accessible delete button, while preserving existing card behavior.
+ */
+
 package com.turing.campsite.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Terrain
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,11 +41,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.clickable
-
 import com.turing.campsite.PrimaryColor
-
-import com.turing.campsite.data.model.Campsite // real model
+import com.turing.campsite.data.model.Campsite
 import java.util.Locale
 
 private val CardBackground = Color(0xFFFCFBF7)
@@ -42,17 +53,14 @@ private val DeleteColor = Color(0xFFB45345)
 
 /**
  * Displays a preview of one campsite.
- *
- * An optional delete icon can be displayed for administrators.
- * Deletion functionality will be added later.
  */
 @Composable
 fun CampsiteCard(
     campsite: Campsite,
     showDeleteButton: Boolean = false,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    onDeleteClick: (() -> Unit)? = null
 ) {
-
     // A campsite the owner has paused is shown as inactive.
     val statusColor = if (campsite.active) {
         PrimaryColor
@@ -79,8 +87,6 @@ fun CampsiteCard(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-
             Box(
                 modifier = Modifier
                     .width(84.dp)
@@ -103,7 +109,6 @@ fun CampsiteCard(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
-                // Campsite status and optional admin delete icon
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -118,7 +123,6 @@ fun CampsiteCard(
                                 .size(6.dp)
                                 .background(statusColor, CircleShape)
                         )
-
                         Text(
                             text = if (campsite.active) "Active" else "Inactive",
                             fontSize = 10.sp,
@@ -126,14 +130,18 @@ fun CampsiteCard(
                         )
                     }
 
-                    // Admin delete icon (visual placeholder)
                     if (showDeleteButton) {
-                        Icon(
-                            imageVector = Icons.Outlined.DeleteOutline,
-                            contentDescription = "Delete campsite",
-                            modifier = Modifier.size(20.dp),
-                            tint = DeleteColor
-                        )
+                        IconButton(
+                            onClick = { onDeleteClick?.invoke() },
+                            enabled = onDeleteClick != null
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.DeleteOutline,
+                                contentDescription = "Delete campsite",
+                                modifier = Modifier.size(20.dp),
+                                tint = DeleteColor
+                            )
+                        }
                     }
                 }
 
@@ -154,7 +162,6 @@ fun CampsiteCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                // Tags are shown when there are any, otherwise the description.
                 Text(
                     text = if (campsite.tags.isEmpty()) {
                         campsite.description
@@ -170,10 +177,8 @@ fun CampsiteCard(
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-
                     InfoChip("Max ${campsite.maxOccupancy} people")
                 }
-
 
                 val ratingText = if (campsite.ratingCount == 0) {
                     "Not rated"
@@ -186,9 +191,7 @@ fun CampsiteCard(
     }
 }
 
-/**
- * Small information label used in campsite cards.
- */
+/** Small information label used in campsite cards. */
 @Composable
 private fun InfoChip(text: String) {
     Surface(
