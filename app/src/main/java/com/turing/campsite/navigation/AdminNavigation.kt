@@ -60,10 +60,10 @@ fun NavGraphBuilder.adminGraph(
                     navController.popBackStack()
                 },
                 onSwitchToOwnerClick = {
-                    navController.navigate(Routes.OWNER_HOME)
+                    navController.switchView(Routes.OWNER_HOME)
                 },
                 onSwitchToEntrantClick = {
-                    navController.navigate(Routes.ENTRANT_HOME)
+                    navController.switchView(Routes.ENTRANT_HOME)
                 }
             )
         }
@@ -87,7 +87,8 @@ fun NavGraphBuilder.adminGraph(
                 onBackClick = {
                     navController.popBackStack()
                 },
-                profiles = userViewModel.users
+                profiles = userViewModel.users,
+                isLoading = userViewModel.isLoading
             )
         }
 
@@ -109,7 +110,10 @@ fun NavGraphBuilder.adminGraph(
                     navController.popBackStack()
                 },
                 campsites = campsiteViewModel.campsites,
-                isLoading = campsiteViewModel.isLoading
+                isLoading = campsiteViewModel.isLoading,
+                onDeleteCampsite = { campsiteId ->
+                    campsiteViewModel.delete(campsiteId)
+                }
             )
         }
 

@@ -1,15 +1,14 @@
-
 /*
  * AI Assistance Disclosure
  *
  * Company: OpenAI
  * Tool: ChatGPT (GPT-6)
- * Date: 2026-11-24
- * Subject: Admin campsite browsing, search implementation,
- *          loading and empty states, Jetpack Compose state
- *          management and code review.
  *
- * Scope: AI-assisted implementation and debugging of this file.
+ * Subjects:
+ * 2026-11-24: Campsite browsing, search, and UI states.
+ * 2026-11-25: Campsite deletion confirmation.
+ *
+ * Scope: AI-assisted implementation, debugging, and code review.
  */
 
 package com.turing.campsite.ui.screens.admin
@@ -32,15 +31,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -58,28 +60,29 @@ private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
 private val CardBorder = Color(0xFFDFE2D8)
 private val SecondaryText = Color(0xFF7A8079)
+private val DeleteColor = Color(0xFFB45345)
 
 /**
  * Admin browse campsites screen.
  *
- * Displays all registered campsites using the shared
- * CampsiteCard component with an admin delete button.
- * Supports searching by campsite name or location.
+ * Displays all registered campsites using the shared CampsiteCard component.
+ * Supports searching by campsite name or location, loading and empty states,
+ * and confirmation before requesting deletion.
  *
- * Displays a loading indicator while fetching campsites,
- * and an empty-state message when no results are available.
- *
- * Deletion is currently a visual placeholder.
- * Back navigation is handled through a callback.
+ * Deletion is performed by the caller, not by this composable.
  */
 @Composable
 fun AdminBrowseCampsiteScreen(
     onBackClick: () -> Unit,
     campsites: List<Campsite>,
-    isLoading: Boolean
+    isLoading: Boolean,
+    onDeleteCampsite: ((String) -> Unit)? = null
 ) {
     // Search query state
     var searchQuery by rememberSaveable { mutableStateOf("") }
+
+    // Tracks the campsite named in the confirmation dialog.
+    var campsitePendingDeletion by remember { mutableStateOf<Campsite?>(null) }
 
     // Filter by campsite name or location
     val query = searchQuery.trim()
@@ -220,10 +223,48 @@ fun AdminBrowseCampsiteScreen(
                 ) { campsite ->
                     CampsiteCard(
                         campsite = campsite,
-                        showDeleteButton = true
+                        showDeleteButton = true,
+                        onDeleteClick = if (onDeleteCampsite != null) {
+                            { campsitePendingDeletion = campsite }
+                        } else {
+                            null
+                        }
                     )
                 }
             }
         }
+    }
+
+    // The dialog confirms intent; the ViewModel handles deletion and errors.
+    campsitePendingDeletion?.let { campsite ->
+        AlertDialog(
+            onDismissRequest = { campsitePendingDeletion = null },
+            title = {
+                Text("Delete campsite?")
+            },
+            text = {
+                Text(
+                    "Are you sure you want to delete \"${campsite.name}\"? " +
+                            "This will permanently delete the campsite and its reviews. " +
+                            "Deletion is blocked if there are active lotteries, booking " +
+                            "periods, or reservations."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        campsitePendingDeletion = null
+                        onDeleteCampsite?.invoke(campsite.id)
+                    }
+                ) {
+                    Text("Delete", color = DeleteColor)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { campsitePendingDeletion = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

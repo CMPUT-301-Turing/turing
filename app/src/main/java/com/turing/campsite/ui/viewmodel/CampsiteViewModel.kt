@@ -1,3 +1,15 @@
+/*
+ * AI Assistance Disclosure
+ *
+ * Company: OpenAI
+ * Tool: ChatGPT (GPT-6)
+ * Date: 2026-11-25
+ * Subject: Admin campsite deletion integration and result handling.
+ *
+ * Scope: AI-assisted integration of CampsiteDeletionService into the
+ * CampsiteViewModel, including blocked-deletion feedback and UI state updates.
+ */
+
 package com.turing.campsite.ui.viewmodel
 
 import androidx.compose.runtime.getValue
@@ -6,11 +18,13 @@ import androidx.compose.runtime.setValue
 import com.turing.campsite.data.model.Campsite
 import com.turing.campsite.data.model.Review
 import com.turing.campsite.data.repository.CampsiteRepository
+import com.turing.campsite.data.service.CampsiteDeletionResult
+import com.turing.campsite.data.service.CampsiteDeletionService
 
 /**
  * Holds campsite data for the owner, entrant and admin campsite screens.
  *
- * A list screen calls loadAll() or loadForOwner() and reads campsites. A
+ * A list screen calls loadAll() or listByOwner() and reads campsites. A
  * details screen calls select() and reads selectedCampsite and reviews.
  *
  * @property campsites the list being shown
@@ -18,8 +32,16 @@ import com.turing.campsite.data.repository.CampsiteRepository
  * @property reviews the reviews of the selected campsite
  */
 class CampsiteViewModel(
-    private val repository: CampsiteRepository = CampsiteRepository()
+    private val repository: CampsiteRepository = CampsiteRepository(),
+    deletionService: CampsiteDeletionService? = null
 ) : BaseViewModel() {
+
+    // Create the default service only when deletion is requested. This lets
+    // other ViewModel operations and existing tests avoid initializing the
+    // additional Firestore repositories.
+    private val campsiteDeletionService by lazy {
+        deletionService ?: CampsiteDeletionService(campsiteRepository = repository)
+    }
 
     var campsites by mutableStateOf<List<Campsite>>(emptyList())
         private set
@@ -108,15 +130,32 @@ class CampsiteViewModel(
     }
 
     /**
-     * Deletes a campsite and removes it from campsites.
+     * Requests campsite deletion through the deletion service.
      *
-     * @param campsiteId the Firestore document id of the campsite
+     * A blocked deletion leaves all campsite state untouched and sets an
+     * explanatory error message. A successful deletion updates the loaded lists
+     * and clears the selected campsite and reviews, if applicable.
+     *
+     * @param campsiteId the Firestore document ID of the campsite
      */
     fun delete(campsiteId: String) {
         launchCall {
-            repository.delete(campsiteId)
-            campsites = campsites.filter { it.id != campsiteId }
-            if (selectedCampsite?.id == campsiteId) selectedCampsite = null
+            when (campsiteDeletionService.delete(campsiteId)) {
+                CampsiteDeletionResult.Deleted -> {
+                    campsites = campsites.filterNot { it.id == campsiteId }
+                    ownerCampsites = ownerCampsites.filterNot { it.id == campsiteId }
+                    if (selectedCampsite?.id == campsiteId) {
+                        selectedCampsite = null
+                        reviews = emptyList()
+                    }
+                }
+                CampsiteDeletionResult.BlockedByLottery -> {
+                    errorMessage = "Cannot delete campsite while it has an active lottery or booking period."
+                }
+                CampsiteDeletionResult.BlockedByReservation -> {
+                    errorMessage = "Cannot delete campsite while it has active reservations."
+                }
+            }
         }
     }
 

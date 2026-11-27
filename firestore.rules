@@ -32,6 +32,7 @@ service cloud.firestore {
       match /reviews/{reviewId} {
         allow read: if signedIn();
         allow create: if signedIn();
+        allow delete: if isAdmin();
       }
     }
 

@@ -15,6 +15,7 @@ object Routes {
 
     // Shared user screens
     const val USER_EDIT_PROFILE = "UserEditProfile"
+    const val APP_POLICY = "AppPolicy"
 
     // Administrator
     const val ADMIN_GRAPH = "AdminGraph"

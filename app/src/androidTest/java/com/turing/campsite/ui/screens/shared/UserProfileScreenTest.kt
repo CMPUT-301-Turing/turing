@@ -7,6 +7,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import org.junit.Assert.assertTrue
 
 
@@ -47,6 +48,8 @@ class UserProfileScreenTest {
 
                     onEditProfileClick = {},
 
+                    onPolicyClick = {},
+
                     onSwitchViewClick = {},
                     onBackClick = { backClicked = true }
 
@@ -62,6 +65,32 @@ class UserProfileScreenTest {
 
         // check if back button clicked
         assertTrue(backClicked) }
+
+
+
+    /**
+     * Tests that the app policy option opens the policy screen
+     */
+    @Test
+    fun userProfileScreen_policyClicks() {
+        var policyClicked = false
+
+        composeTestRule.setContent {
+            UserProfileScreen(
+                currentView = UserView.ENTRANT,
+                onEditProfileClick = {},
+                onPolicyClick = { policyClicked = true },
+                onSwitchViewClick = {},
+                onBackClick = {}
+            )
+        }
+
+        composeTestRule.onNodeWithText("View app policy and guidelines")
+            .performScrollTo()
+            .performClick()
+
+        assertTrue(policyClicked)
+    }
 
 
 
@@ -86,6 +115,8 @@ class UserProfileScreenTest {
 
                     onEditProfileClick = {},
 
+                    onPolicyClick = {},
+
 
                     onSwitchViewClick = { switchClicked = true },
 
@@ -104,5 +135,48 @@ class UserProfileScreenTest {
 
         // check if really pressed
         assertTrue(switchClicked)
+    }
+
+
+
+    /**
+     * Tests the switch to admin view button
+     */
+    @Test
+    fun userProfileScreen_switchToAdminClicks() {
+        var adminClicked = false
+
+        composeTestRule.setContent {
+            UserProfileScreen(
+                currentView = UserView.ENTRANT,
+                onEditProfileClick = {},
+                onSwitchViewClick = {},
+                onBackClick = {},
+                onSwitchToAdminClick = { adminClicked = true }
+            )
+        }
+
+        composeTestRule.onNodeWithText("Switch to admin view")
+            .performScrollTo()
+            .performClick()
+
+        assertTrue(adminClicked)
+    }
+
+    /**
+     * Tests that the admin button is hidden when there is no admin callback
+     */
+    @Test
+    fun userProfileScreen_noAdminButtonWithoutCallback() {
+        composeTestRule.setContent {
+            UserProfileScreen(
+                currentView = UserView.OWNER,
+                onEditProfileClick = {},
+                onSwitchViewClick = {},
+                onBackClick = {}
+            )
+        }
+
+        composeTestRule.onNodeWithText("Switch to admin view").assertDoesNotExist()
     }
 }

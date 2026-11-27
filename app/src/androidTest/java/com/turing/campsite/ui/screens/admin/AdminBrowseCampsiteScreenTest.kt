@@ -3,11 +3,12 @@
  *
  * Company: OpenAI
  * Tool: ChatGPT (GPT-6)
- * Date: 2026-11-24
- * Subject: Admin campsite browsing UI tests, search functionality,
- *          loading and empty states, and Jetpack Compose testing.
  *
- * Scope: AI-assisted implementation and review of UI tests.
+ * Subjects:
+ * 2026-11-24: Campsite browsing, search, and UI state tests.
+ * 2026-11-25: Campsite deletion confirmation tests.
+ *
+ * Scope: AI-assisted implementation, debugging, and code review.
  */
 
 package com.turing.campsite.ui.screens.admin
@@ -17,28 +18,28 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import com.turing.campsite.data.model.Campsite
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
 /**
- * UI tests for AdminBrowseCampsiteScreen.
- *
- * Verifies navigation, campsite rendering, search filtering,
- * empty states, and loading behavior.
+ * UI tests for AdminBrowseCampsiteScreen, including search, loading states,
+ * and confirmation before invoking the deletion callback.
  */
 class AdminBrowseCampsiteScreenTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    // Sample data provided directly to the screen for testing.
     private val testCampsites = listOf(
         Campsite(
             id = "1",
@@ -54,215 +55,157 @@ class AdminBrowseCampsiteScreenTest {
         )
     )
 
-    /**
-     * Renders the screen without connecting to Firestore.
-     */
+    /** Renders the screen without connecting to Firestore. */
     private fun setScreen(
         campsites: List<Campsite> = emptyList(),
         isLoading: Boolean = false,
-        onBackClick: () -> Unit = {}
+        onBackClick: () -> Unit = {},
+        onDeleteCampsite: ((String) -> Unit)? = null
     ) {
         composeTestRule.setContent {
             AdminBrowseCampsiteScreen(
                 onBackClick = onBackClick,
                 campsites = campsites,
-                isLoading = isLoading
+                isLoading = isLoading,
+                onDeleteCampsite = onDeleteCampsite
             )
         }
     }
 
-    /**
-     * Tests that the back button invokes its callback.
-     */
     @Test
     fun adminBrowseCampsiteScreen_backButtonClicks() {
         var clickedBack = false
-
         setScreen(onBackClick = { clickedBack = true })
 
-        composeTestRule
-            .onNodeWithContentDescription("Back to admin home")
-            .performClick()
+        composeTestRule.onNodeWithContentDescription("Back to admin home").performClick()
 
         assertTrue(clickedBack)
     }
 
-    /**
-     * Tests that the screen title is displayed.
-     */
     @Test
     fun adminBrowseCampsiteScreen_rendersTitle() {
         setScreen()
-
-        composeTestRule
-            .onNodeWithText("Browse Campsites")
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText("Browse Campsites").assertIsDisplayed()
     }
 
-    /**
-     * Tests that the supplied campsite list is displayed.
-     */
     @Test
     fun adminBrowseCampsiteScreen_displaysCampsites() {
         setScreen(campsites = testCampsites)
 
-        composeTestRule
-            .onNodeWithText("Pinewood Retreat")
-            .assertIsDisplayed()
-
-        composeTestRule
-            .onNodeWithText("Oak Hollow")
-            .assertIsDisplayed()
-
-        composeTestRule
-            .onNodeWithText("2 campsites")
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText("Pinewood Retreat").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Oak Hollow").assertIsDisplayed()
+        composeTestRule.onNodeWithText("2 campsites").assertIsDisplayed()
     }
 
-    /**
-     * Tests filtering by campsite name.
-     */
     @Test
     fun adminBrowseCampsiteScreen_searchesByName() {
         setScreen(campsites = testCampsites)
+        composeTestRule.onNode(hasSetTextAction()).performTextInput("Pinewood")
 
-        composeTestRule
-            .onNode(hasSetTextAction())
-            .performTextInput("Pinewood")
-
-        composeTestRule
-            .onNodeWithText("Pinewood Retreat")
-            .assertIsDisplayed()
-
-        composeTestRule
-            .onNodeWithText("Oak Hollow")
-            .assertDoesNotExist()
-
-        composeTestRule
-            .onNodeWithText("1 campsites")
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText("Pinewood Retreat").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Oak Hollow").assertDoesNotExist()
+        composeTestRule.onNodeWithText("1 campsites").assertIsDisplayed()
     }
 
-    /**
-     * Tests filtering by campsite location.
-     */
     @Test
     fun adminBrowseCampsiteScreen_searchesByLocation() {
         setScreen(campsites = testCampsites)
+        composeTestRule.onNode(hasSetTextAction()).performTextInput("Brecon")
 
-        composeTestRule
-            .onNode(hasSetTextAction())
-            .performTextInput("Brecon")
-
-        composeTestRule
-            .onNodeWithText("Oak Hollow")
-            .assertIsDisplayed()
-
-        composeTestRule
-            .onNodeWithText("Pinewood Retreat")
-            .assertDoesNotExist()
+        composeTestRule.onNodeWithText("Oak Hollow").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Pinewood Retreat").assertDoesNotExist()
     }
 
-    /**
-     * Tests case-insensitive searching.
-     */
     @Test
     fun adminBrowseCampsiteScreen_searchIsCaseInsensitive() {
         setScreen(campsites = testCampsites)
+        composeTestRule.onNode(hasSetTextAction()).performTextInput("pInEwOoD")
 
-        composeTestRule
-            .onNode(hasSetTextAction())
-            .performTextInput("pInEwOoD")
-
-        composeTestRule
-            .onNodeWithText("Pinewood Retreat")
-            .assertIsDisplayed()
-
-        composeTestRule
-            .onNodeWithText("Oak Hollow")
-            .assertDoesNotExist()
+        composeTestRule.onNodeWithText("Pinewood Retreat").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Oak Hollow").assertDoesNotExist()
     }
 
-    /**
-     * Tests that clearing search restores all campsites.
-     */
     @Test
     fun adminBrowseCampsiteScreen_clearingSearchRestoresList() {
         setScreen(campsites = testCampsites)
+        composeTestRule.onNode(hasSetTextAction()).performTextInput("Pinewood")
+        composeTestRule.onNode(hasSetTextAction()).performTextClearance()
 
-        composeTestRule
-            .onNode(hasSetTextAction())
-            .performTextInput("Pinewood")
-
-        composeTestRule
-            .onNode(hasSetTextAction())
-            .performTextClearance()
-
-        composeTestRule
-            .onNodeWithText("Pinewood Retreat")
-            .assertIsDisplayed()
-
-        composeTestRule
-            .onNodeWithText("Oak Hollow")
-            .assertIsDisplayed()
-
-        composeTestRule
-            .onNodeWithText("2 campsites")
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText("Pinewood Retreat").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Oak Hollow").assertIsDisplayed()
+        composeTestRule.onNodeWithText("2 campsites").assertIsDisplayed()
     }
 
-    /**
-     * Tests the empty state when no campsites exist.
-     */
     @Test
     fun adminBrowseCampsiteScreen_showsNoCampsitesMessage() {
         setScreen(campsites = emptyList())
-
-        composeTestRule
-            .onNodeWithText("No campsites registered yet.")
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText("No campsites registered yet.").assertIsDisplayed()
     }
 
-    /**
-     * Tests the empty state when search has no matches.
-     */
     @Test
     fun adminBrowseCampsiteScreen_showsNoSearchResultsMessage() {
         setScreen(campsites = testCampsites)
+        composeTestRule.onNode(hasSetTextAction()).performTextInput("Nonexistent Campsite")
 
-        composeTestRule
-            .onNode(hasSetTextAction())
-            .performTextInput("Nonexistent Campsite")
-
-        composeTestRule
-            .onNodeWithText("No campsites match your search.")
-            .assertIsDisplayed()
-
-        composeTestRule
-            .onNodeWithText("No campsites registered yet.")
-            .assertDoesNotExist()
+        composeTestRule.onNodeWithText("No campsites match your search.").assertIsDisplayed()
+        composeTestRule.onNodeWithText("No campsites registered yet.").assertDoesNotExist()
     }
 
-    /**
-     * Tests loading behavior before campsite data is available.
-     */
     @Test
     fun adminBrowseCampsiteScreen_showsLoadingIndicator() {
-        setScreen(
-            campsites = emptyList(),
-            isLoading = true
-        )
+        setScreen(campsites = emptyList(), isLoading = true)
 
-        composeTestRule
-            .onNode(
-                hasProgressBarRangeInfo(
-                    ProgressBarRangeInfo.Indeterminate
-                )
-            )
-            .assertExists()
+        composeTestRule.onNode(
+            hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate)
+        ).assertExists()
+        composeTestRule.onNodeWithText("No campsites registered yet.").assertDoesNotExist()
+    }
 
-        composeTestRule
-            .onNodeWithText("No campsites registered yet.")
-            .assertDoesNotExist()
+    @Test
+    fun delete_clickingIcon_opensConfirmationWithoutDeleting() {
+        var deletedId: String? = null
+        setScreen(campsites = testCampsites, onDeleteCampsite = { deletedId = it })
+
+        composeTestRule.onAllNodesWithContentDescription("Delete campsite")[0].performClick()
+
+        composeTestRule.onNodeWithText("Delete campsite?").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Are you sure you want to delete \"Pinewood Retreat\"?", substring = true)
+            .assertIsDisplayed()
+        assertEquals(null, deletedId)
+    }
+
+    @Test
+    fun delete_cancel_closesDialogWithoutCallingCallback() {
+        var called = false
+        setScreen(campsites = testCampsites, onDeleteCampsite = { called = true })
+        composeTestRule.onAllNodesWithContentDescription("Delete campsite")[0].performClick()
+
+        composeTestRule.onNodeWithText("Cancel").performClick()
+
+        composeTestRule.onNodeWithText("Delete campsite?").assertDoesNotExist()
+        assertFalse(called)
+    }
+
+    @Test
+    fun delete_confirm_passesCorrectCampsiteIdOnce() {
+        val deletedIds = mutableListOf<String>()
+        setScreen(campsites = testCampsites, onDeleteCampsite = { deletedIds.add(it) })
+        composeTestRule.onAllNodesWithContentDescription("Delete campsite")[1].performClick()
+
+        composeTestRule.onNodeWithText("Delete").performClick()
+
+        assertEquals(listOf("2"), deletedIds)
+        composeTestRule.onNodeWithText("Delete campsite?").assertDoesNotExist()
+    }
+
+    @Test
+    fun delete_searchFilteredList_stillDeletesMatchingCampsite() {
+        val deletedIds = mutableListOf<String>()
+        setScreen(campsites = testCampsites, onDeleteCampsite = { deletedIds.add(it) })
+        composeTestRule.onNode(hasSetTextAction()).performTextInput("Oak")
+        composeTestRule.onNodeWithContentDescription("Delete campsite").performClick()
+        composeTestRule.onNodeWithText("Delete").performClick()
+
+        assertEquals(listOf("2"), deletedIds)
     }
 }

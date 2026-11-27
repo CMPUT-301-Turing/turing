@@ -1,8 +1,22 @@
+/*
+ * AI Assistance Disclosure
+ *
+ * Company: OpenAI
+ * Tool: ChatGPT (GPT-6)
+ *
+ * Subjects:
+ * 2026-11-25: Campsite deletion result and state tests.
+ *
+ * Scope: AI-assisted implementation, debugging, and code review.
+ */
+
 package com.turing.campsite.ui.viewmodel
 
 import com.turing.campsite.data.model.Campsite
 import com.turing.campsite.data.model.Review
 import com.turing.campsite.data.repository.CampsiteRepository
+import com.turing.campsite.data.service.CampsiteDeletionResult
+import com.turing.campsite.data.service.CampsiteDeletionService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -26,16 +40,17 @@ import org.mockito.Mockito.verify
 class CampsiteViewModelTest {
 
     private lateinit var repository: CampsiteRepository
+    private lateinit var deletionService: CampsiteDeletionService
     private lateinit var viewModel: CampsiteViewModel
     private lateinit var pinewood: Campsite
     private lateinit var lakeside: Campsite
 
-    // Set up a fake repository and two campsites before every single test
     @Before
     fun setUp() {
-        Dispatchers.setMain(UnconfinedTestDispatcher()) // run background calls right away
+        Dispatchers.setMain(UnconfinedTestDispatcher())
         repository = mock(CampsiteRepository::class.java)
-        viewModel = CampsiteViewModel(repository)
+        deletionService = mock(CampsiteDeletionService::class.java)
+        viewModel = CampsiteViewModel(repository, deletionService)
         pinewood = Campsite(id = "c1", ownerId = "owner1", name = "Pinewood")
         lakeside = Campsite(id = "c2", ownerId = "owner1", name = "Lakeside")
     }
@@ -62,7 +77,7 @@ class CampsiteViewModelTest {
         viewModel.loadAll()
 
         assertEquals("no internet", viewModel.errorMessage)
-        assertTrue(viewModel.campsites.isEmpty()) // list is left as it was
+        assertTrue(viewModel.campsites.isEmpty())
     }
 
     @Test
@@ -126,7 +141,7 @@ class CampsiteViewModelTest {
         verify(repository, never()).add(unnamed)
         assertEquals("Campsite needs a name", viewModel.errorMessage)
         assertTrue(viewModel.campsites.isEmpty())
-        assertFalse(done) // onDone must not run when nothing was saved
+        assertFalse(done)
     }
 
     @Test
@@ -139,18 +154,81 @@ class CampsiteViewModelTest {
 
         verify(repository).update(renamed)
         assertEquals("Pinewood Retreat", viewModel.campsites[0].name)
-        assertEquals(2, viewModel.campsites.size) // nothing added or removed
+        assertEquals(2, viewModel.campsites.size)
     }
 
     @Test
-    fun delete_campsiteInList_removedFromList() = runBlocking<Unit> {
+    fun delete_success_removesCampsiteFromBothLists() = runBlocking<Unit> {
         doReturn(listOf(pinewood, lakeside)).`when`(repository).listAll()
+        doReturn(listOf(pinewood, lakeside)).`when`(repository).listByOwner("owner1")
+        doReturn(CampsiteDeletionResult.Deleted).`when`(deletionService).delete("c1")
+        viewModel.loadAll()
+        viewModel.listByOwner("owner1")
+
+        viewModel.delete("c1")
+
+        verify(deletionService).delete("c1")
+        verify(repository, never()).delete("c1")
+        assertEquals(listOf(lakeside), viewModel.campsites)
+        assertEquals(listOf(lakeside), viewModel.ownerCampsites)
+        assertNull(viewModel.errorMessage)
+    }
+
+    @Test
+    fun delete_success_clearsSelectedCampsiteAndReviews() = runBlocking<Unit> {
+        val review = Review(id = "r1", rating = 5)
+        doReturn(pinewood).`when`(repository).get("c1")
+        doReturn(listOf(review)).`when`(repository).listReviews("c1")
+        doReturn(CampsiteDeletionResult.Deleted).`when`(deletionService).delete("c1")
+        viewModel.select("c1")
+
+        viewModel.delete("c1")
+
+        assertNull(viewModel.selectedCampsite)
+        assertTrue(viewModel.reviews.isEmpty())
+    }
+
+    @Test
+    fun delete_blockedByLottery_keepsListAndReportsReason() = runBlocking<Unit> {
+        doReturn(listOf(pinewood, lakeside)).`when`(repository).listAll()
+        doReturn(CampsiteDeletionResult.BlockedByLottery).`when`(deletionService).delete("c1")
         viewModel.loadAll()
 
         viewModel.delete("c1")
 
-        verify(repository).delete("c1")
-        assertEquals(listOf(lakeside), viewModel.campsites) // only Lakeside is left
+        assertEquals(listOf(pinewood, lakeside), viewModel.campsites)
+        assertEquals(
+            "Cannot delete campsite while it has an active lottery or booking period.",
+            viewModel.errorMessage
+        )
+    }
+
+    @Test
+    fun delete_blockedByReservation_keepsListAndReportsReason() = runBlocking<Unit> {
+        doReturn(listOf(pinewood, lakeside)).`when`(repository).listAll()
+        doReturn(CampsiteDeletionResult.BlockedByReservation).`when`(deletionService).delete("c1")
+        viewModel.loadAll()
+
+        viewModel.delete("c1")
+
+        assertEquals(listOf(pinewood, lakeside), viewModel.campsites)
+        assertEquals(
+            "Cannot delete campsite while it has active reservations.",
+            viewModel.errorMessage
+        )
+    }
+
+    @Test
+    fun delete_serviceFails_keepsListAndReportsError() = runBlocking<Unit> {
+        doReturn(listOf(pinewood, lakeside)).`when`(repository).listAll()
+        doThrow(IllegalStateException("delete failed")).`when`(deletionService).delete("c1")
+        viewModel.loadAll()
+
+        viewModel.delete("c1")
+
+        assertEquals(listOf(pinewood, lakeside), viewModel.campsites)
+        assertEquals("delete failed", viewModel.errorMessage)
+        assertFalse(viewModel.isLoading)
     }
 
     @Test

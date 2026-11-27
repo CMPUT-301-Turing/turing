@@ -5,6 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 
+import com.turing.campsite.ui.screens.shared.AppPolicyScreen
 import com.turing.campsite.ui.screens.shared.LoginScreen
 import com.turing.campsite.ui.screens.shared.RegisterScreen
 import com.turing.campsite.ui.screens.shared.LogOutScreen
@@ -41,11 +42,17 @@ fun NavGraphBuilder.sharedGraph(
             onEditProfileClick = {
                 navController.navigate(Routes.USER_EDIT_PROFILE)
             },
+            onPolicyClick = {
+                navController.navigate(Routes.APP_POLICY)
+            },
             onSwitchViewClick = {
-                navController.navigate(Routes.OWNER_HOME)
+                navController.switchView(Routes.OWNER_HOME)
             },
             onBackClick = {
                 navController.popBackStack()
+            },
+            onSwitchToAdminClick = {
+                navController.switchView(Routes.ADMIN_HOME)
             }
         )
     }
@@ -57,9 +64,24 @@ fun NavGraphBuilder.sharedGraph(
             onEditProfileClick = {
                 navController.navigate(Routes.USER_EDIT_PROFILE)
             },
-            onSwitchViewClick = {
-                navController.navigate(Routes.ENTRANT_HOME)
+            onPolicyClick = {
+                navController.navigate(Routes.APP_POLICY)
             },
+            onSwitchViewClick = {
+                navController.switchView(Routes.ENTRANT_HOME)
+            },
+            onBackClick = {
+                navController.popBackStack()
+            },
+            onSwitchToAdminClick = {
+                navController.switchView(Routes.ADMIN_HOME)
+            }
+        )
+    }
+
+    // App policy and guidelines, opened from the profile screen
+    composable(Routes.APP_POLICY) {
+        AppPolicyScreen(
             onBackClick = {
                 navController.popBackStack()
             }
