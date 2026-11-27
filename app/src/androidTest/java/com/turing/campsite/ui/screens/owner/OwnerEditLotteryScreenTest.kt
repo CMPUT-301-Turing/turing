@@ -7,6 +7,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.assertIsDisplayed
+import com.turing.campsite.ui.viewmodel.LotteryViewModel
 import org.junit.Assert.assertTrue
 
 /**
@@ -28,12 +29,14 @@ class OwnerEditLotteryScreenTest {
     fun ownerEditLotteryScreen_backButtonClicks() {
 
         var backClicked = false
+        val lotteryViewModel = LotteryViewModel()
 
 
         composeTestRule.setContent {
 
             OwnerEditLotteryScreen(
-                onBackClick = { backClicked = true }
+                onBackClick = { backClicked = true },
+                lotteryViewModel = lotteryViewModel
             )
         }
 
@@ -54,6 +57,7 @@ class OwnerEditLotteryScreenTest {
     fun ownerEditLotteryScreen_updateButtonClicks() {
 
         var updateClicked = false
+        val lotteryViewModel = LotteryViewModel()
 
 
         composeTestRule.setContent {
@@ -61,7 +65,8 @@ class OwnerEditLotteryScreenTest {
             OwnerEditLotteryScreen(
                 onBackClick = {},
 
-                onUpdateClick = { updateClicked = true }
+                onUpdateClick = { updateClicked = true },
+                lotteryViewModel = lotteryViewModel
 
             )
         //
@@ -81,12 +86,15 @@ class OwnerEditLotteryScreenTest {
      */
     @Test
     fun ownerEditLotteryScreen_rendersTitle() {
+        val lotteryViewModel = LotteryViewModel()
 
         composeTestRule.setContent {
 
+
             OwnerEditLotteryScreen(
 
-                onBackClick = {}
+                onBackClick = {},
+                lotteryViewModel = lotteryViewModel
             )
         }
 
