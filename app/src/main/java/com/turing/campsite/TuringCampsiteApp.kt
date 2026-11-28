@@ -76,7 +76,7 @@ fun TuringCampsiteApp(
                 startDestination = Routes.LOGIN,
                 modifier = Modifier.padding(innerPadding)
             ) {
-                sharedGraph(navController)
+                sharedGraph(navController, authViewModel)
                 entrantGraph(navController)
                 ownerGraph(navController)
                 adminGraph(navController)

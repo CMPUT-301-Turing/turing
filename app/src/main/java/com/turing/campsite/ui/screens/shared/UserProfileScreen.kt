@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.ManageAccounts
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,7 +28,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -85,8 +91,11 @@ fun UserProfileScreen(
     onPolicyClick: () -> Unit = {},
     onSwitchViewClick: (() -> Unit)?,
     onBackClick: () -> Unit,
-    onSwitchToAdminClick: (() -> Unit)? = null
+    onSwitchToAdminClick: (() -> Unit)? = null,
+    onDeleteProfileConfirm: () -> Unit = {}
 ) {
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+
     val switchTitle: String
     val switchDescription: String
 
@@ -282,7 +291,29 @@ fun UserProfileScreen(
             title = "Delete profile",
             description = "Permanently remove your profile.",
             icon = Icons.Outlined.DeleteOutline,
-            destructive = true
+            destructive = true,
+            onClick = { showDeleteDialog = true }
+        )
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete your profile?") },
+            text = { Text("Your details and settings will be removed. This can't be undone.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteDialog = false
+                    onDeleteProfileConfirm()
+                }) {
+                    Text("Delete", color = DeleteColor)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel", color = PrimaryColor)
+                }
+            }
         )
     }
 }

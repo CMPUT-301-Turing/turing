@@ -9,6 +9,7 @@ import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import com.turing.campsite.data.model.User
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import androidx.compose.ui.test.onNodeWithContentDescription
 
 import androidx.compose.ui.test.onNodeWithText
@@ -315,5 +316,43 @@ class UserProfileScreenTest {
         }
 
         composeTestRule.onNodeWithText("Switch to admin view").assertDoesNotExist()
+    }
+
+    @Test
+    fun userProfileScreen_confirmDeleteCallsDelete() {
+        var deleted = false
+        composeTestRule.setContent {
+            UserProfileScreen(
+                currentView = UserView.ENTRANT,
+                onEditProfileClick = {},
+                onSwitchViewClick = {},
+                onBackClick = {},
+                onDeleteProfileConfirm = { deleted = true }
+            )
+        }
+
+        composeTestRule.onNodeWithText("Delete profile").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("Delete").performClick()
+
+        assertTrue(deleted)
+    }
+
+    @Test
+    fun userProfileScreen_cancelDeleteDoesNotDelete() {
+        var deleted = false
+        composeTestRule.setContent {
+            UserProfileScreen(
+                currentView = UserView.ENTRANT,
+                onEditProfileClick = {},
+                onSwitchViewClick = {},
+                onBackClick = {},
+                onDeleteProfileConfirm = { deleted = true }
+            )
+        }
+
+        composeTestRule.onNodeWithText("Delete profile").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("Cancel").performClick()
+
+        assertFalse(deleted)
     }
 }

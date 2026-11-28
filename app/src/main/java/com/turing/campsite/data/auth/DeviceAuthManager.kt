@@ -34,6 +34,18 @@ class DeviceAuthManager {
     }
 
     /**
+     * Deletes the phone's Firebase account and signs out, used when deleting a profile.
+     */
+    suspend fun deleteAccount() {
+        try {
+            auth.currentUser?.delete()?.await()
+        } catch (e: Exception) {
+            // Firebase can refuse if the sign-in is old, signing out still gives a new uid
+        }
+        auth.signOut()
+    }
+
+    /**
      * Signs the phone out so the next signIn() creates a brand new uid.
      */
     fun signOut() {

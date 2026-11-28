@@ -113,6 +113,32 @@ class AuthViewModelTest {
         verify(authManager, times(1)).signIn()
     }
 
+    @Test
+    fun deleteProfile_deletesAndSignsInAsNewUser() = runBlocking<Unit> {
+        doReturn("uid1", "uid2").`when`(authManager).signIn()
+        doReturn(User(id = "uid1")).`when`(userRepository).get("uid1")
+        viewModel.signIn()
+
+        viewModel.deleteProfile()
+
+        verify(userRepository).delete("uid1")
+        verify(authManager).deleteAccount()
+        assertEquals("uid2", viewModel.uid)
+    }
+
+    @Test
+    fun deleteProfile_deleteFails_staysSignedIn() = runBlocking<Unit> {
+        doReturn("uid1").`when`(authManager).signIn()
+        doReturn(User(id = "uid1")).`when`(userRepository).get("uid1")
+        doThrow(IllegalStateException("no internet")).`when`(userRepository).delete("uid1")
+        viewModel.signIn()
+
+        viewModel.deleteProfile()
+
+        assertEquals("uid1", viewModel.uid)
+        verify(authManager, never()).deleteAccount()
+    }
+
     /** Returns the user that was passed to save(). */
     private suspend fun savedUser(): User {
         val captor = ArgumentCaptor.forClass(User::class.java)

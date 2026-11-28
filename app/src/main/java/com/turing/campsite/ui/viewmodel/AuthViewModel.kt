@@ -90,4 +90,21 @@ class AuthViewModel(
             uid = signedInUid
         }
     }
+
+    /**
+     * Deletes the user's profile and signs in again as a new user (US 01.08.01).
+     */
+    fun deleteProfile() {
+        val oldUid = uid ?: return
+        // stop watching the old profile so the app doesn't show "profile not found"
+        profileObservation?.cancel()
+        launchCall {
+            userRepository.delete(oldUid)
+            authManager.deleteAccount()
+            uid = null
+            val newUid = authManager.signIn()
+            userRepository.save(User(id = newUid))
+            uid = newUid
+        }
+    }
 }

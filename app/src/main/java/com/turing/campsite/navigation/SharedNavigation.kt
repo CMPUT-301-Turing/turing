@@ -17,6 +17,7 @@ import com.turing.campsite.ui.screens.shared.LogOutScreen
 import com.turing.campsite.ui.screens.shared.UserProfileScreen
 import com.turing.campsite.ui.screens.shared.UserEditProfileScreen
 import com.turing.campsite.ui.screens.shared.UserView
+import com.turing.campsite.ui.viewmodel.AuthViewModel
 import com.turing.campsite.ui.viewmodel.UserViewModel
 import com.turing.campsite.data.auth.LocalCurrentUid
 import com.turing.campsite.data.auth.LocalCurrentUser
@@ -29,7 +30,8 @@ import com.turing.campsite.data.model.UserRole
  * or campsite owner roles.
  */
 fun NavGraphBuilder.sharedGraph(
-    navController: NavHostController
+    navController: NavHostController,
+    authViewModel: AuthViewModel
 ) {
     // Authentication
     composable(Routes.LOGIN) {
@@ -66,7 +68,8 @@ fun NavGraphBuilder.sharedGraph(
             onPolicyClick = { navController.navigate(Routes.APP_POLICY) },
             onSwitchViewClick = switchView,
             onBackClick = { navController.popBackStack() },
-            onSwitchToAdminClick = switchToAdmin
+            onSwitchToAdminClick = switchToAdmin,
+            onDeleteProfileConfirm = { authViewModel.deleteProfile() }
         )
     }
 
@@ -92,7 +95,8 @@ fun NavGraphBuilder.sharedGraph(
             onPolicyClick = { navController.navigate(Routes.APP_POLICY) },
             onSwitchViewClick = switchView,
             onBackClick = { navController.popBackStack() },
-            onSwitchToAdminClick = switchToAdmin
+            onSwitchToAdminClick = switchToAdmin,
+            onDeleteProfileConfirm = { authViewModel.deleteProfile() }
         )
     }
 
