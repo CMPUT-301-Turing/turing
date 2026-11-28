@@ -32,6 +32,7 @@ import androidx.compose.material3.rememberModalBottomSheetState//
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope//
@@ -47,7 +48,17 @@ import com.turing.campsite.PrimaryColor
 
 import com.turing.campsite.ui.components.CampsiteCard
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
+import com.turing.campsite.ui.viewmodel.LotteryViewModel
 import kotlinx.coroutines.launch//
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.foundation.BorderStroke
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
@@ -58,59 +69,63 @@ private val SecondaryText = Color(0xFF7A8079)
 @Composable
 fun EntrantHomeScreen(
     campsiteViewModel: CampsiteViewModel,
+    lotteryViewModel: LotteryViewModel,
     onCampsiteClick: (String) -> Unit,
 ) {
     val campsites = campsiteViewModel.campsites
+    val lottery= lotteryViewModel.lotteries
     var searchQuery by remember { mutableStateOf("") }
     var filterLocation by remember { mutableStateOf("") }//
     var tempFilterLocation by remember { mutableStateOf("") }//
     var expanded by remember { mutableStateOf(false) }//
-    var guestCountParameter by remember { mutableStateOf("") }//
+    var tempGuestCountParameter by remember { mutableStateOf("") }//
+    var guestCountParameter by remember { mutableStateOf("") }
     var tempFilterGuestCount by remember { mutableStateOf("") }
     var tempFilterGuestCountInt by remember { mutableStateOf(0) }
     var filterActive by remember { mutableStateOf(false) }//
-
     var filterGuestCount by remember { mutableStateOf(0) }
     var showFilter by remember { mutableStateOf(false) }//
     val scope = rememberCoroutineScope()//
     val sheetState = rememberModalBottomSheetState()//
-
+    var tempFilterDate by remember { mutableStateOf<Long?>(null) }
+    var filterDate by remember { mutableStateOf<Long?>(null) }
+    var showDatePicker by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         campsiteViewModel.loadAll()
     }
 
-    // get active campsites
     val activeCampsites = campsites.filter { it.statusLabel.equals("Active", ignoreCase = true) }
     var filteredCampsites = activeCampsites
-    // filter them based on search
 
-    if (guestCountParameter=="=" && !showFilter){
-        filteredCampsites = activeCampsites.filter {
-            (it.name.contains(searchQuery, ignoreCase = true) ||
-            (it.location.contains(searchQuery, ignoreCase = true))) && (
-            it.location.contains(filterLocation, ignoreCase = true) &&(
-            it.maxOccupancy == filterGuestCount))
+    filteredCampsites = activeCampsites.filter { campsite ->
+        val matchesSearch = campsite.name.contains(searchQuery, ignoreCase = true) ||
+                campsite.location.contains(searchQuery, ignoreCase = true)
+        val matchesLocation = campsite.location.contains(filterLocation, ignoreCase = true)
+
+        val matchesGuests = when (guestCountParameter) {
+            "=" -> campsite.maxOccupancy == filterGuestCount
+            ">=" -> campsite.maxOccupancy >= filterGuestCount
+            "<=" -> campsite.maxOccupancy <= filterGuestCount
+            else -> true // If no operator is selected, don't filter by guest count
         }
-    }else if (guestCountParameter==">=" && !showFilter) {
-         filteredCampsites = activeCampsites.filter {
-            (it.name.contains(searchQuery, ignoreCase = true) ||
-            (it.location.contains(searchQuery, ignoreCase = true))) && (
-            it.location.contains(filterLocation, ignoreCase = true) && (
-            it.maxOccupancy >= filterGuestCount))
+        var matchesDate = true
+        if (filterDate != null) {
+            val campsiteLottery = lottery.find { it.campsiteID == campsite.id }
+            val startTimestamp = campsiteLottery?.bookingStart
+            val endTimestamp = campsiteLottery?.bookingEnd
+            if (startTimestamp != null && endTimestamp != null) {
+                val startMillis = startTimestamp.toDate().time
+                val endMillis = endTimestamp.toDate().time
+
+                matchesDate = filterDate!! in startMillis..endMillis
+
+            } else {
+                matchesDate = false
+            }
         }
-    }else if((guestCountParameter=="<=") && !showFilter){
-         filteredCampsites = activeCampsites.filter {
-            (it.name.contains(searchQuery, ignoreCase = true) ||
-            (it.location.contains(searchQuery, ignoreCase = true))) && (
-            it.location.contains(filterLocation, ignoreCase = true) && (
-            it.maxOccupancy <= filterGuestCount))
-        }
-    }else{
-         filteredCampsites = activeCampsites.filter {
-            (it.name.contains(searchQuery, ignoreCase = true) ||
-            (it.location.contains(searchQuery, ignoreCase = true)))&& (
-            it.location.contains(filterLocation, ignoreCase = true))
-        }
+
+        // Combine all conditions
+        matchesSearch && matchesLocation && matchesGuests && matchesDate
     }
 
     LazyColumn(
@@ -289,10 +304,13 @@ fun EntrantHomeScreen(
                             tempFilterGuestCount = ""
                             tempFilterGuestCountInt = 0
                             tempFilterLocation = ""
-                            guestCountParameter=""
+                            tempGuestCountParameter = ""
+                            guestCountParameter = ""
                             filterLocation = tempFilterLocation
                             filterGuestCount = 0
-                        }//
+                            tempFilterDate = null
+                            filterDate = null
+                        }
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
@@ -343,7 +361,7 @@ fun EntrantHomeScreen(
                     ) {
                         Box(contentAlignment = Alignment.CenterStart,
                             modifier = Modifier.fillMaxWidth().weight(1f),) {
-                        Text(guestCountParameter)
+                        Text(tempGuestCountParameter)
                         }
                         Box(contentAlignment = Alignment.CenterEnd,
                             modifier = Modifier.fillMaxWidth().weight(2f),
@@ -365,7 +383,7 @@ fun EntrantHomeScreen(
                             text = { Text(">=") },
                             onClick = {
                                 expanded = false
-                                guestCountParameter = ">="
+                                tempGuestCountParameter = ">="
 
                             }
                         )
@@ -373,7 +391,7 @@ fun EntrantHomeScreen(
                             text = { Text("=") },
                             onClick = {
                                 expanded = false
-                                guestCountParameter = "="
+                                tempGuestCountParameter = "="
 
                             }
                         )
@@ -381,7 +399,7 @@ fun EntrantHomeScreen(
                             text = { Text("<=") },
                             onClick = {
                                 expanded = false
-                                guestCountParameter = "<="
+                                tempGuestCountParameter = "<="
 
                             }
                         )
@@ -389,7 +407,7 @@ fun EntrantHomeScreen(
                             text = { Text("") },
                             onClick = {
                                 expanded = false
-                                guestCountParameter = ""
+                                tempGuestCountParameter = ""
 
                             }
                         )
@@ -426,6 +444,60 @@ fun EntrantHomeScreen(
                 )
 
             }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Date: ")
+
+                // Button that opens the Date Picker
+                OutlinedButton(
+                    onClick = { showDatePicker = true },
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = CardBackground
+                    ),
+                    border = BorderStroke(1.dp, CardBorder)
+                ) {
+                    val dateText = if (tempFilterDate != null) {
+                        val formatter = SimpleDateFormat("MMM dd, yyyy", LocalLocale.current.platformLocale)
+                        formatter.format(Date(tempFilterDate!!))
+                    } else {
+                        "Select a date"
+                    }
+                    Text(text = dateText, color = if (tempFilterDate != null) PrimaryColor else SecondaryText)
+                }
+            }
+
+            if (showDatePicker) {
+                val datePickerState = rememberDatePickerState(
+                    initialSelectedDateMillis = tempFilterDate ?: System.currentTimeMillis()
+                )
+                DatePickerDialog(
+                    onDismissRequest = { showDatePicker = false },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                tempFilterDate = datePickerState.selectedDateMillis
+                                showDatePicker = false
+                            }
+                        ) {
+                            Text("OK", color = PrimaryColor)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDatePicker = false }) {
+                            Text("Cancel", color = SecondaryText)
+                        }
+                    }
+                ) {
+                    DatePicker(state = datePickerState)
+                }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -439,7 +511,9 @@ fun EntrantHomeScreen(
                     }
                     filterLocation=tempFilterLocation
                     filterGuestCount=tempFilterGuestCountInt
+                    guestCountParameter=tempGuestCountParameter
                     filterActive= true
+                    filterDate = tempFilterDate
 
                 },
                 modifier = Modifier.fillMaxWidth(),

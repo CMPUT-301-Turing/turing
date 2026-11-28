@@ -27,10 +27,12 @@ fun NavGraphBuilder.entrantGraph(
 ) {
     composable(Routes.ENTRANT_HOME) {
         val campsiteViewModel: CampsiteViewModel = viewModel()
+        val lotteryViewModel: LotteryViewModel = viewModel()
         ErrorToast(campsiteViewModel)
 
         EntrantHomeScreen(
             campsiteViewModel = campsiteViewModel,
+            lotteryViewModel =  lotteryViewModel,
         ) { campsiteId ->
             navController.navigate(
                 "${Routes.ENTRANT_CAMPSITE_DETAILS}/${Uri.encode(campsiteId)}"
