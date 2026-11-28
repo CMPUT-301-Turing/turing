@@ -33,16 +33,21 @@ enum class LotteryStatus { OPEN, DRAWN, CLOSED }
  * @property createdAt when the lottery document was created
  */
 data class Lottery(
+    var name: String = "",
     var id: String = "",
     var ownerId: String = "",
-    var campsiteID: String= "",
+    var campsiteID: List<String> = emptyList(), // this will have other owner's campsites added to it in the multi option
     var registrationStart: Timestamp? = null,
     var registrationEnd: Timestamp? = null,
     var bookingStart: Timestamp? = null,
     var bookingEnd: Timestamp? = null,
     var winnerCount: Int = 0,
-    var waitlistCap: Long = 0,
-    var status: String = "closed"
+    var capOn: Boolean = false, //dictates if we have a cap
+    var lotteryCap: Int = 0, // what the cap is
+    var status: String = "closed", // -> will need to make a check that changes this to active with the timestamps reg start to end
+    var multi: Boolean = false, // for implementation of multiple owners' campsites
+    var ownerList: List<String> = emptyList(), // list of the owners with campsites in this lottery
+    var waitlist: List<LotteryEntry> = emptyList() // actual waitlist
 ) {
     /**
      * Checks whether entrants can still join the lottery at a given time.

@@ -33,6 +33,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 import com.turing.campsite.PrimaryColor
+import com.turing.campsite.data.model.User
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
@@ -55,7 +58,9 @@ enum class UserView {
 /**
  * Shared profile screen for entrants and campsite owners.
  *
- * Displays temporary profile information and settings.
+ * Displays the user's saved details and profile settings. Empty details
+ * show a "Not added" hint so the user knows to fill them in. The user is
+ * null while the profile is still loading.
  *
  * The current view determines which role the user
  * can switch to and whether a back button is shown.
@@ -68,6 +73,7 @@ enum class UserView {
 @Composable
 fun UserProfileScreen(
     currentView: UserView,
+    user: User? = null,
     onEditProfileClick: () -> Unit,
     onPolicyClick: () -> Unit = {},
     onSwitchViewClick: () -> Unit,
@@ -145,8 +151,8 @@ fun UserProfileScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 ProfileField(
-                    label = "Username",
-                    value = "alex_outdoors",
+                    label = "Name",
+                    value = profileValue(user, user?.name),
                     emphasized = true
                 )
 
@@ -154,14 +160,14 @@ fun UserProfileScreen(
 
                 ProfileField(
                     label = "Email",
-                    value = "alex.outdoors@example.com"
+                    value = profileValue(user, user?.email)
                 )
 
                 HorizontalDivider(color = CardBorder)
 
                 ProfileField(
                     label = "Phone number",
-                    value = "+44 7700 900123"
+                    value = profileValue(user, user?.phone)
                 )
 
                 Row(
@@ -175,7 +181,10 @@ fun UserProfileScreen(
                     )
 
                     Text(
-                        text = "12 June 2026",
+                        text = user?.let {
+                            SimpleDateFormat("d MMMM yyyy", Locale.getDefault())
+                                .format(it.createdAt.toDate())
+                        } ?: "Loading...",
                         fontSize = 12.sp,
                         color = PrimaryColor
                     )
@@ -258,6 +267,19 @@ fun UserProfileScreen(
             destructive = true
         )
     }
+}
+
+/**
+ * Picks the text to show for one profile detail.
+ *
+ * @param user the loaded user, or null while loading
+ * @param value the detail to show
+ * @return "Loading..." before the user loads, "Not added" if the detail is empty
+ */
+private fun profileValue(user: User?, value: String?): String = when {
+    user == null -> "Loading..."
+    value.isNullOrBlank() -> "Not added"
+    else -> value
 }
 
 /**

@@ -55,11 +55,19 @@ class UserViewModel(
      * @param name the new display name
      * @param email the new contact email
      * @param phone the new contact phone number
+     * @param onSaved called after the update has been saved, not called if it fails
      */
-    fun updateProfile(uid: String, name: String, email: String, phone: String) {
+    fun updateProfile(
+        uid: String,
+        name: String,
+        email: String,
+        phone: String,
+        onSaved: () -> Unit = {}
+    ) {
         launchCall {
             repository.updateProfile(uid, name, email, phone)
             user = user?.copy(name = name, email = email, phone = phone)
+            onSaved()
         }
     }
 

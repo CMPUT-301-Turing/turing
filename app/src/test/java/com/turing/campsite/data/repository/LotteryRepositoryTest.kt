@@ -192,10 +192,10 @@ class LotteryRepositoryTest : FirestoreTestFixture("lotteries") {
     private fun lottery(capacity: Int?) {
         val now = Timestamp.now()
         doReturn(completed(row(Lottery::class.java, Lottery(
-            ownerId = "owner", campsiteID = "site-1", winnerCount = 1,
+            ownerId = "owner", campsiteID = listOf("site-1"), winnerCount = 1,
             registrationStart = Timestamp(now.seconds - 86_400, now.nanoseconds),
             registrationEnd = Timestamp(now.seconds + 86_400, now.nanoseconds),
-            status = "open", waitlistCap = (capacity ?: 0).toLong())))).`when`(doc).get()
+            status = "open", lotteryCap = (capacity ?: 0))))).`when`(doc).get()
     }
     /**
      * Given a missing lottery, expects false without accessing its entries collection.

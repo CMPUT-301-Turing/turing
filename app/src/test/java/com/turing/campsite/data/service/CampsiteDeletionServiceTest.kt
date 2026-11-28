@@ -1,5 +1,6 @@
-/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
- * Scope: Four campsite cascade coordination tests. Firebase permissions are not mocked proof.
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-27.
+ * Scope: Four cascade coordination cases adapted to merged shared-lottery schema.
+ * Mocks verify coordination, not live Firestore rules or delivery transactions.
  */
 package com.turing.campsite.data.service
 
@@ -19,8 +20,9 @@ class CampsiteDeletionServiceTest {
     private val users = mock(UserRepository::class.java)
     private val notifier = mock(CampsiteRemovalNotifier::class.java)
     private val campsite = Campsite(id = "site", ownerId = "owner", name = "Pinewood")
-    private val lottery = Lottery(id = "lottery", campsiteID = "site", ownerId = "owner")
+    private val lottery = CampsiteLotteryLink("lottery", listOf("site"))
     private val reservation = Reservation(id = "reservation", campsiteId = "site", entrantId = "entrant")
+    private val plan = CampsiteDeletionPlan(listOf("owner", "entrant"), listOf("lottery"))
     private lateinit var service: CampsiteDeletionService
 
     @Before fun setUp() = runBlocking<Unit> {
@@ -29,42 +31,58 @@ class CampsiteDeletionServiceTest {
         doReturn(campsite).`when`(campsites).get("site")
         doReturn(null).`when`(campsites).beginDeletion("site")
         doReturn(listOf(lottery)).`when`(lotteries).listByCampsiteForDeletion("site")
-        doReturn(listOf(LotteryEntry(entrantId = "entrant"))).`when`(lotteries).listEntriesForDeletion("lottery")
+        doReturn(listOf("entrant")).`when`(lotteries).listParticipantIdsForRemoval("lottery")
         doReturn(listOf(reservation)).`when`(reservations).listByCampsite("site")
         doReturn(listOf(reservation)).`when`(reservations).listByLottery("lottery")
-        doReturn(listOf("owner", "entrant")).`when`(campsites)
-            .captureDeletionRecipients("site", listOf("owner", "entrant"))
+        doReturn(plan).`when`(campsites)
+            .captureDeletionRecipients("site", plan.recipientIds, plan.lotteryIds)
+        doReturn(CampsiteLotteryRemoval.DELETE_LOTTERY).`when`(lotteries).removeCampsite("lottery", "site")
     }
 
     @Test fun cascade_checkpointsBeforeDeletingAndRemovesChildrenBeforeParents() = runBlocking<Unit> {
-        // The administrator can remove someone else's campsite, including active dependencies.
         doReturn(User(id = "owner", roles = listOf(UserRole.ADMIN))).`when`(users).get("owner")
         campsite.ownerId = "different-owner"
-        doReturn(listOf("different-owner", "entrant")).`when`(campsites)
-            .captureDeletionRecipients("site", listOf("different-owner", "entrant"))
+        val adminPlan = plan.copy(recipientIds = listOf("different-owner", "entrant"))
+        doReturn(adminPlan).`when`(campsites)
+            .captureDeletionRecipients("site", adminPlan.recipientIds, adminPlan.lotteryIds)
         assertEquals(CampsiteDeletionResult.Deleted, service.delete("site"))
         val ordered = inOrder(campsites, reservations, messages, lotteries, notifier)
         ordered.verify(campsites).beginDeletion("site")
-        ordered.verify(campsites).captureDeletionRecipients("site", listOf("different-owner", "entrant"))
+        ordered.verify(lotteries).beginCampsiteRemoval("lottery", "site")
+        ordered.verify(campsites).captureDeletionRecipients("site", adminPlan.recipientIds, adminPlan.lotteryIds)
         ordered.verify(messages).deleteForReservation("reservation")
         ordered.verify(reservations).delete("reservation")
+        ordered.verify(lotteries).removeCampsite("lottery", "site")
         ordered.verify(lotteries).deleteEntries("lottery")
-        ordered.verify(lotteries).delete("lottery")
-        ordered.verify(notifier).notify(campsite, listOf("different-owner", "entrant"), "owner")
+        ordered.verify(lotteries).deleteForCampsiteRemoval("lottery", "site")
+        ordered.verify(notifier).notify(campsite, adminPlan.recipientIds, "owner")
         ordered.verify(campsites).deleteReviews("site")
         ordered.verify(campsites).delete("site")
         verify(reservations, times(1)).delete("reservation")
     }
 
-    @Test fun recipients_deduplicatesOwnerWaitlistAndBookingsAcrossLotteries() = runBlocking<Unit> {
-        doReturn(listOf(lottery, lottery.copy(id = "lottery2"))).`when`(lotteries).listByCampsiteForDeletion("site")
-        doReturn(listOf(LotteryEntry(entrantId = "owner"), LotteryEntry(entrantId = "entrant")))
-            .`when`(lotteries).listEntriesForDeletion("lottery2")
+    @Test fun sharedLottery_preservesOtherBookingsAndNotifiesAllParticipantsOnce() = runBlocking<Unit> {
+        val shared = lottery.copy(campsiteIds = listOf("site", "other-site"))
+        val sole = CampsiteLotteryLink("lottery2", listOf("site"))
+        val otherBooking = Reservation(id = "other-booking", campsiteId = "other-site", entrantId = "shared-entrant")
+        val mixedPlan = CampsiteDeletionPlan(listOf("owner", "entrant", "shared-entrant"), listOf("lottery", "lottery2"))
+        doReturn(listOf(shared, sole)).`when`(lotteries).listByCampsiteForDeletion("site")
+        doReturn(listOf("owner", "entrant", "shared-entrant")).`when`(lotteries).listParticipantIdsForRemoval("lottery")
+        doReturn(listOf("entrant")).`when`(lotteries).listParticipantIdsForRemoval("lottery2")
+        doReturn(listOf(reservation, otherBooking)).`when`(reservations).listByLottery("lottery")
         doReturn(emptyList<Reservation>()).`when`(reservations).listByLottery("lottery2")
-        service.delete("site")
-        verify(campsites).captureDeletionRecipients("site", listOf("owner", "entrant"))
-        verify(notifier).notify(campsite, listOf("owner", "entrant"), "owner")
-        verify(lotteries).delete("lottery2")
+        doReturn(mixedPlan).`when`(campsites)
+            .captureDeletionRecipients("site", mixedPlan.recipientIds, mixedPlan.lotteryIds)
+        doReturn(CampsiteLotteryRemoval.RETAINED).`when`(lotteries).removeCampsite("lottery", "site")
+        doReturn(CampsiteLotteryRemoval.DELETE_LOTTERY).`when`(lotteries).removeCampsite("lottery2", "site")
+        assertEquals(CampsiteDeletionResult.Deleted, service.delete("site"))
+        verify(notifier).notify(campsite, mixedPlan.recipientIds, "owner")
+        verify(lotteries, never()).deleteEntries("lottery")
+        verify(lotteries, never()).deleteForCampsiteRemoval("lottery", "site")
+        verify(reservations, never()).delete("other-booking")
+        verify(messages, never()).deleteForReservation("other-booking")
+        verify(lotteries).deleteEntries("lottery2")
+        verify(lotteries).deleteForCampsiteRemoval("lottery2", "site")
     }
 
     @Test fun unauthorizedActor_performsNoCleanupOrNotification() = runBlocking<Unit> {
@@ -78,9 +96,13 @@ class CampsiteDeletionServiceTest {
         verifyNoInteractions(lotteries, reservations, messages, notifier)
     }
 
-    @Test fun interruptedCleanup_keepsParentAndRetryUsesSavedRecipients() = runBlocking<Unit> {
+    @Test fun interruptedDetach_retryUsesSavedLotteryIdsAndRecipients() = runBlocking<Unit> {
+        doReturn(listOf(lottery.copy(campsiteIds = listOf("site", "other-site"))))
+            .`when`(lotteries).listByCampsiteForDeletion("site")
+        doReturn(CampsiteLotteryRemoval.RETAINED).doReturn(CampsiteLotteryRemoval.ALREADY_REMOVED)
+            .`when`(lotteries).removeCampsite("lottery", "site")
         doThrow(IllegalStateException("connection lost")).doReturn(Unit).`when`(notifier)
-            .notify(campsite, listOf("owner", "entrant"), "owner")
+            .notify(campsite, plan.recipientIds, "owner")
         try {
             service.delete("site")
             fail("Expected partial-failure report")
@@ -88,18 +110,17 @@ class CampsiteDeletionServiceTest {
             assertTrue(failure.message!!.contains("retry deletion"))
             assertEquals("connection lost", failure.cause!!.message)
         }
-        // Dependencies were removed, but the parent preserves the recipients for retry.
         verify(reservations).delete("reservation")
-        verify(lotteries).delete("lottery")
         verify(campsites, never()).delete("site")
-        doReturn(listOf("owner", "entrant")).`when`(campsites).beginDeletion("site")
-        doReturn(emptyList<Lottery>()).`when`(lotteries).listByCampsiteForDeletion("site")
+        doReturn(plan).`when`(campsites).beginDeletion("site")
         doReturn(emptyList<Reservation>()).`when`(reservations).listByCampsite("site")
         assertEquals(CampsiteDeletionResult.Deleted, service.delete("site"))
-        verify(lotteries, times(1)).listEntriesForDeletion("lottery")
-        verify(campsites, times(1)).captureDeletionRecipients("site", listOf("owner", "entrant"))
-        // The notifier must resume its own atomic delivery checkpoints on the second call.
-        verify(notifier, times(2)).notify(campsite, listOf("owner", "entrant"), "owner")
+        verify(lotteries, times(1)).listByCampsiteForDeletion("site")
+        verify(lotteries, times(1)).listParticipantIdsForRemoval("lottery")
+        verify(campsites, times(1)).captureDeletionRecipients("site", plan.recipientIds, plan.lotteryIds)
+        verify(lotteries, times(2)).removeCampsite("lottery", "site")
+        verify(lotteries, never()).deleteEntries("lottery")
+        verify(notifier, times(2)).notify(campsite, plan.recipientIds, "owner")
         verify(campsites).delete("site")
     }
 }

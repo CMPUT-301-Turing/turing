@@ -86,7 +86,7 @@ private val sampleNotifications = listOf(
 private val sampleLotteries = listOf(
     Lottery(
         id = "november-lottery",
-        campsiteID = "Pinewood Retreat",
+        campsiteID = listOf("Pinewoods"),
         winnerCount = 12,
         status = "open"
     )
@@ -102,6 +102,7 @@ private val sampleLotteries = listOf(
 fun OwnerNotificationScreen(
     onBackClick: () -> Unit
 ) {
+    TODO("noot noot")
     var showNewNotificationSheet by rememberSaveable {
         mutableStateOf(false)
     }
@@ -242,6 +243,7 @@ fun OwnerNotificationScreen(
 private fun NewNotificationSheet(
     onDismissRequest: () -> Unit
 ) {
+    TODO("Noot Noot")
     var selectedLottery by remember {
         mutableStateOf(sampleLotteries.first())
     }
@@ -350,12 +352,12 @@ private fun NewNotificationSheet(
                             modifier = Modifier.weight(1f),
                             verticalArrangement = Arrangement.spacedBy(3.dp)
                         ) {
-                            Text(
-                                text = selectedLottery.campsiteID,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = PrimaryColor
-                            )
+                            //Text(
+                               // text = selectedLottery.campsiteID,
+                               // fontSize = 12.sp,
+                               // fontWeight = FontWeight.Medium,
+                               // color = PrimaryColor
+                            //)
 
                             Text(
                                 text = "November 2026 · Combined lottery",
@@ -384,11 +386,11 @@ private fun NewNotificationSheet(
                         DropdownMenuItem(
                             text = {
                                 Column {
-                                    Text(
-                                        text = lottery.campsiteID,
-                                        fontSize = 12.sp,
-                                        color = PrimaryColor
-                                    )
+                                    //Text(
+                                        //text = lottery.campsiteID,
+                                       // fontSize = 12.sp,
+                                       // color = PrimaryColor
+                                   // )
 
                                     Text(
                                         text = "November 2026 · Combined lottery",

@@ -15,22 +15,23 @@ import org.junit.Test
  */
 class LotteryModelTest {
     private val fixed = Timestamp(1_000L, 123)
-    private val later = Timestamp(2_000L, 456)
+    private val later = Timestamp(2_000L,  456)
 
-    private fun subject() = Lottery(registrationStart = fixed, registrationEnd = later, status = "open")
+    private fun subject() = Lottery(registrationStart = fixed, registrationEnd = later, status = "open", campsiteID = listOf("test-1"), capOn = false)
 
     /** Verifies empty configuration, closed status, and no waitlist limit, with registration closed when dates are absent. */
     @Test fun defaultsAreClosedUnlimitedAndUndated() {
         val lottery = Lottery()
+        assertEquals(false, lottery.capOn)
+        assertEquals(emptyList<String>(), lottery.campsiteID)
         assertEquals("", lottery.id)
         assertEquals("", lottery.ownerId)
-        assertEquals("", lottery.campsiteID)
         assertNull(lottery.registrationStart)
         assertNull(lottery.registrationEnd)
         assertNull(lottery.bookingStart)
         assertNull(lottery.bookingEnd)
         assertEquals(0, lottery.winnerCount)
-        assertEquals(0L, lottery.waitlistCap) // 0 means no limit
+        assertEquals(0, lottery.lotteryCap) // 0 means no limit
         assertEquals("closed", lottery.status)
         assertFalse(lottery.isRegistrationOpen(fixed))
     }
@@ -55,7 +56,7 @@ class LotteryModelTest {
 
     /** Verifies timestamp ordering across a second boundary while retaining nanosecond precision. */
     @Test fun secondsTakePrecedenceOverNanoseconds() {
-        val lottery = subject().copy(registrationStart = Timestamp(1_000L, 999_999_999), registrationEnd = Timestamp(1_001L, 1))
+        val lottery = subject().copy(registrationStart = Timestamp(1_000L, 999_999_999), registrationEnd = Timestamp(1_001L, 1), campsiteID = listOf("test-1"))
         assertFalse(lottery.isRegistrationOpen(Timestamp(1_000L, 999_999_998)))
         assertTrue(lottery.isRegistrationOpen(Timestamp(1_001L, 0)))
         assertFalse(lottery.isRegistrationOpen(Timestamp(1_001L, 2)))
@@ -116,20 +117,20 @@ class LotteryModelTest {
     /** Verifies that zero winners and a zero or one waitlist capacity do not close an otherwise open window. */
     @Test fun registrationPredicateDoesNotCheckWinnerCountOrWaitlistCapacity() {
         // Capacity enforcement is not implemented in this model predicate.
-        for (capacity in listOf(0L, 1L)) {
-            val lottery = subject().copy(waitlistCap = capacity, winnerCount = 0)
+        for (capacity in listOf(0, lottery.lotteryCap)) {
+            val lottery = subject().copy(lotteryCap = capacity, winnerCount = 0)
             assertTrue(lottery.isRegistrationOpen(fixed))
         }
     }
 
     /** Verifies that copying a lottery with a selected site and draw configuration retains those values. */
     @Test fun selectedSiteAndDrawConfigurationAreRetained() {
-        val lottery = subject().copy(id = "lottery-1", ownerId = "owner-1", campsiteID = "site-1", winnerCount = 2, waitlistCap = 10)
+        val lottery = subject().copy(id = "lottery-1", ownerId = "owner-1", campsiteID = listOf("site-1"), winnerCount = 2, lotteryCap = 10)
         assertEquals("lottery-1", lottery.id)
         assertEquals("owner-1", lottery.ownerId)
-        assertEquals("site-1", lottery.campsiteID)
+        assertEquals(listOf("site-1"), lottery.campsiteID)
         assertEquals(2, lottery.winnerCount)
-        assertEquals(10L, lottery.waitlistCap)
+        assertEquals(10, lottery.lotteryCap)
     }
 
     // Tests retained from LotteryTest, including its per-test fixture setup.
@@ -145,6 +146,7 @@ class LotteryModelTest {
     @Before
     fun setUp() {
         lottery = Lottery(
+            campsiteID = listOf("site-1"),
             id = "lottery1",
             registrationStart = start,
             registrationEnd = end,

@@ -6,6 +6,8 @@ import com.turing.campsite.data.model.Campsite
 
 import com.turing.campsite.ui.components.LotteryForm
 import com.turing.campsite.ui.components.LotteryFormData
+import com.turing.campsite.ui.components.LotteryFormMode
+import com.turing.campsite.ui.viewmodel.LotteryViewModel
 
 /**
  * Screen for editing an existing campsite lottery.
@@ -17,12 +19,15 @@ import com.turing.campsite.ui.components.LotteryFormData
  */
 @Composable
 fun OwnerEditLotteryScreen(
+    lotteryViewModel: LotteryViewModel,
     campsites: List<Campsite> = emptyList(),
     onBackClick: () -> Unit,
     initialData: LotteryFormData = LotteryFormData(),
     onUpdateClick: (LotteryFormData) -> Unit = {}
 ) {
     LotteryForm(
+        lotteryViewModel = lotteryViewModel,
+        mode = LotteryFormMode.EDIT,
         campsites = campsites,
         title = "Edit Lottery",
         description = "Review your existing lottery. Update the campsites, dates, winner count or waitlist capacity.",

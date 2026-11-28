@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -27,25 +28,45 @@ private val PageBackground = Color(0xFFF6F4ED)
 private val FieldBackground = Color(0xFFFCFBF7)
 private val FieldBorder = Color(0xFFDFE2D8)
 private val SecondaryText = Color(0xFF7A8079)
+private val ErrorColor = Color(0xFFB45345)
 
 /**
- * Entrant edit profile screen.
+ * Edit profile screen for entrants and campsite owners (US 01.07.03).
  *
- * Profile changes are stored locally until persistence
- * is implemented.
+ * The fields start with the user's saved details. Save checks the fields
+ * with validateProfile() and only calls onSaveClick if they are valid.
+ * Saving is handled by the caller, so the screen can be tested without Firestore.
+ *
+ * @param initialName the saved name to start with
+ * @param initialEmail the saved email to start with
+ * @param initialPhone the saved phone number to start with
+ * @param isSaving true while the save is running, disables the save button
+ * @param errorMessage what went wrong when loading or saving, or null
+ * @param onSaveClick called with the trimmed name, email and phone when they are valid
+ * @param onBackClick called when back or cancel is pressed
  */
 @Composable
 fun UserEditProfileScreen(
+    initialName: String,
+    initialEmail: String,
+    initialPhone: String,
+    isSaving: Boolean,
+    errorMessage: String?,
+    onSaveClick: (name: String, email: String, phone: String) -> Unit,
     onBackClick: () -> Unit
 ) {
-    var username by rememberSaveable {
-        mutableStateOf("alex_outdoors")
+    // Keyed on the initial values so the fields fill in once the profile has loaded
+    var name by rememberSaveable(initialName) {
+        mutableStateOf(initialName)
     }
-    var email by rememberSaveable {
-        mutableStateOf("alex.outdoors@example.com")
+    var email by rememberSaveable(initialEmail) {
+        mutableStateOf(initialEmail)
     }
-    var phoneNumber by rememberSaveable {
-        mutableStateOf("+44 7700 900123")
+    var phoneNumber by rememberSaveable(initialPhone) {
+        mutableStateOf(initialPhone)
+    }
+    var errors by remember {
+        mutableStateOf(ProfileErrors())
     }
 
     Column(
@@ -106,9 +127,10 @@ fun UserEditProfileScreen(
 
             // Editable profile fields
             ProfileInput(
-                label = "Username",
-                value = username,
-                onValueChange = { username = it }
+                label = "Name",
+                value = name,
+                error = errors.name,
+                onValueChange = { name = it }
             )
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -116,6 +138,7 @@ fun UserEditProfileScreen(
             ProfileInput(
                 label = "Email",
                 value = email,
+                error = errors.email,
                 onValueChange = { email = it }
             )
 
@@ -124,15 +147,34 @@ fun UserEditProfileScreen(
             ProfileInput(
                 label = "Phone number",
                 value = phoneNumber,
+                error = errors.phone,
                 onValueChange = { phoneNumber = it }
+            )
+        }
+
+        // Error from the last save, if it failed
+        if (errorMessage != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Something went wrong: $errorMessage",
+                fontSize = 12.sp,
+                color = ErrorColor
             )
         }
 
         // Bottom action buttons
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Save button (visual placeholder until persistence is added)
+        // Save button, only saves when every field is valid
         Surface(
+            onClick = {
+                errors = validateProfile(name, email, phoneNumber)
+                if (errors.isValid) {
+                    onSaveClick(name.trim(), email.trim(), phoneNumber.trim())
+                }
+            },
+            enabled = !isSaving,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(44.dp),
@@ -141,7 +183,7 @@ fun UserEditProfileScreen(
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Text(
-                    text = "Save changes",
+                    text = if (isSaving) "Saving..." else "Save changes",
                     fontSize = 13.sp,
                     color = Color.White
                 )
@@ -171,11 +213,14 @@ fun UserEditProfileScreen(
 
 /**
  * Reusable labelled input field for editing profile details.
+ *
+ * Shows the error under the field when there is one.
  */
 @Composable
 private fun ProfileInput(
     label: String,
     value: String,
+    error: String?,
     onValueChange: (String) -> Unit
 ) {
     Column(
@@ -192,6 +237,10 @@ private fun ProfileInput(
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
+            isError = error != null,
+            supportingText = error?.let { message ->
+                { Text(text = message, fontSize = 11.sp, color = ErrorColor) }
+            },
             shape = RoundedCornerShape(8.dp),
             textStyle = TextStyle(
                 fontSize = 13.sp,
