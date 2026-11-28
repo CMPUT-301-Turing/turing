@@ -58,12 +58,14 @@ class LotteryRepository {
     suspend fun findLot(campsiteId: String): Lottery? {
         val db = Firebase.firestore
         val snapshot = db.collection("lotteries")
-            .whereEqualTo("campsiteID", campsiteId)
+            .whereArrayContains("campsiteID", campsiteId)
             .get()
             .await()
-
         val document = snapshot.documents.firstOrNull()
-        val lottery = getLottery(document!!.id)
+        if (document ==  null){
+            return document
+        }
+        val lottery = getLottery(document.id)
         return lottery
     }
 
@@ -78,7 +80,7 @@ class LotteryRepository {
      */
     suspend fun listByCampsite(campsiteId: String): List<Lottery> {
         val snapshot = lotteries
-            .whereEqualTo("campsiteID", campsiteId)
+            .whereArrayContains("campsiteID", campsiteId)
             .get()
             .await()
 
@@ -110,8 +112,8 @@ class LotteryRepository {
     /**
      * Loads the lotteries created by one owner.
      *
-     * @param ownerId the uid of the owner
-     * @return the lotteries whose ownerId matches
+     * @param owner the uid of the owner
+     * @return the lotteries whose owner matches
      */
     suspend fun listByOwner(ownerReference: DocumentReference): List<Lottery> {
         val snapshot = lotteries
@@ -172,6 +174,9 @@ class LotteryRepository {
      */
     suspend fun join(lotteryId: String, entrantId: String): Boolean {
         val lottery = getLottery(lotteryId) ?: return false
+        if (lottery.capOn && lottery.waitlist.size >= lottery.lotteryCap){
+            return false
+        }
 
         if (!lottery.isRegistrationOpen()) {
             return false
@@ -224,15 +229,15 @@ class LotteryRepository {
         }
     }
 
-    suspend fun listByOwner(ownerId: String?): List<Lottery>{
-        val snapshot = lotteries.whereEqualTo("owner",ownerId).get().await()
+    suspend fun listByOwner(owner: String?): List<Lottery>{
+        val snapshot = lotteries.whereEqualTo("owner",owner).get().await()
         return snapshot.documents.mapNotNull { doc ->
             doc.toObject(Lottery::class.java)?.also {it.id = doc.id}
         }
     }
 /**
-    suspend fun openParticipant(ownerId: String?): List<Lottery>{
-        val snapshot= lotteries.whereArrayContains(ownerList, ownerId).get.await()
+    suspend fun openParticipant(owner: String?): List<Lottery>{
+        val snapshot= lotteries.whereArrayContains(ownerList, owner).get.await()
         return snapshot.documents.mapNotNull { doc ->
             doc.toObject(Lottery::class.java)?.also {it.id = doc.id}
         }

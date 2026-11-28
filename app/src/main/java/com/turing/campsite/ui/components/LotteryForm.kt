@@ -42,6 +42,7 @@ import com.turing.campsite.ui.viewmodel.LotteryViewModel
 import kotlinx.coroutines.launch
 import java.sql.Time
 import java.util.Date
+import kotlin.time.Clock
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
@@ -202,6 +203,9 @@ fun LotteryForm(
                     )
                 }
             )
+
+
+
 
             LotterySettingsSection(
                 numberOfWinners = formData.numberOfWinners,
@@ -523,14 +527,14 @@ private fun LotterySettingsSection(
                     BasicTextField(
                         value = name,
                         onValueChange = { newValue ->
-                            if (newValue.all { it.isLetter() }) {
+                            if (newValue != null) {
                                 onNameChange(newValue)
                             }
                         },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number
+                            keyboardType = KeyboardType.Text
                         ),
                         textStyle = TextStyle(
                             fontSize = 12.sp,
