@@ -29,7 +29,7 @@ class LotteryModelTest {
         assertNull(lottery.bookingEnd)
         assertEquals(0, lottery.winnerCount)
         assertEquals(0, lottery.lotteryCap) // 0 means no limit
-        assertEquals("closed", lottery.status)
+        assertEquals("Closed", lottery.status)
         assertFalse(lottery.isRegistrationOpen(fixed))
     }
 
@@ -68,7 +68,7 @@ class LotteryModelTest {
 
     /** Verifies that DRAWN and CLOSED statuses reject the start, middle, and end of the registration window. */
     @Test fun allNonOpenStatusesCloseEntireRegistrationWindow() {
-        for (status in listOf("drawn", "closed")) {
+        for (status in listOf("drawn", "Closed")) {
             for (time in listOf(fixed, Timestamp(1_500L, 0), later)) {
                 assertFalse("$status at $time", subject().copy(status = status).isRegistrationOpen(time))
             }
