@@ -36,6 +36,11 @@ class LotteryViewModel(
     var hasJoined by mutableStateOf(false)
         private set
 
+    var campsiteList by mutableStateOf<List<String>>(emptyList())
+        private set
+
+    var ownerLot by mutableStateOf<List<Lottery>>(emptyList())
+
     /**
      * Loads the lotteries entrants can currently join.
      */
@@ -52,7 +57,7 @@ class LotteryViewModel(
      */
     fun loadForOwner(ownerReference: DocumentReference) {
         launchCall {
-            lotteries = repository.listByOwner(ownerReference)
+            ownerLot = repository.listByOwner(ownerReference)
         }
     }
 
@@ -98,11 +103,44 @@ class LotteryViewModel(
      *
      * @param lottery the lottery to add; its id is filled in by the repository
      */
-    fun add(lottery: Lottery) {
+    fun add(lottery: Lottery,  onDone: () -> Unit ={}) {
+        if (lottery.name.isBlank()){
+            errorMessage = "Lottery needs a name"
+            return
+        }
+        if(lottery.campsiteID.isEmpty()){
+            errorMessage = "Must select at least 1 campsite"
+            return
+        }
+        if (lottery.bookingStart == null || lottery.bookingEnd == null){
+            errorMessage = "Must select a booking range"
+            return
+        }
+        if (lottery.registrationStart == null || lottery.registrationEnd == null){
+            errorMessage = "Must select a registration range"
+            return
+        }
+        if(lottery.registrationEnd!!.toDate().after(lottery.bookingStart!!.toDate())){
+            errorMessage = "Please select a booking range after registration ends"
+            return
+        }
+        if (lottery.winnerCount < 1){
+            errorMessage = "At least 1 winner must be selected"
+            return
+        }
+        if (lottery.capOn && lottery.lotteryCap < 1){
+            errorMessage = "Please set a maximum amount of entries"
+            return
+        }
         launchCall {
             repository.add(lottery)
             lotteries = lotteries + lottery
+            onDone()
         }
+    }
+
+    fun addToList(campsiteList: List<String>, addcamp: String){
+
     }
 
     /**

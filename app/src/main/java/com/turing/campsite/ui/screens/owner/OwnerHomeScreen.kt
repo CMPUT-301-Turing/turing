@@ -66,6 +66,8 @@ fun OwnerHomeScreen(
     onProfileClick: () -> Unit,
     onRegisterCampsiteClick: (String?) -> Unit,
     onCreateLotteryClick: () -> Unit,
+    //onActiveLotteryClick: () -> Unit,
+    //onOpenLotteryClick: () -> Unit,
     campsiteViewModel: CampsiteViewModel,
     onCampsiteClick: (String) -> Unit
 ) {
@@ -78,6 +80,8 @@ fun OwnerHomeScreen(
         onProfileClick = onProfileClick,
         onRegisterCampsiteClick = { onRegisterCampsiteClick(currentOwnerId) },
         onCreateLotteryClick = onCreateLotteryClick,
+        //onActiveLotteryClick = onActiveLotteryClick,
+        //onOpenLotteryClick = onOpenLotteryClick,
         onCampsiteClick = onCampsiteClick
     )
 }
@@ -96,6 +100,8 @@ fun OwnerHomeScreen(
     onProfileClick: () -> Unit,
     onRegisterCampsiteClick: () -> Unit,
     onCreateLotteryClick: () -> Unit,
+    //onActiveLotteryClick: () -> Unit,
+    //onOpenLotteryClick: () -> Unit,
     onCampsiteClick: (String) -> Unit
 ) {
     Column(
@@ -224,6 +230,126 @@ fun OwnerHomeScreen(
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+/**
+        // Existing lotteries
+        Surface(
+            onClick = onActiveLotteryClick,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp),
+            color = CardBackground,
+            border = BorderStroke(1.dp, CardBorder)
+        ) {
+            Row(
+                modifier = Modifier.padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .background(
+                            ChipBackground,
+                            RoundedCornerShape(9.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ConfirmationNumber,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = PrimaryColor
+                    )
+                }
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "My Active lotteries",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = PrimaryColor
+                    )
+
+                    Text(
+                        text = "View your active lotteries",
+                        fontSize = 12.sp,
+                        color = SecondaryText
+                    )
+                }
+
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp),
+                    tint = PrimaryColor
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // MultiOwner lotteries
+        Surface(
+            onClick = onOpenLotteryClick,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp),
+            color = CardBackground,
+            border = BorderStroke(1.dp, CardBorder)
+        ) {
+            Row(
+                modifier = Modifier.padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .background(
+                            ChipBackground,
+                            RoundedCornerShape(9.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ConfirmationNumber,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = PrimaryColor
+                    )
+                }
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "Open Lotteries",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = PrimaryColor
+                    )
+
+                    Text(
+                        text = "Join a multi-owner lottery",
+                        fontSize = 12.sp,
+                        color = SecondaryText
+                    )
+                }
+
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp),
+                    tint = PrimaryColor
+                )
+            }
+        }
+**/
+
 
         Spacer(modifier = Modifier.height(24.dp))
 

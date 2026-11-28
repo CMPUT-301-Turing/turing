@@ -1,8 +1,10 @@
 package com.turing.campsite.ui.components
 
+import android.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -14,9 +16,11 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +38,9 @@ import com.google.firebase.Timestamp
 
 import com.turing.campsite.PrimaryColor
 import com.turing.campsite.data.model.Campsite
+import com.turing.campsite.ui.viewmodel.LotteryViewModel
+import kotlinx.coroutines.launch
+import java.sql.Time
 import java.util.Date
 
 private val PageBackground = Color(0xFFF6F4ED)
@@ -43,19 +50,9 @@ private val FieldBackground = Color(0xFFF4F2EB)
 private val SelectedBackground = Color(0xFFE8EFE3)
 private val SecondaryText = Color(0xFF7A8079)
 
-/**
- * Temporary campsite information for lottery selection.
- */
-data class LotteryCampsitePreview(
-    val id: String,
-    val name: String,
-    val location: String
-)
 
 /**
  * Form data for creating or editing a lottery.
- *
- * Values are temporary until database integration.
  */
 data class LotteryFormData(
     val selectedCampsiteIds: Set<String> = emptySet(),
@@ -65,31 +62,16 @@ data class LotteryFormData(
     val bookingEnd: Timestamp? = null,
     val numberOfWinners: String = "",
     val maximumCapacityEnabled: Boolean = false,
-    val waitlistCapacity: String = ""
+    val lotteryCapacity: String = "",
+    val ownersList: List<String> = emptyList(),
+    val name: String = ""
 )
 
-private val sampleCampsites = listOf(
-    LotteryCampsitePreview(
-        id = "pinewood",
-        name = "Pinewood Retreat",
-        location = "New Forest, Hampshire"
-    ),
-    LotteryCampsitePreview(
-        id = "willowbank",
-        name = "Willowbank Meadow",
-        location = "Bakewell, Peak District"
-    ),
-    LotteryCampsitePreview(
-        id = "fellside",
-        name = "Fellside Farm",
-        location = "Keswick, Lake District"
-    ),
-    LotteryCampsitePreview(
-        id = "riverbend",
-        name = "Riverbend Glade",
-        location = "Dartmoor, Devon"
-    )
-)
+enum class LotteryFormMode {
+    CREATE,
+    EDIT,
+    MULTI
+}
 
 /**
  * Shared form for creating and editing lotteries.
@@ -102,6 +84,8 @@ private val sampleCampsites = listOf(
  */
 @Composable
 fun LotteryForm(
+    lotteryViewModel: LotteryViewModel,
+    mode: LotteryFormMode,
     campsites: List<Campsite> = emptyList(),
     title: String,
     description: String,
@@ -190,9 +174,9 @@ fun LotteryForm(
                 description = "When entrants can join the waitlist.",
                 startDate = formData.registrationStart,
                 endDate = formData.registrationEnd,
-                onStartDateChange= {
+                onStartDateChange = {
                     formData = formData.copy(
-                        registrationEnd = it
+                        registrationStart = it
                     )
                 },
                 onEndDateChange = {
@@ -205,16 +189,16 @@ fun LotteryForm(
             LotteryDatePeriodSection(
                 title = "Booking Period",
                 description = "When winners can book their stay.",
-                startDate = formData.registrationStart,
-                endDate = formData.registrationEnd,
+                startDate = formData.bookingStart,
+                endDate = formData.bookingEnd,
                 onStartDateChange= {
                     formData = formData.copy(
-                        registrationEnd = it
+                        bookingStart = it
                     )
                 },
                 onEndDateChange = {
                     formData = formData.copy(
-                        registrationEnd = it
+                        bookingEnd = it
                     )
                 }
             )
@@ -222,7 +206,8 @@ fun LotteryForm(
             LotterySettingsSection(
                 numberOfWinners = formData.numberOfWinners,
                 maximumCapacityEnabled = formData.maximumCapacityEnabled,
-                waitlistCapacity = formData.waitlistCapacity,
+                lotteryCapacity = formData.lotteryCapacity,
+                name = formData.name,
                 onNumberOfWinnersChange = {
                     formData = formData.copy(
                         numberOfWinners = it
@@ -233,9 +218,14 @@ fun LotteryForm(
                         maximumCapacityEnabled = it
                     )
                 },
-                onWaitlistCapacityChange = {
+                onLotteryCapacityChange = {
                     formData = formData.copy(
-                        waitlistCapacity = it
+                        lotteryCapacity = it
+                    )
+                },
+                onNameChange = {
+                    formData = formData.copy(
+                        name = it
                     )
                 }
             )
@@ -396,6 +386,7 @@ private fun LotteryCampsiteSection(
  *
  * The same component is used for registration and booking.
  */
+
 @Composable
 private fun LotteryDatePeriodSection(
     title: String,
@@ -409,72 +400,30 @@ private fun LotteryDatePeriodSection(
         title = title,
         description = description
     ) {
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            LotteryDateInput(
-                label = "Start Date",
-                onDateSelected = onStartDateChange,
-                modifier = Modifier.weight(1f)
-            )
-
-            LotteryDateInput(
-                label = "End Date",
-                onDateSelected = onEndDateChange,
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-/**
- * Editable date field with a calendar icon.
- *
- * A native date picker can replace this text input
- * when date validation is implemented.
- */
-@Composable
-private fun LotteryDateInput(
-    label: String,
-    onDateSelected: (Timestamp) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(
-            text = label
+        val state = rememberDateRangePickerState(
+            initialSelectedStartDateMillis = startDate?.toDate()?.time,
+            initialSelectedEndDateMillis = endDate?.toDate()?.time
         )
-        Spacer(modifier = Modifier.height(4.dp))
-
-        val datePickerState = rememberDatePickerState()
-        val dateFormatter = remember { DatePickerDefaults.dateFormatter() }
-        DatePicker(
-            state = datePickerState,
-            dateFormatter = dateFormatter,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Button(
-            onClick = {
-                val selectedMillis = datePickerState.selectedDateMillis?.let { millis ->
-                    Timestamp(Date(millis))
-
-                }
-                selectedMillis?.let{
-                    onDateSelected(it)
-                }
+        LaunchedEffect(state.selectedStartDateMillis) {
+            state.selectedStartDateMillis?.let { millis ->
+                onStartDateChange(Timestamp(Date(millis)))
             }
-        )
-        {
-            Text("Confirm")
         }
-        Spacer(modifier = Modifier.height(12.dp))
+        LaunchedEffect(state.selectedEndDateMillis) {
+            state.selectedEndDateMillis?.let { millis ->
+                onEndDateChange(Timestamp(Date(millis)))
+            }
+        }
 
+
+
+            DateRangePicker(state = state,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(500.dp))
+        }
     }
-}
+
 
 /**
  * Lottery winner count and optional waitlist capacity.
@@ -483,10 +432,12 @@ private fun LotteryDateInput(
 private fun LotterySettingsSection(
     numberOfWinners: String,
     maximumCapacityEnabled: Boolean,
-    waitlistCapacity: String,
+    lotteryCapacity: String,
+    name: String,
     onNumberOfWinnersChange: (String) -> Unit,
     onMaximumCapacityChange: (Boolean) -> Unit,
-    onWaitlistCapacityChange: (String) -> Unit
+    onLotteryCapacityChange: (String) -> Unit,
+    onNameChange: (String) -> Unit
 ) {
     LotterySectionCard(
         title = "Lottery Settings",
@@ -533,19 +484,74 @@ private fun LotterySettingsSection(
 
         if (maximumCapacityEnabled) {
             LotteryNumberInput(
-                label = "Waitlist Capacity",
-                value = waitlistCapacity,
+                label = "Lottery Capacity",
+                value = lotteryCapacity,
                 suffix = "entrants",
-                onValueChange = onWaitlistCapacityChange
+                onValueChange = onLotteryCapacityChange
             )
         }
 
         Text(
-            text = "Registration closes when the waitlist is full. Turn off for unlimited entries.",
+            text = "Additional entrants added to a waitlist",
             fontSize = 10.sp,
             lineHeight = 14.sp,
             color = SecondaryText
         )
+        Column(
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = "Name Your Lottery",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = PrimaryColor
+            )
+
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(46.dp),
+                shape = RoundedCornerShape(7.dp),
+                color = FieldBackground,
+                border = BorderStroke(1.dp, CardBorder)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    BasicTextField(
+                        value = name,
+                        onValueChange = { newValue ->
+                            if (newValue.all { it.isLetter() }) {
+                                onNameChange(newValue)
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number
+                        ),
+                        textStyle = TextStyle(
+                            fontSize = 12.sp,
+                            color = PrimaryColor
+                        ),
+                        cursorBrush = SolidColor(PrimaryColor),
+                        decorationBox = {innerTextField ->
+                            if (name.isEmpty()){
+                                Text(
+                                    text = "Enter a name",
+                                    color = SecondaryText,
+                                    fontSize = 12.sp
+                                )
+                            }
+                            innerTextField()
+                        }
+                    )
+
+                }
+            }
+        }
     }
 }
 

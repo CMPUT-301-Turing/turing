@@ -6,6 +6,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.onNodeWithText
+import com.turing.campsite.ui.viewmodel.LotteryViewModel
 import org.junit.Assert.assertTrue
 
 
@@ -34,13 +35,16 @@ class OwnerCreateLotteryScreenTest {
     {
 
         var backClicked = false
+        val lotteryViewModel = LotteryViewModel()
 
 
         composeTestRule.setContent {
 
 
             OwnerCreateLotteryScreen(
-                onBackClick = { backClicked = true }
+                onBackClick = { backClicked = true },
+                lotteryViewModel = lotteryViewModel
+
             )
         }
 
@@ -62,6 +66,7 @@ class OwnerCreateLotteryScreenTest {
 
         //
         var publishClicked = false
+        val lotteryViewModel = LotteryViewModel()
 
 
         composeTestRule.setContent {
@@ -69,7 +74,8 @@ class OwnerCreateLotteryScreenTest {
             OwnerCreateLotteryScreen(
 
                 onBackClick = {},
-                onPublishClick = { publishClicked = true }
+                onPublishClick = { publishClicked = true },
+                lotteryViewModel = lotteryViewModel
 
             )
 
