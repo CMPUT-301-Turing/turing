@@ -8,11 +8,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.turing.campsite.data.auth.DeviceAuthManager
 import com.turing.campsite.data.model.User
+import com.turing.campsite.data.model.UserRole
 import com.turing.campsite.data.repository.UserRepository
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+
+// Temporary navigation testing override. Set false to use only the stored roles.
+private const val ENABLE_TEST_ROLES = true
 
 /**
  * Signs the phone in when the app starts.
@@ -42,7 +46,7 @@ class AuthViewModel(
 
     private var profileObservation: Job? = null
 
-    /** Start or retry the profile listener; never sign out, recreate a profile, or change roles. */
+    /** Observe the profile without changing identity or stored roles; the test flag affects UI roles only. */
     fun observeCurrentUser() {
         val signedInUid = uid ?: return
         profileObservation?.cancel()
@@ -52,7 +56,11 @@ class AuthViewModel(
         profileObservation = viewModelScope.launch {
             try {
                 userRepository.observe(signedInUid).collect { user ->
-                    currentUser = user
+                    currentUser = if (ENABLE_TEST_ROLES) {
+                        user?.copy(roles = UserRole.entries.toList())
+                    } else {
+                        user
+                    }
                     isProfileLoading = false
                     profileErrorMessage = if (user == null) "Your profile could not be found" else null
                 }
