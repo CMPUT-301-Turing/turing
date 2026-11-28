@@ -71,7 +71,7 @@ class LotteryRepositoryTest : FirestoreTestFixture("lotteries") {
      */
     @Test fun listOpenMapsIdsAndSkipsNullObjects() = runBlocking<Unit> {
         val query = mock(Query::class.java)
-        doReturn(query).`when`(collection).whereEqualTo("status", "open")
+        doReturn(query).`when`(collection).whereEqualTo("status", "Active")
         val value = Lottery(id = "stale")
         doReturn(completed(snapshot(row(Lottery::class.java, null), row(Lottery::class.java, value, "canonical")))).`when`(query).get()
         val result = LotteryRepository().listOpen()
@@ -83,7 +83,7 @@ class LotteryRepositoryTest : FirestoreTestFixture("lotteries") {
      */
     @Test fun listOpenReturnsEmptyList() = runBlocking<Unit> {
         val query = mock(Query::class.java)
-        doReturn(query).`when`(collection).whereEqualTo("status", "open")
+        doReturn(query).`when`(collection).whereEqualTo("status", "Active")
         doReturn(completed(snapshot())).`when`(query).get()
         assertTrue(LotteryRepository().listOpen().isEmpty())
     }
@@ -92,7 +92,7 @@ class LotteryRepositoryTest : FirestoreTestFixture("lotteries") {
      */
     @Test fun listOpenPropagatesQueryFailure() = runBlocking<Unit> {
         val query = mock(Query::class.java)
-        doReturn(query).`when`(collection).whereEqualTo("status", "open")
+        doReturn(query).`when`(collection).whereEqualTo("status", "Active")
         val failure = IllegalStateException("query failed")
         doReturn(failed<QuerySnapshot>(failure)).`when`(query).get()
         try { LotteryRepository().listOpen(); fail("Expected query failure") }
@@ -104,11 +104,11 @@ class LotteryRepositoryTest : FirestoreTestFixture("lotteries") {
      */
     @Test fun listByOwnerMapsIdsAndSkipsNullObjects() = runBlocking<Unit> {
         val query = mock(Query::class.java)
-        val owner = mock(DocumentReference::class.java)
-        doReturn(query).`when`(collection).whereEqualTo("owner", owner)
+        val ownerId = mock(DocumentReference::class.java)
+        doReturn(query).`when`(collection).whereEqualTo("ownerId", ownerId)
         val value = Lottery(id = "stale")
         doReturn(completed(snapshot(row(Lottery::class.java, null), row(Lottery::class.java, value, "canonical")))).`when`(query).get()
-        val result = LotteryRepository().listByOwner(owner)
+        val result = LotteryRepository().listByOwner(ownerId)
         assertEquals(listOf(value), result)
         assertEquals("canonical", result.single().id)
     }
@@ -117,21 +117,21 @@ class LotteryRepositoryTest : FirestoreTestFixture("lotteries") {
      */
     @Test fun listByOwnerReturnsEmptyList() = runBlocking<Unit> {
         val query = mock(Query::class.java)
-        val owner = mock(DocumentReference::class.java)
-        doReturn(query).`when`(collection).whereEqualTo("owner", owner)
+        val ownerId = mock(DocumentReference::class.java)
+        doReturn(query).`when`(collection).whereEqualTo("ownerId", ownerId)
         doReturn(completed(snapshot())).`when`(query).get()
-        assertTrue(LotteryRepository().listByOwner(owner).isEmpty())
+        assertTrue(LotteryRepository().listByOwner(ownerId).isEmpty())
     }
     /**
      * Given failure of the owner-filtered query, expects the same exception to propagate.
      */
     @Test fun listByOwnerPropagatesQueryFailure() = runBlocking<Unit> {
         val query = mock(Query::class.java)
-        val owner = mock(DocumentReference::class.java)
-        doReturn(query).`when`(collection).whereEqualTo("owner", owner)
+        val ownerId = mock(DocumentReference::class.java)
+        doReturn(query).`when`(collection).whereEqualTo("ownerId", ownerId)
         val failure = IllegalStateException("query failed")
         doReturn(failed<QuerySnapshot>(failure)).`when`(query).get()
-        try { LotteryRepository().listByOwner(owner); fail("Expected query failure") }
+        try { LotteryRepository().listByOwner(ownerId); fail("Expected query failure") }
         catch (actual: IllegalStateException) { assertSame(failure, actual) }
     }
 
@@ -169,7 +169,7 @@ class LotteryRepositoryTest : FirestoreTestFixture("lotteries") {
      * Given a failed status update, expects the same exception to propagate.
      */
     @Test fun setStatusPropagatesFailure() = runBlocking<Unit> {
-        val status = "open"
+        val status = "active"
         val failure = IllegalStateException("update failed")
         doReturn(failed<Void>(failure)).`when`(doc).update("status", status)
         try { LotteryRepository().setStatus("id", status); fail("Expected update failure") }
@@ -186,10 +186,10 @@ class LotteryRepositoryTest : FirestoreTestFixture("lotteries") {
     private fun lottery(capacity: Int?) {
         val now = Timestamp.now()
         doReturn(completed(row(Lottery::class.java, Lottery(
-            owner = "owner", campsiteID = listOf("site-1"), winnerCount = 1,
+            ownerId = "ownerId", campsiteID = listOf("site-1"), winnerCount = 1,
             registrationStart = Timestamp(now.seconds - 86_400, now.nanoseconds),
             registrationEnd = Timestamp(now.seconds + 86_400, now.nanoseconds),
-            status = "open", lotteryCap = (capacity ?: 0))))).`when`(doc).get()
+            status = "Active", lotteryCap = (capacity ?: 0))))).`when`(doc).get()
     }
     /**
      * Given a missing lottery, expects false without accessing its entries collection.

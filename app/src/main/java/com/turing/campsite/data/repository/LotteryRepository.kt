@@ -98,7 +98,7 @@ class LotteryRepository {
      */
     suspend fun listOpen(): List<Lottery> {
         val snapshot = lotteries
-            .whereEqualTo("status", "open")
+            .whereEqualTo("status", "Active")
             .get()
             .await()
 
@@ -117,7 +117,7 @@ class LotteryRepository {
      */
     suspend fun listByOwner(ownerReference: DocumentReference): List<Lottery> {
         val snapshot = lotteries
-            .whereEqualTo("owner", ownerReference)
+            .whereEqualTo("ownerId", ownerReference)
             .get()
             .await()
 
@@ -174,16 +174,16 @@ class LotteryRepository {
      */
     suspend fun join(lotteryId: String, entrantId: String): Boolean {
         val lottery = getLottery(lotteryId) ?: return false
-        if (lottery.capOn && lottery.waitlist.size >= lottery.lotteryCap){
+
+        if (!lottery.isRegistrationOpen()){
             return false
         }
 
-        if (!lottery.isRegistrationOpen()) {
-            return false
-        }
-
-        if(lottery.lotteryCap > 0 && listEntries(lotteryId).size.toLong() >= lottery.lotteryCap){
-            return false
+        if(lottery.lotteryCap > 0){
+            val currentEntries = listEntries(lotteryId)
+            if (currentEntries.size >= lottery.lotteryCap){
+                return false
+            }
         }
 
         if (hasJoined(lotteryId, entrantId)) {
@@ -192,7 +192,8 @@ class LotteryRepository {
 
         val entry = LotteryEntry(
             id = entrantId,
-            entrantId = entrantId
+            entrantId = entrantId,
+            result = EntryResult.PENDING
         )
 
         entries(lotteryId)
@@ -230,7 +231,7 @@ class LotteryRepository {
     }
 
     suspend fun listByOwner(owner: String?): List<Lottery>{
-        val snapshot = lotteries.whereEqualTo("owner",owner).get().await()
+        val snapshot = lotteries.whereEqualTo("ownerId",owner).get().await()
         return snapshot.documents.mapNotNull { doc ->
             doc.toObject(Lottery::class.java)?.also {it.id = doc.id}
         }

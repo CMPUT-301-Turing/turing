@@ -6,7 +6,7 @@ import com.turing.campsite.ui.components.LotteryFormData
 import java.util.Date
 
 
-fun LotteryFormData.toLottery(owner: String, campsites: List<String>): Lottery{
+fun LotteryFormData.toLottery(ownerId: String, campsites: List<String>): Lottery{
     var stat = ""
     if (registrationEnd!=null && registrationStart!=null){
         if (registrationEnd.toDate().after(Date()) && Date().after(registrationStart.toDate())){
@@ -20,7 +20,7 @@ fun LotteryFormData.toLottery(owner: String, campsites: List<String>): Lottery{
     if (numberOfWinners == ""){
         return Lottery(
             name = name,
-            owner = owner,
+            ownerId = ownerId,
             campsiteID = campsites,
             registrationStart = registrationStart,
             registrationEnd = registrationEnd,
@@ -35,7 +35,7 @@ fun LotteryFormData.toLottery(owner: String, campsites: List<String>): Lottery{
 
     return Lottery(
         name = name,
-        owner = owner,
+        ownerId = ownerId,
         campsiteID = campsites,
         registrationStart = registrationStart,
         registrationEnd = registrationEnd,

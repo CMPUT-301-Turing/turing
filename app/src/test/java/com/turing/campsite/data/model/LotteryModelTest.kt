@@ -14,7 +14,7 @@ class LotteryModelTest {
     private val fixed = Timestamp(1_000L, 123)
     private val later = Timestamp(2_000L,  456)
 
-    private fun subject() = Lottery(registrationStart = fixed, registrationEnd = later, status = "open", campsiteID = listOf("test-1"), capOn = false)
+    private fun subject() = Lottery(registrationStart = fixed, registrationEnd = later, status = "active", campsiteID = listOf("test-1"), capOn = false)
 
     /** Verifies empty configuration, closed status, and no waitlist limit, with registration closed when dates are absent. */
     @Test fun defaultsAreClosedUnlimitedAndUndated() {
@@ -22,7 +22,7 @@ class LotteryModelTest {
         assertEquals(false, lottery.capOn)
         assertEquals(emptyList<String>(), lottery.campsiteID)
         assertEquals("", lottery.id)
-        assertEquals("", lottery.owner)
+        assertEquals("", lottery.ownerId)
         assertNull(lottery.registrationStart)
         assertNull(lottery.registrationEnd)
         assertNull(lottery.bookingStart)
@@ -96,7 +96,7 @@ class LotteryModelTest {
         val lottery = subject()
         lottery.status = "closed"
         assertFalse(lottery.isRegistrationOpen(fixed))
-        lottery.status = "open"
+        lottery.status = "active"
         assertTrue(lottery.isRegistrationOpen(fixed))
         lottery.registrationStart = later
         assertFalse(lottery.isRegistrationOpen(fixed))
@@ -122,9 +122,9 @@ class LotteryModelTest {
 
     /** Verifies that copying a lottery with a selected site and draw configuration retains those values. */
     @Test fun selectedSiteAndDrawConfigurationAreRetained() {
-        val lottery = subject().copy(id = "lottery-1", owner = "owner-1", campsiteID = listOf("site-1"), winnerCount = 2, lotteryCap = 10)
+        val lottery = subject().copy(id = "lottery-1", ownerId = "owner-1", campsiteID = listOf("site-1"), winnerCount = 2, lotteryCap = 10)
         assertEquals("lottery-1", lottery.id)
-        assertEquals("owner-1", lottery.owner)
+        assertEquals("owner-1", lottery.ownerId)
         assertEquals(listOf("site-1"), lottery.campsiteID)
         assertEquals(2, lottery.winnerCount)
         assertEquals(10, lottery.lotteryCap)
@@ -147,7 +147,7 @@ class LotteryModelTest {
             id = "lottery1",
             registrationStart = start,
             registrationEnd = end,
-            status = "open"
+            status = "active"
         )
     }
 

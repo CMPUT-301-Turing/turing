@@ -37,7 +37,7 @@ enum class LotteryStatus { OPEN, DRAWN, CLOSED }
 data class Lottery(
     var name: String = "",
     var id: String = "",
-    var owner: String = "",
+    var ownerId: String = "",
     var campsiteID: List<String> = emptyList(), // this will have other owner's campsites added to it in the multi option
     var registrationStart: Timestamp? = null,
     var registrationEnd: Timestamp? = null,
@@ -65,6 +65,6 @@ data class Lottery(
     fun isRegistrationOpen(now: Timestamp = Timestamp.now()): Boolean {
         val start = registrationStart ?: return false
         val end = registrationEnd ?: return false
-        return status.equals("open", ignoreCase = true) && now >=start && now <= end
+        return status.equals("active", ignoreCase = true) && now >=start && now <= end
     }
 }
