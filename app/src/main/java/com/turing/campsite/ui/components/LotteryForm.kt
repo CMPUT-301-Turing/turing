@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-27.
+ * Scope: Enforce and explain the five-campsite lottery selection limit.
+ */
 package com.turing.campsite.ui.components
 
 import android.R
@@ -162,8 +165,10 @@ fun LotteryForm(
                     formData = formData.copy(
                         selectedCampsiteIds = if (campsiteId in selectedIds) {
                             selectedIds - campsiteId
-                        } else {
+                        } else if (selectedIds.size < LotteryViewModel.MAX_CAMPSITES) {
                             selectedIds + campsiteId
+                        } else {
+                            selectedIds
                         }
                     )
                 }
@@ -240,6 +245,7 @@ fun LotteryForm(
             onClick = {
                 onSubmitClick(formData)
             },
+            enabled = formData.selectedCampsiteIds.size <= LotteryViewModel.MAX_CAMPSITES,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
@@ -310,15 +316,17 @@ private fun LotteryCampsiteSection(
 ) {
     LotterySectionCard(
         title = "Select Campsites",
-        description = "Choose one or more campsites you own."
+        description = "Choose up to ${LotteryViewModel.MAX_CAMPSITES} campsites you own."
     ) {
         campsites.forEach { campsite ->
             val isSelected = campsite.id in selectedIds
+            val canToggle = isSelected || selectedIds.size < LotteryViewModel.MAX_CAMPSITES
 
             Surface(
                 onClick = {
                     onCampsiteToggled(campsite.id)
                 },
+                enabled = canToggle,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 color = if (isSelected) {
@@ -341,6 +349,7 @@ private fun LotteryCampsiteSection(
                 ) {
                     Checkbox(
                         checked = isSelected,
+                        enabled = canToggle,
                         onCheckedChange = {
                             onCampsiteToggled(campsite.id)
                         },
@@ -373,7 +382,7 @@ private fun LotteryCampsiteSection(
         }
 
         Text(
-            text = "${selectedIds.size} of ${campsites.size} campsites selected",
+            text = "${selectedIds.size} / ${LotteryViewModel.MAX_CAMPSITES} campsites selected",
             fontSize = 11.sp,
             fontWeight = FontWeight.Medium,
             color = PrimaryColor

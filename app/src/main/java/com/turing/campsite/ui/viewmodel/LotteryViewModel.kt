@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-27.
+ * Scope: Bound lottery creation to five distinct campsite IDs, matching Firestore validation.
+ */
 package com.turing.campsite.ui.viewmodel
 
 import androidx.compose.runtime.getValue
@@ -23,6 +26,11 @@ import com.turing.campsite.data.repository.LotteryRepository
 class LotteryViewModel(
     private val repository: LotteryRepository = LotteryRepository()
 ) : BaseViewModel() {
+
+    companion object {
+        // Keep this bound aligned with validLotteryCreationCampsites() in firestore.rules.
+        const val MAX_CAMPSITES = 5
+    }
 
     var lotteries by mutableStateOf<List<Lottery>>(emptyList())
         private set
@@ -108,8 +116,20 @@ class LotteryViewModel(
             errorMessage = "Lottery needs a name"
             return
         }
-        if(lottery.campsiteID.isEmpty()){
+        if (lottery.campsiteID.isEmpty()) {
             errorMessage = "Must select at least 1 campsite"
+            return
+        }
+        if (lottery.campsiteID.size > MAX_CAMPSITES) {
+            errorMessage = "Select no more than $MAX_CAMPSITES campsites"
+            return
+        }
+        if (lottery.campsiteID.any { it.isBlank() }) {
+            errorMessage = "Campsite IDs cannot be blank"
+            return
+        }
+        if (lottery.campsiteID.distinct().size != lottery.campsiteID.size) {
+            errorMessage = "Select each campsite only once"
             return
         }
         if (lottery.bookingStart == null || lottery.bookingEnd == null){

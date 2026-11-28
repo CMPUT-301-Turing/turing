@@ -27,6 +27,25 @@ service cloud.firestore {
     function lotteryCampsites(data) {
       return data.campsiteID is string ? [data.campsiteID] : data.campsiteID;
     }
+    // Bounded checks preserve deletion gates for every selected campsite without loops.
+    function ownedAvailableLotteryCampsite(id) {
+      let site = get(/databases/$(database)/documents/campsites/$(id)).data;
+      return site.ownerId == request.auth.uid && !('deletion' in site);
+    }
+    function validLotteryCreationCampsite(id) {
+      return id is string && id.size() > 0 && id.matches('^[^/]+$')
+        && ownedAvailableLotteryCampsite(id);
+    }
+    function validLotteryCreationCampsites(ids) {
+      return ids is list && ids.size() >= 1 && ids.size() <= 5
+        && 'OWNER' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles
+        && ids.toSet().size() == ids.size()
+        && validLotteryCreationCampsite(ids[0])
+        && (ids.size() < 2 || validLotteryCreationCampsite(ids[1]))
+        && (ids.size() < 3 || validLotteryCreationCampsite(ids[2]))
+        && (ids.size() < 4 || validLotteryCreationCampsite(ids[3]))
+        && (ids.size() < 5 || validLotteryCreationCampsite(ids[4]));
+    }
     function lotteryRemovals(data) {
       return data.get('removingCampsiteIds', []);
     }
@@ -116,12 +135,10 @@ service cloud.firestore {
     }
     match /lotteries/{id} {
       allow read: if signedIn();
-      // Existing creation remains scalar until the lottery-system writer and rules are integrated.
-      // Do not allow unchecked array creation to bypass campsite deletion gates.
+      // Normalize legacy strings and the current array schema; validate each selected campsite.
       allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid
-        && request.resource.data.campsiteID is string
-        && ownsCampsite(request.resource.data.campsiteID) && available(request.resource.data.campsiteID)
-        && lotteryRemovals(request.resource.data).size() == 0;
+        && validLotteryCreationCampsites(lotteryCampsites(request.resource.data))
+        && lotteryRemovals(request.resource.data) == [];
       allow update: if signedIn() && (
         // An exact retry of arrayUnion has no document changes.
         request.resource.data == resource.data
