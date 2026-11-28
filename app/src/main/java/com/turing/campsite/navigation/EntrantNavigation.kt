@@ -30,16 +30,17 @@ fun NavGraphBuilder.entrantGraph(
 ) {
     roleComposable(requiredRole = UserRole.ENTRANT, navController = navController, route = Routes.ENTRANT_HOME) {
         val campsiteViewModel: CampsiteViewModel = viewModel()
+        val lotteryViewModel: LotteryViewModel = viewModel()
         ErrorToast(campsiteViewModel)
 
         EntrantHomeScreen(
             campsiteViewModel = campsiteViewModel,
-            onCampsiteClick = { campsiteId ->
-                navController.navigate(
-                    "${Routes.ENTRANT_CAMPSITE_DETAILS}/${Uri.encode(campsiteId)}"
-                )
-            }
-        )
+            lotteryViewModel =  lotteryViewModel,
+        ) { campsiteId ->
+            navController.navigate(
+                "${Routes.ENTRANT_CAMPSITE_DETAILS}/${Uri.encode(campsiteId)}"
+            )
+        }
     }
 
     roleComposable(requiredRole = UserRole.ENTRANT, navController = navController, route =
