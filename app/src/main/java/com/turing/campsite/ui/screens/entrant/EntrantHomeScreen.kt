@@ -426,10 +426,6 @@ fun EntrantHomeScreen(
                 )
 
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = true, onCheckedChange = { /* Update state */ })
-                Text("Show only active items")
-            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
