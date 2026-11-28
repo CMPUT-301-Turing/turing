@@ -31,12 +31,11 @@ fun NavGraphBuilder.entrantGraph(
 
         EntrantHomeScreen(
             campsiteViewModel = campsiteViewModel,
-            onCampsiteClick = { campsiteId ->
-                navController.navigate(
-                    "${Routes.ENTRANT_CAMPSITE_DETAILS}/${Uri.encode(campsiteId)}"
-                )
-            }
-        )
+        ) { campsiteId ->
+            navController.navigate(
+                "${Routes.ENTRANT_CAMPSITE_DETAILS}/${Uri.encode(campsiteId)}"
+            )
+        }
     }
 
     composable(

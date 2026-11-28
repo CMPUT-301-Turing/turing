@@ -28,8 +28,7 @@ class EntrantHomeScreenTest {
         composeTestRule.setContent {
             EntrantHomeScreen(
                 campsiteViewModel = campsiteViewModel,
-                onCampsiteClick = {}
-            )
+            ) {}
         }
 
         // check main title
