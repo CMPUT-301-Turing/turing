@@ -29,11 +29,7 @@ import androidx.compose.foundation.BorderStroke
 import com.turing.campsite.PrimaryColor
 import com.turing.campsite.ui.components.NotificationCard
 import com.turing.campsite.data.model.Notification
-import com.turing.campsite.data.model.NotificationType
 import com.turing.campsite.data.model.Lottery
-import com.google.firebase.Timestamp
-
-import java.util.Date
 
 
 private val PageBackground = Color(0xFFF6F4ED)
@@ -41,44 +37,6 @@ private val CardBackground = Color(0xFFFCFBF7)
 private val CardBorder = Color(0xFFDFE2D8)
 private val SecondaryText = Color(0xFF7A8079)
 
-
-/**
- * Temporary history of notifications sent by the owner.
- */
-private val sampleNotifications = listOf(
-    Notification(
-        id = "notification-1",
-        title = "Registration reminder",
-        body = "Registration closes 14 Nov at 23:59 GMT. There's still time to update your entry.",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 86400000)),
-        type = NotificationType.OWNER_MESSAGE,
-        read = false
-    ),
-    Notification(
-        id = "notification-2",
-        title = "Your November stay",
-        body = "Planning ahead? The booking period for this lottery is 16–23 Nov 2026.",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 172800000)),
-        type = NotificationType.OWNER_MESSAGE,
-        read = false
-    ),
-    Notification(
-        id = "notification-3",
-        title = "How the draw works",
-        body = "The automatic draw is on 15 Nov at 00:00 GMT, with 10 winners across both campsites.",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 259200000)),
-        type = NotificationType.OWNER_MESSAGE,
-        read = false
-    ),
-    Notification(
-        id = "notification-4",
-        title = "The waitlist is open",
-        body = "Welcome to our November lottery. Registration is open until 14 Nov 2026.",
-        createdAt = Timestamp(Date(System.currentTimeMillis() - 345600000)),
-        type = NotificationType.OWNER_MESSAGE,
-        read = false
-    )
-)
 
 /**
  * Temporary lottery option for notification creation.
@@ -100,9 +58,9 @@ private val sampleLotteries = listOf(
  */
 @Composable
 fun OwnerNotificationScreen(
+    notifications: List<Notification> = emptyList(),
     onBackClick: () -> Unit
 ) {
-    TODO("noot noot")
     var showNewNotificationSheet by rememberSaveable {
         mutableStateOf(false)
     }
@@ -175,7 +133,7 @@ fun OwnerNotificationScreen(
                 )
 
                 Text(
-                    text = "${sampleNotifications.size} sent",
+                    text = "${notifications.size} sent",
                     fontSize = 12.sp,
                     color = SecondaryText
                 )
@@ -190,7 +148,7 @@ fun OwnerNotificationScreen(
                 contentPadding = PaddingValues(bottom = 90.dp)
             ) {
                 items(
-                    items = sampleNotifications,
+                    items = notifications,
                     key = { it.id }
                 ) { notification ->
                     NotificationCard(
@@ -243,7 +201,6 @@ fun OwnerNotificationScreen(
 private fun NewNotificationSheet(
     onDismissRequest: () -> Unit
 ) {
-    TODO("Noot Noot")
     var selectedLottery by remember {
         mutableStateOf(sampleLotteries.first())
     }

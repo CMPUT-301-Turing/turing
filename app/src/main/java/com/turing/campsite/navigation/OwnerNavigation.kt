@@ -284,7 +284,15 @@ fun NavGraphBuilder.ownerGraph(
         }
 
         roleComposable(requiredRole = UserRole.OWNER, navController = navController, route = Routes.OWNER_NOTIFICATION) {
+            val notificationViewModel: NotificationViewModel = viewModel()
+            val ownerId = LocalCurrentUid.current
+            LaunchedEffect(ownerId) {
+                if (ownerId.isNotBlank()) {
+                    notificationViewModel.loadSentBy(ownerId)
+                }
+            }
             OwnerNotificationScreen(
+                notifications = notificationViewModel.notifications,
                 onBackClick = {
                     navController.popBackStack()
                 }
