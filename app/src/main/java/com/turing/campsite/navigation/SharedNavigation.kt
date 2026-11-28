@@ -52,6 +52,9 @@ fun NavGraphBuilder.sharedGraph(
         UserProfileScreen(
             currentView = UserView.ENTRANT,
             user = userViewModel.user,
+            onNotificationsChange = { enabled ->
+                userViewModel.setNotificationsEnabled(uid, enabled)
+            },
             onEditProfileClick = {
                 navController.navigate(Routes.USER_EDIT_PROFILE)
             },
@@ -83,6 +86,9 @@ fun NavGraphBuilder.sharedGraph(
         UserProfileScreen(
             currentView = UserView.OWNER,
             user = userViewModel.user,
+            onNotificationsChange = { enabled ->
+                userViewModel.setNotificationsEnabled(uid, enabled)
+            },
             onEditProfileClick = {
                 navController.navigate(Routes.USER_EDIT_PROFILE)
             },
