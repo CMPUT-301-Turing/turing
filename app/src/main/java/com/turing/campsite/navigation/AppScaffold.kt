@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Hide entrant navigation when the signed-in account lacks entrant access.
+ */
 
 package com.turing.campsite.navigation
 
@@ -10,6 +13,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 import com.turing.campsite.ui.components.EntrantBottomBar
+import com.turing.campsite.data.auth.LocalCurrentUser
+import com.turing.campsite.data.model.UserRole
 
 /**
  * Entrant destinations that display the shared bottom navigation bar.
@@ -39,7 +44,8 @@ fun AppScaffold(
 
     Scaffold(
         bottomBar = {
-            if (currentRoute in entrantBottomBarRoutes) {
+            if (currentRoute in entrantBottomBarRoutes &&
+                LocalCurrentUser.current?.hasRole(UserRole.ENTRANT) == true) {
                 EntrantBottomBar(
                     selectedRoute = currentRoute,
                     onTabSelected = { route ->

@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Role-aware view switching using the signed-in profile and shared navigation guards.
+ */
 package com.turing.campsite.ui.screens.shared
 
 import androidx.compose.foundation.BorderStroke
@@ -76,7 +79,7 @@ fun UserProfileScreen(
     user: User? = null,
     onEditProfileClick: () -> Unit,
     onPolicyClick: () -> Unit = {},
-    onSwitchViewClick: () -> Unit,
+    onSwitchViewClick: (() -> Unit)?,
     onBackClick: () -> Unit,
     onSwitchToAdminClick: (() -> Unit)? = null
 ) {
@@ -235,15 +238,16 @@ fun UserProfileScreen(
             icon = Icons.Outlined.NotificationsNone
         )
 
-        // Switch between entrant and owner views
-        ProfileOption(
-            title = switchTitle,
-            description = switchDescription,
-            icon = Icons.Outlined.SwapHoriz,
-            onClick = onSwitchViewClick
-        )
+        // Offer only views authorized by the signed-in profile.
+        if (onSwitchViewClick != null) {
+            ProfileOption(
+                title = switchTitle,
+                description = switchDescription,
+                icon = Icons.Outlined.SwapHoriz,
+                onClick = onSwitchViewClick
+            )
+        }
 
-        // Every user can open the admin view for now, until admin roles are set up
         if (onSwitchToAdminClick != null) {
             ProfileOption(
                 title = "Switch to admin view",

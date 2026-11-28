@@ -1,8 +1,14 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Role-aware view switching using the signed-in profile and shared navigation guards.
+ */
 package com.turing.campsite.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.turing.campsite.data.model.User
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 /**
  * Reads and writes the "users" collection in Firestore.
@@ -25,6 +31,36 @@ class UserRepository {
         val user = doc.toObject(User::class.java) ?: return null
         user.id = doc.id
         return user
+    }
+
+    /** Observe profile edits and role changes without replacing the authenticated account. */
+    fun observe(uid: String): Flow<User?> = callbackFlow {
+        val listener = users.document(uid).addSnapshotListener { snapshot, failure ->
+            if (failure != null) {
+                close(failure)
+            } else {
+                try {
+                    val user = if (snapshot == null || !snapshot.exists()) null else {
+                        // A missing roles field must not inherit User's new-account defaults.
+                        val roles = snapshot.get("roles") as? List<*>
+                            ?: error("Your profile has no role information")
+                        val user = snapshot.toObject(User::class.java)
+                            ?: error("Your profile could not be loaded")
+                        user.roles = roles.map { role ->
+                            check(role is String) { "Your profile has invalid role information" }
+                            com.turing.campsite.data.model.UserRole.entries.firstOrNull { it.name == role }
+                                ?: error("Your profile has invalid role information")
+                        }
+                        user.id = snapshot.id
+                        user
+                    }
+                    trySend(user)
+                } catch (failure: Exception) {
+                    close(failure)
+                }
+            }
+        }
+        awaitClose { listener.remove() }
     }
 
     /**

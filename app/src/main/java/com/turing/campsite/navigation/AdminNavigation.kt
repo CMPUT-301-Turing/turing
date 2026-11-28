@@ -1,11 +1,16 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Role-aware view switching using the signed-in profile and shared navigation guards.
+ */
 package com.turing.campsite.navigation
 
+
+import com.turing.campsite.data.auth.LocalCurrentUser
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.turing.campsite.data.model.UserRole
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
@@ -30,7 +35,7 @@ fun NavGraphBuilder.adminGraph(
         route = Routes.ADMIN_GRAPH,
         startDestination = Routes.ADMIN_HOME
     ) {
-        composable(Routes.ADMIN_HOME) {
+        roleComposable(requiredRole = UserRole.ADMIN, navController = navController, route = Routes.ADMIN_HOME) {
             AdminHomeScreen(
                 onSettingsClick = {
                     navController.navigate(Routes.ADMIN_PROFILE)
@@ -54,22 +59,25 @@ fun NavGraphBuilder.adminGraph(
         }
 
         // Administrator's own profile and settings
-        composable(Routes.ADMIN_PROFILE) {
+        roleComposable(requiredRole = UserRole.ADMIN, navController = navController, route = Routes.ADMIN_PROFILE) {
+            val user = LocalCurrentUser.current
+            val switchToOwner: (() -> Unit)? = if (user?.hasRole(UserRole.OWNER) == true) {
+                { navController.switchView(Routes.OWNER_HOME) }
+            } else null
+            val switchToEntrant: (() -> Unit)? = if (user?.hasRole(UserRole.ENTRANT) == true) {
+                { navController.switchView(Routes.ENTRANT_HOME) }
+            } else null
             AdminProfileScreen(
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onSwitchToOwnerClick = {
-                    navController.switchView(Routes.OWNER_HOME)
-                },
-                onSwitchToEntrantClick = {
-                    navController.switchView(Routes.ENTRANT_HOME)
-                }
+                onSwitchToOwnerClick = switchToOwner,
+                onSwitchToEntrantClick = switchToEntrant
             )
         }
 
         // Browse all user profiles
-        composable(Routes.ADMIN_BROWSE_PROFILE) {
+        roleComposable(requiredRole = UserRole.ADMIN, navController = navController, route = Routes.ADMIN_BROWSE_PROFILE) {
             // Every user document is read from the database.
             backStackEntry ->
             val parent = remember(backStackEntry) {
@@ -92,7 +100,7 @@ fun NavGraphBuilder.adminGraph(
             )
         }
 
-        composable(Routes.ADMIN_BROWSE_CAMPSITE) {
+        roleComposable(requiredRole = UserRole.ADMIN, navController = navController, route = Routes.ADMIN_BROWSE_CAMPSITE) {
             backStackEntry ->
             // Every campsite is read from the database, paused ones included.
             val parent = remember(backStackEntry) {
@@ -117,7 +125,7 @@ fun NavGraphBuilder.adminGraph(
             )
         }
 
-        composable(Routes.ADMIN_MESSAGE_LOG) {
+        roleComposable(requiredRole = UserRole.ADMIN, navController = navController, route = Routes.ADMIN_MESSAGE_LOG) {
             AdminMessageLogScreen(
                 onBackClick = {
                     navController.popBackStack()
@@ -130,7 +138,7 @@ fun NavGraphBuilder.adminGraph(
             )
         }
 
-        composable(Routes.ADMIN_BROWSE_IMAGE) {
+        roleComposable(requiredRole = UserRole.ADMIN, navController = navController, route = Routes.ADMIN_BROWSE_IMAGE) {
             AdminBrowseImageScreen(
                 onBackClick = {
                     navController.popBackStack()
@@ -138,7 +146,7 @@ fun NavGraphBuilder.adminGraph(
             )
         }
 
-        composable(Routes.ADMIN_NOTIFICATION_LOG) {
+        roleComposable(requiredRole = UserRole.ADMIN, navController = navController, route = Routes.ADMIN_NOTIFICATION_LOG) {
             AdminNotificationLogScreen(
                 onBackClick = {
                     navController.popBackStack()
@@ -146,7 +154,7 @@ fun NavGraphBuilder.adminGraph(
             )
         }
 
-        composable("${Routes.ADMIN_CONVERSATION_HISTORY}/{conversationId}") {
+        roleComposable(requiredRole = UserRole.ADMIN, navController = navController, route = "${Routes.ADMIN_CONVERSATION_HISTORY}/{conversationId}") {
             // TODO: load the messages of this conversation. Sample messages are shown for now.
             AdminConversationHistoryScreen(
                 onBackClick = {

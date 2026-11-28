@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Role-aware view switching using the signed-in profile and shared navigation guards.
+ */
 
 package com.turing.campsite.ui.screens.admin
 
@@ -62,8 +65,8 @@ private val LogoutColor = Color(0xFFA54E44)
 @Composable
 fun AdminProfileScreen(
     onBackClick: () -> Unit,
-    onSwitchToOwnerClick: () -> Unit,
-    onSwitchToEntrantClick: () -> Unit
+    onSwitchToOwnerClick: (() -> Unit)?,
+    onSwitchToEntrantClick: (() -> Unit)?
 ) {
     Column(
         modifier = Modifier
@@ -176,19 +179,22 @@ fun AdminProfileScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        AdminSwitchViewRow(
-            label = "Switch to Campsite Owner",
-            icon = Icons.Outlined.Terrain,
-            onClick = onSwitchToOwnerClick
-        )
+        if (onSwitchToOwnerClick != null) {
+            AdminSwitchViewRow(
+                label = "Switch to Campsite Owner",
+                icon = Icons.Outlined.Terrain,
+                onClick = onSwitchToOwnerClick
+            )
+        }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        AdminSwitchViewRow(
-            label = "Switch to Entrant",
-            icon = Icons.Outlined.PersonOutline,
-            onClick = onSwitchToEntrantClick
-        )
+        if (onSwitchToEntrantClick != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            AdminSwitchViewRow(
+                label = "Switch to Entrant",
+                icon = Icons.Outlined.PersonOutline,
+                onClick = onSwitchToEntrantClick
+            )
+        }
 
         Spacer(modifier = Modifier.height(20.dp))
 

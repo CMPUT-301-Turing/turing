@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Role-aware view switching using the signed-in profile and shared navigation guards.
+ */
 package com.turing.campsite
 
 import androidx.compose.foundation.layout.padding
@@ -10,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 
 import com.turing.campsite.data.auth.LocalCurrentUid
+import com.turing.campsite.data.auth.LocalCurrentUser
 import com.turing.campsite.navigation.Routes
 import com.turing.campsite.navigation.AppScaffold
 import com.turing.campsite.navigation.entrantGraph
@@ -45,7 +49,25 @@ fun TuringCampsiteApp(
         return
     }
 
-    CompositionLocalProvider(LocalCurrentUid provides uid) {
+    LaunchedEffect(uid) {
+        authViewModel.observeCurrentUser()
+    }
+
+    val currentUser = authViewModel.currentUser
+    if (authViewModel.isProfileLoading || currentUser == null) {
+        SignInScreen(
+            errorMessage = authViewModel.profileErrorMessage,
+            onRetryClick = { authViewModel.observeCurrentUser() },
+            loadingMessage = "Loading your profile...",
+            errorTitle = "Could not load your profile"
+        )
+        return
+    }
+
+    CompositionLocalProvider(
+        LocalCurrentUid provides uid,
+        LocalCurrentUser provides currentUser
+    ) {
         val navController = rememberNavController()
 
         AppScaffold(navController) { innerPadding ->

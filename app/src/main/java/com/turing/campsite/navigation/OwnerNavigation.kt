@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Role-aware view switching using the signed-in profile and shared navigation guards.
+ */
 package com.turing.campsite.navigation
 
 import android.net.Uri
@@ -5,8 +8,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.turing.campsite.data.model.UserRole
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -41,7 +44,7 @@ fun NavGraphBuilder.ownerGraph(
         route = "ownerGraph",
         startDestination = Routes.OWNER_HOME
     ) {
-        composable(Routes.OWNER_HOME) { backStackEntry ->
+        roleComposable(requiredRole = UserRole.OWNER, navController = navController, route = Routes.OWNER_HOME) { backStackEntry ->
             // The owner's campsites are read from the database every time this screen opens.
             val parent = remember(backStackEntry) {
                 navController.getBackStackEntry("ownerGraph")
@@ -87,7 +90,7 @@ fun NavGraphBuilder.ownerGraph(
             )
         }
 
-        composable(Routes.OWNER_REGISTER_NEW_CAMPSITE) { backStackEntry ->
+        roleComposable(requiredRole = UserRole.OWNER, navController = navController, route = Routes.OWNER_REGISTER_NEW_CAMPSITE) { backStackEntry ->
             val parent = remember(backStackEntry) {
                 navController.getBackStackEntry("ownerGraph")
             }
@@ -108,7 +111,7 @@ fun NavGraphBuilder.ownerGraph(
             )
         }
 
-        composable(Routes.OWNER_EDIT_CAMPSITE) {
+        roleComposable(requiredRole = UserRole.OWNER, navController = navController, route = Routes.OWNER_EDIT_CAMPSITE) {
             OwnerEditCampsiteScreen(
                 onBackClick = {
                     navController.popBackStack()
@@ -116,7 +119,7 @@ fun NavGraphBuilder.ownerGraph(
             )
         }
 
-        composable("${Routes.OWNER_CAMPSITE_FULL_DETAIL}/{campsiteId}") { backStackEntry ->
+        roleComposable(requiredRole = UserRole.OWNER, navController = navController, route = "${Routes.OWNER_CAMPSITE_FULL_DETAIL}/{campsiteId}") { backStackEntry ->
             val campsiteId =
                 backStackEntry.arguments?.getString("campsiteId").orEmpty()
 
@@ -151,7 +154,7 @@ fun NavGraphBuilder.ownerGraph(
             )
         }
 
-        composable(Routes.OWNER_CAMPSITE_HISTORY) {
+        roleComposable(requiredRole = UserRole.OWNER, navController = navController, route = Routes.OWNER_CAMPSITE_HISTORY) {
             OwnerCampsiteHistoryScreen(
                 onBackClick = {
                     navController.popBackStack()
@@ -165,7 +168,7 @@ fun NavGraphBuilder.ownerGraph(
             )
         }
 
-        composable(Routes.OWNER_MESSAGE) {
+        roleComposable(requiredRole = UserRole.OWNER, navController = navController, route = Routes.OWNER_MESSAGE) {
             OwnerMessageScreen(
                 onBackClick = {
                     navController.popBackStack()
@@ -173,7 +176,7 @@ fun NavGraphBuilder.ownerGraph(
             )
         }
 
-        composable(Routes.OWNER_LOTTERY_DETAILS) {
+        roleComposable(requiredRole = UserRole.OWNER, navController = navController, route = Routes.OWNER_LOTTERY_DETAILS) {
             OwnerLotteryDetailsScreen(
                 onBackClick = {
                     navController.popBackStack()
@@ -185,7 +188,7 @@ fun NavGraphBuilder.ownerGraph(
         }
 
         // Create Lottery
-        composable(Routes.OWNER_CREATE_LOTTERY) { backStackEntry ->
+        roleComposable(requiredRole = UserRole.OWNER, navController = navController, route = Routes.OWNER_CREATE_LOTTERY) { backStackEntry ->
             val parent = remember(backStackEntry) {
                 navController.getBackStackEntry("ownerGraph")
             }
@@ -200,7 +203,7 @@ fun NavGraphBuilder.ownerGraph(
         }
 
         // Edit Lottery
-        composable(Routes.OWNER_EDIT_LOTTERY) { backStackEntry ->
+        roleComposable(requiredRole = UserRole.OWNER, navController = navController, route = Routes.OWNER_EDIT_LOTTERY) { backStackEntry ->
             val parent = remember(backStackEntry) {
                 navController.getBackStackEntry("ownerGraph")
             }
@@ -213,7 +216,7 @@ fun NavGraphBuilder.ownerGraph(
             )
         }
 
-        composable(Routes.OWNER_CAMPSITE_QR_CODE) {
+        roleComposable(requiredRole = UserRole.OWNER, navController = navController, route = Routes.OWNER_CAMPSITE_QR_CODE) {
             OwnerCampsiteQRCodeScreen(
                 onBackClick = {
                     navController.popBackStack()
@@ -221,7 +224,7 @@ fun NavGraphBuilder.ownerGraph(
             )
         }
 
-        composable(Routes.OWNER_NOTIFICATION) {
+        roleComposable(requiredRole = UserRole.OWNER, navController = navController, route = Routes.OWNER_NOTIFICATION) {
             OwnerNotificationScreen(
                 onBackClick = {
                     navController.popBackStack()
