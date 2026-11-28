@@ -21,6 +21,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -60,7 +62,8 @@ enum class UserView {
  *
  * Displays the user's saved details and profile settings. Empty details
  * show a "Not added" hint so the user knows to fill them in. The user is
- * null while the profile is still loading.
+ * null while the profile is still loading. The notifications switch calls
+ * onNotificationsChange with the new setting (US 01.10.01).
  *
  * The current view determines which role the user
  * can switch to and whether a back button is shown.
@@ -74,6 +77,7 @@ enum class UserView {
 fun UserProfileScreen(
     currentView: UserView,
     user: User? = null,
+    onNotificationsChange: (enabled: Boolean) -> Unit = {},
     onEditProfileClick: () -> Unit,
     onPolicyClick: () -> Unit = {},
     onSwitchViewClick: () -> Unit,
@@ -229,10 +233,20 @@ fun UserProfileScreen(
             icon = Icons.Outlined.PhoneAndroid
         )
 
-        ProfileOption(
-            title = "Opt out of notifications",
-            description = "Notifications are on. Opt out to stop alerts.",
-            icon = Icons.Outlined.NotificationsNone
+        // On means the user gets notifications, off means they opted out
+        val notificationsOn = user?.notificationsEnabled ?: true
+        ProfileToggleOption(
+            title = "Receive notifications",
+            description = if (notificationsOn) {
+                "Notifications are on. Turn off to opt out of all notifications."
+            } else {
+                "You opted out. You won't get any notifications."
+            },
+            icon = Icons.Outlined.NotificationsNone,
+            checked = notificationsOn,
+            // Disabled until the profile loads, so the switch can't save the wrong user
+            enabled = user != null,
+            onCheckedChange = onNotificationsChange
         )
 
         // Switch between entrant and owner views
@@ -280,6 +294,79 @@ private fun profileValue(user: User?, value: String?): String = when {
     user == null -> "Loading..."
     value.isNullOrBlank() -> "Not added"
     else -> value
+}
+
+/**
+ * Displays a profile setting that is turned on or off with a switch.
+ *
+ * The whole row can be tapped, not just the switch.
+ */
+@Composable
+private fun ProfileToggleOption(
+    title: String,
+    description: String,
+    icon: ImageVector,
+    checked: Boolean,
+    enabled: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        // Toggleable surface, so screen readers announce it as on or off
+        Surface(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            enabled = enabled,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            shape = RoundedCornerShape(9.dp),
+            color = CardBackground,
+            border = BorderStroke(1.dp, CardBorder)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = PrimaryColor
+                )
+
+                Spacer(modifier = Modifier.width(10.dp))
+
+                Text(
+                    text = title,
+                    modifier = Modifier.weight(1f),
+                    fontSize = 13.sp,
+                    color = PrimaryColor
+                )
+
+                Switch(
+                    checked = checked,
+                    // The row handles the click so taps on the text work too
+                    onCheckedChange = null,
+                    enabled = enabled,
+                    colors = SwitchDefaults.colors(
+                        checkedTrackColor = PrimaryColor,
+                        uncheckedThumbColor = SecondaryText,
+                        uncheckedTrackColor = PageBackground,
+                        uncheckedBorderColor = SecondaryText
+                    )
+                )
+            }
+        }
+
+        Text(
+            text = description,
+            modifier = Modifier.fillMaxWidth(),
+            fontSize = 11.sp,
+            color = SecondaryText
+        )
+    }
 }
 
 /**
