@@ -24,7 +24,8 @@ import com.turing.campsite.ui.screens.admin.AdminConversationHistoryScreen
  * Registers all administrator navigation destinations.
  */
 fun NavGraphBuilder.adminGraph(
-    navController: NavHostController
+    navController: NavHostController,
+    onDeleteSelf: () -> Unit
 ) {
     navigation(
         route = Routes.ADMIN_GRAPH,
@@ -88,7 +89,12 @@ fun NavGraphBuilder.adminGraph(
                     navController.popBackStack()
                 },
                 profiles = userViewModel.users,
-                isLoading = userViewModel.isLoading
+                isLoading = userViewModel.isLoading,
+                currentUid = com.turing.campsite.data.auth.LocalCurrentUid.current,
+                onDeleteProfile = { uid ->
+                    if (uid == com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid) onDeleteSelf()
+                    else userViewModel.delete(uid)
+                }
             )
         }
 

@@ -25,6 +25,10 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -82,8 +86,21 @@ fun UserProfileScreen(
     onPolicyClick: () -> Unit = {},
     onSwitchViewClick: () -> Unit,
     onBackClick: () -> Unit,
-    onSwitchToAdminClick: (() -> Unit)? = null
+    onSwitchToAdminClick: (() -> Unit)? = null,
+    onDeleteProfileClick: (() -> Unit)? = null
 ) {
+    var confirmDeletion by rememberSaveable { mutableStateOf(false) }
+    if (confirmDeletion) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { confirmDeletion = false },
+            title = { Text("Remove your profile?") },
+            text = { Text("Your profile, authored reviews, messages and notifications will be removed. Any owned campsites and related bookings will be removed. Shared lotteries may transfer to another owner. This account cannot be restored.") },
+            confirmButton = { androidx.compose.material3.TextButton(onClick = {
+                confirmDeletion = false; onDeleteProfileClick?.invoke()
+            }) { Text("Remove profile") } },
+            dismissButton = { androidx.compose.material3.TextButton(onClick = { confirmDeletion = false }) { Text("Cancel") } }
+        )
+    }
     val switchTitle: String
     val switchDescription: String
 
@@ -278,7 +295,8 @@ fun UserProfileScreen(
             title = "Delete profile",
             description = "Permanently remove your profile.",
             icon = Icons.Outlined.DeleteOutline,
-            destructive = true
+            destructive = true,
+            onClick = if (onDeleteProfileClick == null) null else { { confirmDeletion = true } }
         )
     }
 }

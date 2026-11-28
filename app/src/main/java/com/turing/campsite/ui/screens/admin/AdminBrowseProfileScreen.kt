@@ -71,8 +71,22 @@ private val SecondaryText = Color(0xFF7A8079)
 fun AdminBrowseProfilesScreen(
     onBackClick: () -> Unit,
     profiles: List<User> = emptyList(),
-    isLoading: Boolean = false
+    isLoading: Boolean = false,
+    currentUid: String = "",
+    onDeleteProfile: ((String) -> Unit)? = null
 ) {
+    var pendingUid by rememberSaveable { mutableStateOf<String?>(null) }
+    pendingUid?.let { uid ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { pendingUid = null },
+            title = { Text("Remove this profile?") },
+            text = { Text("This removes the profile and permanently blocks this account. Related participation, bookings, messages, notifications and authored reviews will be removed. Owned campsites will be deleted; surviving shared lotteries may transfer ownership.") },
+            confirmButton = { androidx.compose.material3.TextButton(onClick = {
+                pendingUid = null; onDeleteProfile?.invoke(uid)
+            }, enabled = !isLoading) { Text("Remove profile") } },
+            dismissButton = { androidx.compose.material3.TextButton(onClick = { pendingUid = null }) { Text("Cancel") } }
+        )
+    }
     var searchQuery by rememberSaveable { mutableStateOf("") }
 
     val query = searchQuery.trim()
@@ -211,7 +225,9 @@ fun AdminBrowseProfilesScreen(
                         items = filteredProfiles,
                         key = { it.id }
                     ) { profile ->
-                        AdminProfileCard(profile)
+                        val canDelete = onDeleteProfile != null &&
+                            (profile.id == currentUid || !profile.hasRole(com.turing.campsite.data.model.UserRole.ADMIN))
+                        AdminProfileCard(profile, if (canDelete && !isLoading) { { pendingUid = profile.id } } else null)
                     }
                 }
             }
@@ -221,7 +237,7 @@ fun AdminBrowseProfilesScreen(
 
 /** Displays one user's name, email, and assigned roles. */
 @Composable
-private fun AdminProfileCard(profile: User) {
+private fun AdminProfileCard(profile: User, onDelete: (() -> Unit)? = null) {
     val displayName = profile.name.ifBlank { "Unnamed profile" }
     val initials = displayName.trim()
         .split(Regex("\\s+"))
@@ -284,6 +300,9 @@ private fun AdminProfileCard(profile: User) {
                     fontSize = 11.sp,
                     color = PrimaryColor
                 )
+                if (onDelete != null) {
+                    androidx.compose.material3.TextButton(onClick = onDelete) { Text("Remove profile") }
+                }
             }
         }
     }

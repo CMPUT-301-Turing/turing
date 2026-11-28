@@ -39,6 +39,14 @@ data class CampsiteLotteryLink(val id: String, val campsiteIds: List<String>)
 
 enum class CampsiteLotteryRemoval { RETAINED, DELETE_LOTTERY, ALREADY_REMOVED }
 
+data class UserLotteryInfo(
+    val id: String,
+    val ownerId: String,
+    val ownerIds: List<String>,
+    val campsiteIds: List<String>,
+    val participantIds: List<String>
+)
+
 class LotteryRepository {
     private val lotteries = FirebaseFirestore.getInstance().collection("lotteries")
 
@@ -369,6 +377,90 @@ class LotteryRepository {
         }
     }
     **/
+
+    suspend fun userDeletionInfo(lotteryId: String): UserLotteryInfo? {
+        val doc = lotteries.document(lotteryId).get(com.google.firebase.firestore.Source.SERVER).await()
+        if (!doc.exists()) return null
+        val raw = doc.get("campsiteID")
+        val campsiteIds = when (raw) {
+            is String -> listOf(raw)
+            is List<*> -> raw.map { require(it is String && it.isNotBlank()); it }
+            else -> error("Invalid lottery campsite links")
+        }
+        val owners = (doc.get("ownerList") as? List<*> ?: emptyList<Any>()).map {
+            require(it is String && it.isNotBlank()); it
+        }
+        return UserLotteryInfo(doc.id, doc.getString("ownerId") ?: error("Lottery owner is missing"),
+            owners, campsiteIds, listParticipantIdsForRemoval(lotteryId))
+    }
+
+    suspend fun listForUserDeletion(uid: String, campsiteIds: List<String>, bookingLotteryIds: List<String>): List<UserLotteryInfo> {
+        val documents = lotteries.get(com.google.firebase.firestore.Source.SERVER).await().documents
+        return documents.mapNotNull { doc ->
+            val rawSites = doc.get("campsiteID")
+            val sites = if (rawSites is String) listOf(rawSites) else rawSites as? List<*> ?: emptyList<Any>()
+            val embedded = listOf("waitlist", "lotteryList").any { field ->
+                (doc.get(field) as? List<*>)?.any { (it as? Map<*, *>)?.get("entrantId") == uid } == true
+            }
+            val isRelated = doc.getString("ownerId") == uid ||
+                (doc.get("ownerList") as? List<*>)?.contains(uid) == true ||
+                sites.any { it in campsiteIds } || doc.id in bookingLotteryIds || embedded ||
+                entries(doc.id).document(uid).get(com.google.firebase.firestore.Source.SERVER).await().exists()
+            if (isRelated) userDeletionInfo(doc.id) else null
+        }
+    }
+
+    /** Change organizer/membership only; the shared lottery's campsites and other entrants survive. */
+    suspend fun removeUserOwnership(lotteryId: String, uid: String, successor: String?) {
+        val ref = lotteries.document(lotteryId)
+        FirebaseFirestore.getInstance().runTransaction { tx ->
+            val doc = tx.get(ref)
+            if (doc.exists()) {
+                val owner = doc.getString("ownerId")
+                val owners = doc.get("ownerList") as? List<*> ?: emptyList<Any>()
+                val updates = mutableMapOf<String, Any>()
+                if (owner == uid && successor != null) updates["ownerId"] = successor
+                if (uid in owners) updates["ownerList"] = owners.filterNot { it == uid }
+                if (updates.isNotEmpty()) tx.update(ref, updates)
+            }
+        }.await()
+    }
+
+    suspend fun removeUserParticipation(lotteryId: String, uid: String) {
+        val ref = lotteries.document(lotteryId)
+        if (!ref.get(com.google.firebase.firestore.Source.SERVER).await().exists()) return
+        val entry = entries(lotteryId).document(uid)
+        if (entry.get(com.google.firebase.firestore.Source.SERVER).await().exists()) entry.delete().await()
+        // Remove exact embedded records individually so rules can verify their entrantId.
+        for (field in listOf("waitlist", "lotteryList")) {
+            while (true) {
+                val removed = FirebaseFirestore.getInstance().runTransaction { tx ->
+                    val doc = tx.get(ref)
+                    val list = doc.get(field) as? List<*> ?: emptyList<Any>()
+                    val record = list.firstOrNull { (it as? Map<*, *>)?.get("entrantId") == uid }
+                    if (record == null) false else {
+                        tx.update(ref, field, com.google.firebase.firestore.FieldValue.arrayRemove(record))
+                        true
+                    }
+                }.await()
+                if (!removed) break
+            }
+        }
+    }
+
+    suspend fun deleteEmptyOwnedLottery(lotteryId: String, uid: String) {
+        val info = userDeletionInfo(lotteryId) ?: return
+        check(info.ownerId == uid && info.campsiteIds.isEmpty()) { "Lottery still has campsites" }
+        deleteEntries(lotteryId)
+        val ref = lotteries.document(lotteryId)
+        FirebaseFirestore.getInstance().runTransaction { tx ->
+            val doc = tx.get(ref)
+            if (doc.exists()) {
+                check(doc.getString("ownerId") == uid && (doc.get("campsiteID") as? List<*>)?.isEmpty() == true)
+                tx.delete(ref)
+            }
+        }.await()
+    }
 
     /**
      * Checks whether an entrant is already on the waitlist.

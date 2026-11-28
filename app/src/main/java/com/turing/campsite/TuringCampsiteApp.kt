@@ -1,6 +1,14 @@
 package com.turing.campsite
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -45,6 +53,29 @@ fun TuringCampsiteApp(
         return
     }
 
+    LaunchedEffect(uid) { authViewModel.observeAccountStatus() }
+    if (authViewModel.deletionStatus != null || authViewModel.accountStatusError != null) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            val removed = authViewModel.deletionStatus == "DELETED"
+            Text(if (authViewModel.accountStatusError != null) "Could not check account status. Retry to continue."
+                else if (removed) "Your profile has been removed. This account cannot be used again."
+                else "Profile removal is in progress. Normal account activity is blocked.")
+            if (authViewModel.isLoading) CircularProgressIndicator()
+            (authViewModel.accountStatusError ?: authViewModel.errorMessage)?.let { Text(it) }
+            if (!removed && !authViewModel.isLoading) {
+                Button(onClick = {
+                    if (authViewModel.accountStatusError != null) authViewModel.observeAccountStatus()
+                    else authViewModel.deleteSelf()
+                }) { Text(if (authViewModel.accountStatusError != null) "Check account status" else "Resume profile removal") }
+            }
+        }
+        return
+    }
+
     CompositionLocalProvider(LocalCurrentUid provides uid) {
         val navController = rememberNavController()
 
@@ -54,10 +85,10 @@ fun TuringCampsiteApp(
                 startDestination = Routes.LOGIN,
                 modifier = Modifier.padding(innerPadding)
             ) {
-                sharedGraph(navController)
+                sharedGraph(navController, onDeleteSelf = { authViewModel.deleteSelf() })
                 entrantGraph(navController)
                 ownerGraph(navController)
-                adminGraph(navController)
+                adminGraph(navController, onDeleteSelf = { authViewModel.deleteSelf() })
             }
         }
     }

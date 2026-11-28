@@ -36,7 +36,8 @@ class FirestoreCampsiteRemovalNotifier(
         for (recipientId in recipientIds) {
             repository.sendCampsiteRemoval(campsite.id, Notification(
                 toUserId = recipientId,
-                fromUserId = actorId,
+                fromUserId = "",
+                campsiteDeletionId = campsite.id,
                 type = NotificationType.CAMPSITE_REMOVED,
                 title = "Campsite removed",
                 body = "${campsite.name} has been removed, along with its reservations. " +
@@ -65,7 +66,8 @@ class CampsiteDeletionService(
         val campsite = campsiteRepository.get(campsiteId)
             ?: throw IllegalStateException("Campsite not found; refresh the campsite list")
         if (!actor.hasRole(UserRole.ADMIN) &&
-            !(actor.hasRole(UserRole.OWNER) && campsite.ownerId == actorId)) {
+            !(campsite.ownerId == actorId && (actor.hasRole(UserRole.OWNER) ||
+                userRepository.deletionState(actorId)?.status == "DELETING"))) {
             throw SecurityException("Only an administrator or this campsite's owner can delete it")
         }
 

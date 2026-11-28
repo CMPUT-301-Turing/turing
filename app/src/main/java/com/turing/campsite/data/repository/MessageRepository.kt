@@ -41,6 +41,19 @@ class MessageRepository {
         }
     }
 
+    suspend fun deleteForUser(uid: String) {
+        for (field in listOf("fromUserId", "toUserId")) {
+            while (true) {
+                val docs = messages.whereEqualTo(field, uid).limit(400)
+                    .get(com.google.firebase.firestore.Source.SERVER).await().documents
+                if (docs.isEmpty()) break
+                val batch = FirebaseFirestore.getInstance().batch()
+                docs.forEach { batch.delete(it.reference) }
+                batch.commit().await()
+            }
+        }
+    }
+
     /**
      * Loads every message, newest first, for the admin log.
      *

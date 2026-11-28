@@ -24,7 +24,8 @@ import com.turing.campsite.data.auth.LocalCurrentUid
  * or campsite owner roles.
  */
 fun NavGraphBuilder.sharedGraph(
-    navController: NavHostController
+    navController: NavHostController,
+    onDeleteSelf: () -> Unit
 ) {
     // Authentication
     composable(Routes.LOGIN) {
@@ -55,6 +56,7 @@ fun NavGraphBuilder.sharedGraph(
             onNotificationsChange = { enabled ->
                 userViewModel.setNotificationsEnabled(uid, enabled)
             },
+            onDeleteProfileClick = onDeleteSelf,
             onEditProfileClick = {
                 navController.navigate(Routes.USER_EDIT_PROFILE)
             },
@@ -89,6 +91,7 @@ fun NavGraphBuilder.sharedGraph(
             onNotificationsChange = { enabled ->
                 userViewModel.setNotificationsEnabled(uid, enabled)
             },
+            onDeleteProfileClick = onDeleteSelf,
             onEditProfileClick = {
                 navController.navigate(Routes.USER_EDIT_PROFILE)
             },

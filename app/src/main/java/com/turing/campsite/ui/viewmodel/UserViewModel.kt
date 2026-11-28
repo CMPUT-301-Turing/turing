@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.turing.campsite.data.model.User
 import com.turing.campsite.data.repository.UserRepository
+import com.turing.campsite.data.service.UserDeletionService
 
 /**
  * Holds user data for the profile screens and the admin profile list.
@@ -16,8 +17,10 @@ import com.turing.campsite.data.repository.UserRepository
  * @property users every user, filled by loadAll() for the admin screens
  */
 class UserViewModel(
-    private val repository: UserRepository = UserRepository()
+    private val repository: UserRepository = UserRepository(),
+    deletionService: UserDeletionService? = null
 ) : BaseViewModel() {
+    private val deletionService by lazy { deletionService ?: UserDeletionService(users = repository) }
 
     var user by mutableStateOf<User?>(null)
         private set
@@ -100,7 +103,7 @@ class UserViewModel(
      */
     fun delete(uid: String) {
         launchCall {
-            repository.delete(uid)
+            deletionService.delete(uid)
             users = users.filter { it.id != uid }
             if (user?.id == uid) user = null
         }

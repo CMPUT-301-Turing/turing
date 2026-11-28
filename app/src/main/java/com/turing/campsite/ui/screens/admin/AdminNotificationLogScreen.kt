@@ -126,7 +126,7 @@ private fun getIconForType(type: NotificationType): ImageVector {
         NotificationType.LOTTERY_WON -> Icons.Outlined.EmojiEvents
         NotificationType.LOTTERY_LOST -> Icons.Outlined.Close
         NotificationType.RESERVATION_CONFIRMED -> Icons.Outlined.EventAvailable
-        NotificationType.RESERVATION_CANCELLED, NotificationType.CAMPSITE_REMOVED -> Icons.Outlined.EventBusy
+        NotificationType.RESERVATION_CANCELLED, NotificationType.CAMPSITE_REMOVED, NotificationType.USER_REMOVED -> Icons.Outlined.EventBusy
         NotificationType.OWNER_MESSAGE -> Icons.Outlined.NotificationsNone
     }
 }

@@ -1,9 +1,28 @@
-// AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
-// Scope: Campsite deletion gate, recovery checkpoints and scoped cleanup permissions.
+// AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-27.
+// Scope: Campsite and profile deletion gates, permanent UID blocking and scoped recovery cleanup.
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
+    function unblocked(uid) {
+      return !exists(/databases/$(database)/documents/deletedUsers/$(uid));
+    }
+    function activeActor() { return signedIn() && unblocked(request.auth.uid); }
+    function canRunUserDeletion(uid) {
+      let removal = get(/databases/$(database)/documents/deletedUsers/$(uid)).data;
+      return signedIn() && removal.status == 'DELETING'
+        && (request.auth.uid == uid || (activeActor() && isAdmin() && !removal.wasAdmin));
+    }
+    function userCleanup(uid) {
+      return canRunUserDeletion(uid)
+        && get(/databases/$(database)/documents/deletedUsers/$(uid)).data.planCaptured == true;
+    }
+    function readActor() {
+      return signedIn() && (unblocked(request.auth.uid) || canRunUserDeletion(request.auth.uid));
+    }
+    function activeOwner(uid) {
+      return unblocked(uid) && 'OWNER' in get(/databases/$(database)/documents/users/$(uid)).data.roles;
+    }
     function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
     function isAdmin() {
       return signedIn()
@@ -14,11 +33,13 @@ service cloud.firestore {
       return signedIn()
         && exists(/databases/$(database)/documents/campsites/$(id))
         && get(/databases/$(database)/documents/campsites/$(id)).data.ownerId == request.auth.uid
-        && 'OWNER' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles;
+        && ('OWNER' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles
+            || canRunUserDeletion(request.auth.uid));
     }
     function available(id) {
       return exists(/databases/$(database)/documents/campsites/$(id))
-        && !('deletion' in get(/databases/$(database)/documents/campsites/$(id)).data);
+        && !('deletion' in get(/databases/$(database)/documents/campsites/$(id)).data)
+        && unblocked(get(/databases/$(database)/documents/campsites/$(id)).data.ownerId);
     }
     function cleanupAllowed(id) {
       return (isAdmin() || ownsCampsite(id))
@@ -53,7 +74,7 @@ service cloud.firestore {
       let path = /databases/$(database)/documents/lotteries/$(id);
       let data = get(path).data;
       let ids = lotteryCampsites(data);
-      return exists(path) && ids.size() > 0 && lotteryRemovals(data).size() == 0
+      return exists(path) && unblocked(data.ownerId) && ids.size() > 0 && lotteryRemovals(data).size() == 0
         && (ids.size() > 1 || available(ids[0]));
     }
     function lotteryContains(id, campsiteId) {
@@ -113,81 +134,215 @@ service cloud.firestore {
                     && request.resource.data.deletion.notifiedRecipientIds.hasAll(resource.data.deletion.notifiedRecipientIds)
                     && request.resource.data.deletion.recipientIds.hasAll(request.resource.data.deletion.notifiedRecipientIds))));
     }
+    function deletionPlanContains(uid, field, id) {
+      return userCleanup(uid) && id in get(/databases/$(database)/documents/deletedUsers/$(uid)).data[field];
+    }
+    function validRegistryUpdate(uid) {
+      let before = resource.data;
+      let after = request.resource.data;
+      return canRunUserDeletion(uid) && after.wasAdmin == before.wasAdmin && (
+        (!before.planCaptured && after.status == 'DELETING' && after.planCaptured
+          && after.keys().hasOnly(['status', 'wasAdmin', 'planCaptured', 'notifiedRecipientIds',
+            'campsiteIds', 'lotteryIds', 'reservationIds', 'reviewCampsiteIds',
+            'ownerRecipientIds', 'entrantRecipientIds', 'recipientIds'])
+          && after.campsiteIds is list && after.lotteryIds is list && after.reservationIds is list
+          && after.reviewCampsiteIds is list && after.ownerRecipientIds is list && after.entrantRecipientIds is list
+          && after.recipientIds is list && after.notifiedRecipientIds == []
+          && after.recipientIds.toSet() == after.ownerRecipientIds.toSet().union(after.entrantRecipientIds.toSet()))
+        || (before.planCaptured && after.status == 'DELETING'
+          && after.diff(before).affectedKeys().hasOnly(['notifiedRecipientIds'])
+          && after.notifiedRecipientIds is list && after.notifiedRecipientIds.hasAll(before.notifiedRecipientIds)
+          && before.recipientIds.hasAll(after.notifiedRecipientIds))
+        || (before.planCaptured && after.status == 'DELETED'
+          && after.keys().hasOnly(['status', 'wasAdmin', 'deletedAt'])
+          && after.deletedAt is timestamp && before.notifiedRecipientIds.hasAll(before.recipientIds)
+          && !existsAfter(/databases/$(database)/documents/users/$(uid)))
+      );
+    }
+    function candidateOwnsSite(data, uid) {
+      let ids = lotteryCampsites(data);
+      return (ids.size() > 0 && get(/databases/$(database)/documents/campsites/$(ids[0])).data.ownerId == uid)
+        || (ids.size() > 1 && get(/databases/$(database)/documents/campsites/$(ids[1])).data.ownerId == uid)
+        || (ids.size() > 2 && get(/databases/$(database)/documents/campsites/$(ids[2])).data.ownerId == uid)
+        || (ids.size() > 3 && get(/databases/$(database)/documents/campsites/$(ids[3])).data.ownerId == uid)
+        || (ids.size() > 4 && get(/databases/$(database)/documents/campsites/$(ids[4])).data.ownerId == uid);
+    }
+    function emptyUserLotteryCleanup(data) {
+      return lotteryCampsites(data).size() == 0 && userCleanup(data.ownerId);
+    }
+    function validUserOwnershipRemoval(id) {
+      let before = resource.data;
+      let after = request.resource.data;
+      let ownerRemoved = before.get('ownerList', []).removeAll(after.get('ownerList', []));
+      let organizerRemoved = before.ownerId != after.ownerId;
+      let uid = organizerRemoved ? before.ownerId : (ownerRemoved.size() == 1 ? ownerRemoved[0] : '');
+      return uid != '' && deletionPlanContains(uid, 'lotteryIds', id)
+        && after.diff(before).affectedKeys().hasOnly(['ownerId', 'ownerList'])
+        && after.get('ownerList', []) == before.get('ownerList', []).removeAll([uid])
+        && (!organizerRemoved || (after.ownerId != uid && activeOwner(after.ownerId)
+          && after.ownerId == get(/databases/$(database)/documents/deletedUsers/$(uid)/successors/$(id)).data.ownerId));
+    }
+    function validEmbeddedUserRemoval(field, id) {
+      let before = resource.data.get(field, []);
+      let after = request.resource.data.get(field, []);
+      let removed = before.removeAll(after);
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([field])
+        && removed.size() > 0 && removed.toSet().size() == 1
+        && after == before.removeAll(removed)
+        && deletionPlanContains(removed[0].entrantId, 'lotteryIds', id);
+    }
+    function startsReviewCleanup(id) {
+      let uid = request.resource.data.reviewCleanupUserId;
+      let review = request.resource.data.reviewCleanupReviewId;
+      return !('reviewCleanupUserId' in resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reviewCleanupUserId', 'reviewCleanupReviewId'])
+        && deletionPlanContains(uid, 'reviewCampsiteIds', id)
+        && get(/databases/$(database)/documents/campsites/$(id)/reviews/$(review)).data.entrantId == uid;
+    }
+    function finishesReviewCleanup(id) {
+      return 'reviewCleanupUserId' in resource.data
+        && deletionPlanContains(resource.data.reviewCleanupUserId, 'reviewCampsiteIds', id)
+        && !('reviewCleanupUserId' in request.resource.data) && !('reviewCleanupReviewId' in request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'ratingAverage', 'ratingCount', 'reviewCleanupUserId', 'reviewCleanupReviewId']);
+    }
+    function retainsReviewCleanup() {
+      return request.resource.data.get('reviewCleanupUserId', '') == resource.data.get('reviewCleanupUserId', '')
+        && request.resource.data.get('reviewCleanupReviewId', '') == resource.data.get('reviewCleanupReviewId', '')
+        && (!('reviewCleanupUserId' in resource.data)
+            || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['ratingAverage', 'ratingCount']));
+    }
+    function removalNotificationCreate() {
+      let data = request.resource.data;
+      let camp = data.get('campsiteDeletionId', '');
+      let uid = data.get('userDeletionId', '');
+      return data.fromUserId == '' && unblocked(data.toUserId)
+        && exists(/databases/$(database)/documents/users/$(data.toUserId))
+        && ((data.type == 'CAMPSITE_REMOVED' && camp != '' && uid == ''
+              && cleanupAllowed(camp)
+              && data.toUserId in get(/databases/$(database)/documents/campsites/$(camp)).data.deletion.recipientIds)
+            || (data.type == 'USER_REMOVED' && uid != '' && camp == ''
+              && userCleanup(uid)
+              && data.toUserId in get(/databases/$(database)/documents/deletedUsers/$(uid)).data.recipientIds));
+    }
+    match /deletedUsers/{uid} {
+      // UID registry contains recovery identifiers, never profile names or contact details.
+      allow get: if signedIn();
+      allow list: if activeActor() && isAdmin();
+      allow create: if signedIn() && exists(/databases/$(database)/documents/users/$(uid))
+        && (isSelf(uid) || (activeActor() && isAdmin()
+            && !('ADMIN' in get(/databases/$(database)/documents/users/$(uid)).data.roles)))
+        && request.resource.data.keys().hasOnly(['status', 'wasAdmin', 'planCaptured', 'notifiedRecipientIds'])
+        && request.resource.data.status == 'DELETING' && request.resource.data.planCaptured == false
+        && request.resource.data.notifiedRecipientIds == []
+        && request.resource.data.wasAdmin == ('ADMIN' in get(/databases/$(database)/documents/users/$(uid)).data.roles);
+      allow update: if validRegistryUpdate(uid);
+      allow delete: if false;
+      match /successors/{lotteryId} {
+        allow read: if signedIn();
+        allow create, update: if deletionPlanContains(uid, 'lotteryIds', lotteryId)
+          && request.resource.data.keys().hasOnly(['ownerId'])
+          && request.resource.data.ownerId != uid && activeOwner(request.resource.data.ownerId)
+          && candidateOwnsSite(get(/databases/$(database)/documents/lotteries/$(lotteryId)).data, request.resource.data.ownerId)
+          && (!exists(/databases/$(database)/documents/deletedUsers/$(uid)/successors/$(lotteryId))
+              || resource.data.ownerId == request.resource.data.ownerId || !activeOwner(resource.data.ownerId));
+        allow delete: if userCleanup(uid);
+      }
+    }
     match /users/{uid} {
-      allow read: if signedIn();
-      allow create: if isSelf(uid);
-      allow update: if (request.resource.data.roles == resource.data.roles && isSelf(uid)) || isAdmin();
-      allow delete: if isSelf(uid) || isAdmin();
+      allow read: if readActor();
+      allow create: if activeActor() && isSelf(uid) && unblocked(uid)
+        && request.resource.data.roles is list
+        && request.resource.data.roles.hasOnly(['OWNER', 'ENTRANT']);
+      allow update: if activeActor() && unblocked(uid)
+        && ((request.resource.data.roles == resource.data.roles && isSelf(uid)) || isAdmin());
+      allow delete: if userCleanup(uid)
+        && getAfter(/databases/$(database)/documents/deletedUsers/$(uid)).data.status == 'DELETED';
     }
     match /campsites/{id} {
-      allow read: if signedIn();
-      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid
-        && !('deletion' in request.resource.data);
-      allow update: if (isAdmin() || ownsCampsite(id))
-        && request.resource.data.ownerId == resource.data.ownerId && validDeletionUpdate();
+      allow read: if readActor();
+      allow create: if activeActor() && request.resource.data.ownerId == request.auth.uid
+        && !('deletion' in request.resource.data) && !('reviewCleanupUserId' in request.resource.data)
+        && !('reviewCleanupReviewId' in request.resource.data);
+      allow update: if startsReviewCleanup(id) || finishesReviewCleanup(id)
+        || ((isAdmin() || ownsCampsite(id)) && request.resource.data.ownerId == resource.data.ownerId
+            && validDeletionUpdate() && retainsReviewCleanup()
+            && (activeActor() || (canRunUserDeletion(request.auth.uid)
+                && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deletion']))));
       allow delete: if cleanupAllowed(id)
         && resource.data.deletion.notifiedRecipientIds.hasAll(resource.data.deletion.recipientIds);
       match /reviews/{reviewId} {
-        allow read: if signedIn();
-        allow create: if signedIn() && available(id);
-        allow delete: if isAdmin() || cleanupAllowed(id);
+        allow read: if readActor();
+        allow create: if activeActor() && request.resource.data.entrantId == request.auth.uid
+          && available(id) && !('reviewCleanupUserId' in get(/databases/$(database)/documents/campsites/$(id)).data);
+        allow delete: if (activeActor() && isAdmin()) || cleanupAllowed(id) || userCleanup(resource.data.entrantId);
       }
     }
     match /lotteries/{id} {
-      allow read: if signedIn();
-      // Normalize legacy strings and the current array schema; validate each selected campsite.
-      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid
+      allow read: if readActor();
+      allow create: if activeActor() && request.resource.data.ownerId == request.auth.uid
         && validLotteryCreationCampsites(lotteryCampsites(request.resource.data))
-        && lotteryRemovals(request.resource.data) == [];
-      allow update: if signedIn() && (
-        // An exact retry of arrayUnion has no document changes.
+        && lotteryRemovals(request.resource.data) == []
+        && request.resource.data.get('waitlist', []) == [] && request.resource.data.get('lotteryList', []) == []
+        && request.resource.data.get('ownerList', []).removeAll([request.auth.uid]) == [];
+      allow update: if readActor() && (
         request.resource.data == resource.data
         || canStartLotteryRemoval() || canDetachCampsite(id)
-        || ((resource.data.ownerId == request.auth.uid || isAdmin())
+        || validUserOwnershipRemoval(id) || validEmbeddedUserRemoval('waitlist', id) || validEmbeddedUserRemoval('lotteryList', id)
+        || (activeActor() && (resource.data.ownerId == request.auth.uid || isAdmin())
+            && unblocked(resource.data.ownerId)
             && request.resource.data.ownerId == resource.data.ownerId
             && request.resource.data.campsiteID == resource.data.campsiteID
-            && lotteryRemovals(request.resource.data) == lotteryRemovals(resource.data)
-            && lotteryAvailable(id)));
-      allow delete: if soleLotteryCleanup(resource.data)
-        && get(/databases/$(database)/documents/campsites/$(lotteryCampsites(resource.data)[0])).data.deletion.lotteryIds.hasAny([id]);
+            && request.resource.data.get('ownerList', []) == resource.data.get('ownerList', [])
+            && request.resource.data.get('waitlist', []) == resource.data.get('waitlist', [])
+            && request.resource.data.get('lotteryList', []) == resource.data.get('lotteryList', [])
+            && lotteryRemovals(request.resource.data) == lotteryRemovals(resource.data) && lotteryAvailable(id)));
+      allow delete: if emptyUserLotteryCleanup(resource.data)
+        || (soleLotteryCleanup(resource.data)
+          && get(/databases/$(database)/documents/campsites/$(lotteryCampsites(resource.data)[0])).data.deletion.lotteryIds.hasAny([id]));
       match /entries/{entrantId} {
-        allow read: if signedIn();
-        allow create: if isSelf(entrantId) && request.resource.data.entrantId == entrantId
-          && lotteryAvailable(id);
-        allow delete: if (isSelf(entrantId) && lotteryAvailable(id))
-          || soleLotteryCleanup(get(/databases/$(database)/documents/lotteries/$(id)).data);
+        allow read: if readActor();
+        allow create: if activeActor() && isSelf(entrantId) && request.resource.data.entrantId == entrantId && lotteryAvailable(id);
+        allow delete: if (activeActor() && isSelf(entrantId) && lotteryAvailable(id)) || userCleanup(entrantId)
+          || soleLotteryCleanup(get(/databases/$(database)/documents/lotteries/$(id)).data)
+          || emptyUserLotteryCleanup(get(/databases/$(database)/documents/lotteries/$(id)).data);
       }
     }
     match /reservations/{id} {
-      allow read: if signedIn();
-      allow create: if signedIn() && available(request.resource.data.campsiteId)
-        && request.resource.data.entrantId == request.auth.uid
+      allow read: if readActor();
+      allow create: if activeActor() && available(request.resource.data.campsiteId)
+        && request.resource.data.entrantId == request.auth.uid && unblocked(request.resource.data.ownerId)
         && lotteryContains(request.resource.data.lotteryId, request.resource.data.campsiteId)
         && lotteryAvailable(request.resource.data.lotteryId)
         && request.resource.data.ownerId == get(/databases/$(database)/documents/campsites/$(request.resource.data.campsiteId)).data.ownerId;
-      allow update: if signedIn()
+      allow update: if activeActor() && unblocked(resource.data.entrantId) && unblocked(resource.data.ownerId)
         && (resource.data.entrantId == request.auth.uid || resource.data.ownerId == request.auth.uid || isAdmin())
         && request.resource.data.campsiteId == resource.data.campsiteId
         && request.resource.data.lotteryId == resource.data.lotteryId
         && request.resource.data.entrantId == resource.data.entrantId
         && request.resource.data.ownerId == resource.data.ownerId
         && available(resource.data.campsiteId) && lotteryAvailable(resource.data.lotteryId);
-      // Owning one campsite never grants cleanup rights over another campsite's bookings.
-      allow delete: if cleanupAllowed(resource.data.campsiteId);
+      allow delete: if cleanupAllowed(resource.data.campsiteId) || userCleanup(resource.data.entrantId) || userCleanup(resource.data.ownerId);
     }
     match /notifications/{id} {
-      allow read: if (signedIn() && resource.data.toUserId == request.auth.uid) || isAdmin();
-      allow create: if signedIn() && request.resource.data.fromUserId == request.auth.uid;
-      allow update: if signedIn() && resource.data.toUserId == request.auth.uid;
+      allow read: if readActor() && (resource.data.toUserId == request.auth.uid || isAdmin()
+        || userCleanup(resource.data.toUserId) || userCleanup(resource.data.fromUserId));
+      allow create: if removalNotificationCreate()
+        || (activeActor() && request.resource.data.fromUserId == request.auth.uid && unblocked(request.resource.data.toUserId)
+            && request.resource.data.get('userDeletionId', '') == '' && request.resource.data.get('campsiteDeletionId', '') == '');
+      allow update: if activeActor() && resource.data.toUserId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow delete: if userCleanup(resource.data.toUserId) || userCleanup(resource.data.fromUserId);
     }
     match /messages/{id} {
-      allow read: if signedIn()
-        && (resource.data.fromUserId == request.auth.uid || resource.data.toUserId == request.auth.uid || isAdmin()
-            || cleanupAllowed(reservationCampsite(resource.data.reservationId)));
-      allow create: if signedIn() && request.resource.data.fromUserId == request.auth.uid
+      allow read: if readActor() && (resource.data.fromUserId == request.auth.uid || resource.data.toUserId == request.auth.uid || isAdmin()
+        || cleanupAllowed(reservationCampsite(resource.data.reservationId))
+        || userCleanup(resource.data.fromUserId) || userCleanup(resource.data.toUserId));
+      allow create: if activeActor() && request.resource.data.fromUserId == request.auth.uid && unblocked(request.resource.data.toUserId)
         && available(reservationCampsite(request.resource.data.reservationId))
         && lotteryAvailable(get(/databases/$(database)/documents/reservations/$(request.resource.data.reservationId)).data.lotteryId);
-      allow delete: if cleanupAllowed(reservationCampsite(resource.data.reservationId));
+      allow delete: if cleanupAllowed(reservationCampsite(resource.data.reservationId))
+        || userCleanup(resource.data.fromUserId) || userCleanup(resource.data.toUserId);
     }
   }
 }

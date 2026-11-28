@@ -2,6 +2,8 @@ package com.turing.campsite.ui.viewmodel
 
 import com.turing.campsite.data.model.User
 import com.turing.campsite.data.repository.UserRepository
+import com.turing.campsite.data.service.UserDeletionService
+import com.turing.campsite.data.service.UserDeletionResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -24,6 +26,7 @@ import org.mockito.Mockito.verify
 class UserViewModelTest {
 
     private lateinit var repository: UserRepository
+    private lateinit var deletionService: UserDeletionService
     private lateinit var viewModel: UserViewModel
     private lateinit var alice: User
 
@@ -32,7 +35,8 @@ class UserViewModelTest {
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher()) // run background calls right away
         repository = mock(UserRepository::class.java)
-        viewModel = UserViewModel(repository)
+        deletionService = mock(UserDeletionService::class.java)
+        viewModel = UserViewModel(repository, deletionService)
         alice = User(id = "u1", name = "Alice", email = "alice@example.com")
     }
 
@@ -152,9 +156,10 @@ class UserViewModelTest {
         doReturn(listOf(alice, bob)).`when`(repository).listAll()
         viewModel.loadAll()
 
+        doReturn(UserDeletionResult.ProfileRemoved).`when`(deletionService).delete("u1")
         viewModel.delete("u1")
 
-        verify(repository).delete("u1")
+        verify(deletionService).delete("u1")
         assertEquals(listOf(bob), viewModel.users) // only Bob is left
     }
 }

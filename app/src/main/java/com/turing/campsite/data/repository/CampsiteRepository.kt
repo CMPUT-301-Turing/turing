@@ -201,6 +201,67 @@ class CampsiteRepository {
         }
     }
 
+    suspend fun listOwnedForUserDeletion(uid: String): List<Campsite> {
+        return campsites.whereEqualTo("ownerId", uid).get(com.google.firebase.firestore.Source.SERVER).await()
+            .documents.map { doc -> requireNotNull(doc.toObject(Campsite::class.java)).also { it.id = doc.id } }
+    }
+
+    suspend fun getForUserDeletion(id: String): Campsite? {
+        val doc = campsites.document(id).get(com.google.firebase.firestore.Source.SERVER).await()
+        return if (!doc.exists()) null else requireNotNull(doc.toObject(Campsite::class.java)).also { it.id = doc.id }
+    }
+
+    suspend fun reviewCampsitesForUserDeletion(uid: String): List<String> {
+        return campsites.get(com.google.firebase.firestore.Source.SERVER).await().documents.mapNotNull { doc ->
+            val reviews = doc.reference.collection("reviews").whereEqualTo("entrantId", uid).limit(1)
+                .get(com.google.firebase.firestore.Source.SERVER).await()
+            if (reviews.isEmpty) null else doc.id
+        }
+    }
+
+    suspend fun deleteReviewsByUser(campsiteId: String, uid: String) {
+        val ref = campsites.document(campsiteId)
+        val proof = ref.collection("reviews").whereEqualTo("entrantId", uid).limit(1)
+            .get(com.google.firebase.firestore.Source.SERVER).await().documents.firstOrNull()
+        val exists = FirebaseFirestore.getInstance().runTransaction { tx ->
+            val doc = tx.get(ref)
+            if (!doc.exists()) false else {
+                val lock = doc.getString("reviewCleanupUserId")
+                check(lock == null || lock == uid) { "Another review cleanup is running; retry profile deletion" }
+                if (lock == null && proof == null) false else {
+                    if (lock == null) tx.update(ref, mapOf("reviewCleanupUserId" to uid, "reviewCleanupReviewId" to requireNotNull(proof).id))
+                    true
+                }
+            }
+        }.await()
+        if (!exists) return
+        val reviews = ref.collection("reviews")
+        while (true) {
+            val docs = reviews.whereEqualTo("entrantId", uid).limit(400)
+                .get(com.google.firebase.firestore.Source.SERVER).await().documents
+            if (docs.isEmpty()) break
+            val batch = FirebaseFirestore.getInstance().batch()
+            docs.forEach { batch.delete(it.reference) }; batch.commit().await()
+        }
+        val remaining = reviews.get(com.google.firebase.firestore.Source.SERVER).await().documents
+        val average = if (remaining.isEmpty()) 0.0 else remaining.map { (it.get("rating") as? Number)?.toDouble()
+            ?: error("Invalid remaining review rating") }.average()
+        FirebaseFirestore.getInstance().runTransaction { tx ->
+            val doc = tx.get(ref)
+            if (doc.exists()) {
+                check(doc.getString("reviewCleanupUserId") == uid) { "Review cleanup lock was lost" }
+                val updates = mutableMapOf<String, Any>(
+                    "reviewCleanupUserId" to com.google.firebase.firestore.FieldValue.delete(),
+                    "reviewCleanupReviewId" to com.google.firebase.firestore.FieldValue.delete())
+                if (!doc.contains("deletion")) {
+                    updates["ratingAverage"] = average
+                    updates["ratingCount"] = remaining.size
+                }
+                tx.update(ref, updates)
+            }
+        }.await()
+    }
+
     /**
      * Loads every review for one campsite.
      *

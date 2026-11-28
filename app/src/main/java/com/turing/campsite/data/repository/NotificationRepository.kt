@@ -97,11 +97,52 @@ class NotificationRepository {
             }
             val recipients = snapshot.get("deletion.recipientIds") as? List<*> ?: emptyList<Any>()
             check(notification.toUserId in recipients) { "Recipient is not in the deletion snapshot" }
+            val recipientGate = tx.get(db.collection("deletedUsers").document(notification.toUserId))
+            val recipientProfile = tx.get(db.collection("users").document(notification.toUserId))
             val delivered = snapshot.get("deletion.notifiedRecipientIds") as? List<*> ?: emptyList<Any>()
             if (notification.toUserId !in delivered) {
-                tx.set(notificationRef, notification.copy(id = notificationRef.id))
+                if (!recipientGate.exists() && recipientProfile.exists() &&
+                    recipientProfile.getBoolean("notificationsEnabled") != false) {
+                    tx.set(notificationRef, notification.copy(id = notificationRef.id))
+                }
                 tx.update(campsiteRef, "deletion.notifiedRecipientIds",
                     com.google.firebase.firestore.FieldValue.arrayUnion(notification.toUserId))
+            }
+        }.await()
+    }
+
+    /** Historical sent/received records are removed; system removal notices have no user sender. */
+    suspend fun deleteForUser(uid: String) {
+        for (field in listOf("fromUserId", "toUserId")) {
+            while (true) {
+                val docs = notifications.whereEqualTo(field, uid).limit(400)
+                    .get(com.google.firebase.firestore.Source.SERVER).await().documents
+                if (docs.isEmpty()) break
+                val batch = FirebaseFirestore.getInstance().batch()
+                docs.forEach { batch.delete(it.reference) }; batch.commit().await()
+            }
+        }
+    }
+
+    suspend fun sendUserRemoval(uid: String, notification: Notification) {
+        val db = FirebaseFirestore.getInstance()
+        val ref = db.collection("deletedUsers").document(uid)
+        val key = java.security.MessageDigest.getInstance("SHA-256")
+            .digest("$uid:${notification.toUserId}".toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }
+        val notificationRef = notifications.document("user_removed_$key")
+        db.runTransaction { tx ->
+            val doc = tx.get(ref)
+            check(doc.getString("status") == "DELETING" && doc.getBoolean("planCaptured") == true)
+            val recipients = doc.get("recipientIds") as? List<*> ?: error("Missing deletion recipients")
+            check(notification.toUserId in recipients)
+            val gate = tx.get(db.collection("deletedUsers").document(notification.toUserId))
+            val profile = tx.get(db.collection("users").document(notification.toUserId))
+            val delivered = doc.get("notifiedRecipientIds") as? List<*> ?: emptyList<Any>()
+            if (notification.toUserId !in delivered) {
+                if (!gate.exists() && profile.exists() && profile.getBoolean("notificationsEnabled") != false) {
+                    tx.set(notificationRef, notification.copy(id = notificationRef.id))
+                }
+                tx.update(ref, "notifiedRecipientIds", com.google.firebase.firestore.FieldValue.arrayUnion(notification.toUserId))
             }
         }.await()
     }

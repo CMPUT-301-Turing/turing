@@ -94,6 +94,14 @@ class ReservationRepository {
         }
     }
 
+    suspend fun listForUserDeletion(uid: String): List<Reservation> =
+        (listMatching("entrantId", uid) + listMatching("ownerId", uid)).distinctBy { it.id }
+
+    suspend fun getForUserDeletion(id: String): Reservation? {
+        val doc = reservations.document(id).get(com.google.firebase.firestore.Source.SERVER).await()
+        return if (!doc.exists()) null else requireNotNull(doc.toObject(Reservation::class.java)).also { it.id = doc.id }
+    }
+
     suspend fun delete(id: String) {
         reservations.document(id).delete().await()
     }

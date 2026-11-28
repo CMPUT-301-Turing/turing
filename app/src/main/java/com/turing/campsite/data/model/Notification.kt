@@ -12,7 +12,7 @@ import com.google.firebase.Timestamp
  * changes. OWNER_MESSAGE is written by an owner to their entrants.
  */
 enum class NotificationType {
-    LOTTERY_WON, LOTTERY_LOST, RESERVATION_CONFIRMED, RESERVATION_CANCELLED, OWNER_MESSAGE, CAMPSITE_REMOVED
+    LOTTERY_WON, LOTTERY_LOST, RESERVATION_CONFIRMED, RESERVATION_CANCELLED, OWNER_MESSAGE, CAMPSITE_REMOVED, USER_REMOVED
 }
 
 /**
@@ -38,5 +38,7 @@ data class Notification(
     var title: String = "",
     var body: String = "",
     var read: Boolean = false,
-    var createdAt: Timestamp = Timestamp.now()
+    var createdAt: Timestamp = Timestamp.now(),
+    var campsiteDeletionId: String = "",
+    var userDeletionId: String = ""
 )
