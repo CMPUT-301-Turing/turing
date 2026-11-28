@@ -42,7 +42,7 @@ class LotteryViewModelTest {
         lottery = Lottery(
             name = "Test Lottery",
             id = "l1",
-            owner = "owner1",
+            ownerId = "owner1",
             campsiteID = listOf("TestCampsite"),
             registrationStart = Timestamp(1000L, 0),
             registrationEnd = Timestamp(2000L, 0),
