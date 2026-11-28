@@ -2,7 +2,9 @@ package com.turing.campsite.ui.viewmodel
 
 import com.turing.campsite.data.model.Notification
 import com.turing.campsite.data.model.NotificationType
+import com.turing.campsite.data.model.User
 import com.turing.campsite.data.repository.NotificationRepository
+import com.turing.campsite.data.repository.UserRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -17,12 +19,15 @@ import org.junit.Test
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.doThrow
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.verify
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class NotificationViewModelTest {
 
     private lateinit var repository: NotificationRepository
+    private lateinit var userRepository: UserRepository
     private lateinit var viewModel: NotificationViewModel
     private lateinit var won: Notification
     private lateinit var message: Notification
@@ -32,7 +37,8 @@ class NotificationViewModelTest {
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher()) // run background calls right away
         repository = mock(NotificationRepository::class.java)
-        viewModel = NotificationViewModel(repository)
+        userRepository = mock(UserRepository::class.java) // no profiles, so everyone is opted in
+        viewModel = NotificationViewModel(repository, userRepository)
         won = Notification(id = "n1", toUserId = "u1", type = NotificationType.LOTTERY_WON)
         message = Notification(id = "n2", toUserId = "u1", fromUserId = "owner1")
     }
@@ -94,6 +100,43 @@ class NotificationViewModelTest {
         viewModel.sendToMany(listOf("u1", "u2"), message)
 
         verify(repository).sendToMany(listOf("u1", "u2"), message)
+    }
+
+    @Test
+    fun send_receiverOptedOut_notSent() = runBlocking<Unit> {
+        doReturn(User(id = "u1", notificationsEnabled = false)).`when`(userRepository).get("u1")
+
+        viewModel.send(message)
+
+        verify(repository, never()).add(message)
+    }
+
+    @Test
+    fun send_receiverOptedIn_sent() = runBlocking<Unit> {
+        doReturn(User(id = "u1", notificationsEnabled = true)).`when`(userRepository).get("u1")
+        doReturn("n2").`when`(repository).add(message)
+
+        viewModel.send(message)
+
+        verify(repository).add(message)
+    }
+
+    @Test
+    fun sendToMany_oneOptedOut_skipsThem() = runBlocking<Unit> {
+        doReturn(User(id = "u2", notificationsEnabled = false)).`when`(userRepository).get("u2")
+
+        viewModel.sendToMany(listOf("u1", "u2", "u3"), message)
+
+        verify(repository).sendToMany(listOf("u1", "u3"), message)
+    }
+
+    @Test
+    fun sendToMany_everyoneOptedOut_nothingSent() = runBlocking<Unit> {
+        doReturn(User(id = "u1", notificationsEnabled = false)).`when`(userRepository).get("u1")
+
+        viewModel.sendToMany(listOf("u1"), message)
+
+        verifyNoInteractions(repository) // nothing written at all
     }
 
     @Test

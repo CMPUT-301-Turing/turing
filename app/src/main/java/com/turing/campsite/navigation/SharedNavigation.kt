@@ -47,6 +47,8 @@ fun NavGraphBuilder.sharedGraph(
     // User profile when accessed from Entrant view
     roleComposable(Routes.ENTRANT_PROFILE, UserRole.ENTRANT, navController) {
         val user = LocalCurrentUser.current
+        val uid = LocalCurrentUid.current
+        val userViewModel: UserViewModel = viewModel()
         val switchView: (() -> Unit)? = if (user?.hasRole(UserRole.OWNER) == true) {
             { navController.switchView(Routes.OWNER_HOME) }
         } else null
@@ -57,6 +59,9 @@ fun NavGraphBuilder.sharedGraph(
         UserProfileScreen(
             currentView = UserView.ENTRANT,
             user = user,
+            onNotificationsChange = { enabled ->
+                userViewModel.setNotificationsEnabled(uid, enabled)
+            },
             onEditProfileClick = { navController.navigate(Routes.USER_EDIT_PROFILE) },
             onPolicyClick = { navController.navigate(Routes.APP_POLICY) },
             onSwitchViewClick = switchView,
@@ -68,6 +73,8 @@ fun NavGraphBuilder.sharedGraph(
     // User profile when accessed from Owner view
     roleComposable(Routes.OWNER_PROFILE, UserRole.OWNER, navController) {
         val user = LocalCurrentUser.current
+        val uid = LocalCurrentUid.current
+        val userViewModel: UserViewModel = viewModel()
         val switchView: (() -> Unit)? = if (user?.hasRole(UserRole.ENTRANT) == true) {
             { navController.switchView(Routes.ENTRANT_HOME) }
         } else null
@@ -78,6 +85,9 @@ fun NavGraphBuilder.sharedGraph(
         UserProfileScreen(
             currentView = UserView.OWNER,
             user = user,
+            onNotificationsChange = { enabled ->
+                userViewModel.setNotificationsEnabled(uid, enabled)
+            },
             onEditProfileClick = { navController.navigate(Routes.USER_EDIT_PROFILE) },
             onPolicyClick = { navController.navigate(Routes.APP_POLICY) },
             onSwitchViewClick = switchView,
