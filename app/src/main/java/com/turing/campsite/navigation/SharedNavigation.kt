@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Role-aware view switching using the signed-in profile and shared navigation guards.
+ */
 
 package com.turing.campsite.navigation
 
@@ -16,6 +19,8 @@ import com.turing.campsite.ui.screens.shared.UserEditProfileScreen
 import com.turing.campsite.ui.screens.shared.UserView
 import com.turing.campsite.ui.viewmodel.UserViewModel
 import com.turing.campsite.data.auth.LocalCurrentUid
+import com.turing.campsite.data.auth.LocalCurrentUser
+import com.turing.campsite.data.model.UserRole
 
 /**
  * Registers shared navigation destinations.
@@ -40,70 +45,54 @@ fun NavGraphBuilder.sharedGraph(
     }
 
     // User profile when accessed from Entrant view
-    composable(Routes.ENTRANT_PROFILE) {
+    roleComposable(Routes.ENTRANT_PROFILE, UserRole.ENTRANT, navController) {
+        val user = LocalCurrentUser.current
         val uid = LocalCurrentUid.current
         val userViewModel: UserViewModel = viewModel()
-
-        // Reloads every time the profile is opened, so saved edits show up
-        LaunchedEffect(uid) {
-            userViewModel.load(uid)
-        }
+        val switchView: (() -> Unit)? = if (user?.hasRole(UserRole.OWNER) == true) {
+            { navController.switchView(Routes.OWNER_HOME) }
+        } else null
+        val switchToAdmin: (() -> Unit)? = if (user?.hasRole(UserRole.ADMIN) == true) {
+            { navController.switchView(Routes.ADMIN_HOME) }
+        } else null
 
         UserProfileScreen(
             currentView = UserView.ENTRANT,
-            user = userViewModel.user,
+            user = user,
             onNotificationsChange = { enabled ->
                 userViewModel.setNotificationsEnabled(uid, enabled)
             },
-            onEditProfileClick = {
-                navController.navigate(Routes.USER_EDIT_PROFILE)
-            },
-            onPolicyClick = {
-                navController.navigate(Routes.APP_POLICY)
-            },
-            onSwitchViewClick = {
-                navController.switchView(Routes.OWNER_HOME)
-            },
-            onBackClick = {
-                navController.popBackStack()
-            },
-            onSwitchToAdminClick = {
-                navController.switchView(Routes.ADMIN_HOME)
-            }
+            onEditProfileClick = { navController.navigate(Routes.USER_EDIT_PROFILE) },
+            onPolicyClick = { navController.navigate(Routes.APP_POLICY) },
+            onSwitchViewClick = switchView,
+            onBackClick = { navController.popBackStack() },
+            onSwitchToAdminClick = switchToAdmin
         )
     }
 
     // User profile when accessed from Owner view
-    composable(Routes.OWNER_PROFILE) {
+    roleComposable(Routes.OWNER_PROFILE, UserRole.OWNER, navController) {
+        val user = LocalCurrentUser.current
         val uid = LocalCurrentUid.current
         val userViewModel: UserViewModel = viewModel()
-
-        // Reloads every time the profile is opened, so saved edits show up
-        LaunchedEffect(uid) {
-            userViewModel.load(uid)
-        }
+        val switchView: (() -> Unit)? = if (user?.hasRole(UserRole.ENTRANT) == true) {
+            { navController.switchView(Routes.ENTRANT_HOME) }
+        } else null
+        val switchToAdmin: (() -> Unit)? = if (user?.hasRole(UserRole.ADMIN) == true) {
+            { navController.switchView(Routes.ADMIN_HOME) }
+        } else null
 
         UserProfileScreen(
             currentView = UserView.OWNER,
-            user = userViewModel.user,
+            user = user,
             onNotificationsChange = { enabled ->
                 userViewModel.setNotificationsEnabled(uid, enabled)
             },
-            onEditProfileClick = {
-                navController.navigate(Routes.USER_EDIT_PROFILE)
-            },
-            onPolicyClick = {
-                navController.navigate(Routes.APP_POLICY)
-            },
-            onSwitchViewClick = {
-                navController.switchView(Routes.ENTRANT_HOME)
-            },
-            onBackClick = {
-                navController.popBackStack()
-            },
-            onSwitchToAdminClick = {
-                navController.switchView(Routes.ADMIN_HOME)
-            }
+            onEditProfileClick = { navController.navigate(Routes.USER_EDIT_PROFILE) },
+            onPolicyClick = { navController.navigate(Routes.APP_POLICY) },
+            onSwitchViewClick = switchView,
+            onBackClick = { navController.popBackStack() },
+            onSwitchToAdminClick = switchToAdmin
         )
     }
 

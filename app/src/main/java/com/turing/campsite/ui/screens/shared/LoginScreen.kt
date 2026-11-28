@@ -1,49 +1,49 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Role-aware view switching using the signed-in profile and shared navigation guards.
+ */
 package com.turing.campsite.ui.screens.shared
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
+import com.turing.campsite.data.auth.LocalCurrentUser
+import com.turing.campsite.data.model.UserRole
 import com.turing.campsite.navigation.Routes
+import com.turing.campsite.navigation.switchView
 
+/** Select a view without changing accounts or granting any roles. */
 @Composable
-fun LoginScreen(navController: NavController){
+fun LoginScreen(navController: NavHostController) {
+    val user = LocalCurrentUser.current
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp)
-    ){
-        Text(text= "login screen")
-        Row(){
-            Button(
-                onClick={
-                    navController.navigate("AdminHome")
-                }
-            ) {
-                Text("admin screen")
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text("Choose a view")
+        if (user?.hasRole(UserRole.ADMIN) == true) {
+            Button(onClick = { navController.switchView(Routes.ADMIN_HOME) }) {
+                Text("Admin view")
             }
-
         }
-
-        Button(
-            onClick = {
-                navController.navigate(Routes.ENTRANT_HOME)
+        if (user?.hasRole(UserRole.ENTRANT) == true) {
+            Button(onClick = { navController.switchView(Routes.ENTRANT_HOME) }) {
+                Text("Entrant view")
             }
-        ) {
-            Text("Entrant Screen")
         }
-
-        Button(
-            onClick = {
-                navController.navigate(Routes.OWNER_HOME)
+        if (user?.hasRole(UserRole.OWNER) == true) {
+            Button(onClick = { navController.switchView(Routes.OWNER_HOME) }) {
+                Text("Owner view")
             }
-        ) {
-            Text("Owner Screen")
+        }
+        if (user != null && user.roles.isEmpty()) {
+            Text("No views are enabled for your account.")
         }
     }
-
 }

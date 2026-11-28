@@ -1,3 +1,6 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Reuse loading/retry presentation for authenticated profile loading.
+ */
 package com.turing.campsite.ui.screens.shared
 
 import androidx.compose.foundation.background
@@ -31,7 +34,9 @@ import com.turing.campsite.PrimaryColor
 @Composable
 fun SignInScreen(
     errorMessage: String?,
-    onRetryClick: () -> Unit
+    onRetryClick: () -> Unit,
+    loadingMessage: String = "Signing in...",
+    errorTitle: String = "Could not sign in"
 ) {
     Column(
         modifier = Modifier
@@ -44,13 +49,13 @@ fun SignInScreen(
         if (errorMessage == null) {
             CircularProgressIndicator(color = PrimaryColor)
             Text(
-                text = "Signing in...",
+                text = loadingMessage,
                 fontSize = 16.sp,
                 color = PrimaryColor
             )
         } else {
             Text(
-                text = "Could not sign in",
+                text = errorTitle,
                 fontSize = 18.sp,
                 color = PrimaryColor
             )

@@ -1,9 +1,12 @@
+/* AI Assistance Disclosure: OpenAI, ChatGPT (GPT-6), 2026-11-26.
+ * Scope: Role-aware view switching using the signed-in profile and shared navigation guards.
+ */
 package com.turing.campsite.navigation
 
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.turing.campsite.data.model.UserRole
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
 import android.net.Uri
 
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
@@ -25,7 +28,7 @@ import com.turing.campsite.ui.screens.entrant.EntrantCampsiteDetailsScreen
 fun NavGraphBuilder.entrantGraph(
     navController: NavHostController
 ) {
-    composable(Routes.ENTRANT_HOME) {
+    roleComposable(requiredRole = UserRole.ENTRANT, navController = navController, route = Routes.ENTRANT_HOME) {
         val campsiteViewModel: CampsiteViewModel = viewModel()
         ErrorToast(campsiteViewModel)
 
@@ -39,7 +42,7 @@ fun NavGraphBuilder.entrantGraph(
         )
     }
 
-    composable(
+    roleComposable(requiredRole = UserRole.ENTRANT, navController = navController, route =
         "${Routes.ENTRANT_CAMPSITE_DETAILS}/{campsiteId}"
     ) { backStackEntry ->
 
@@ -61,29 +64,29 @@ fun NavGraphBuilder.entrantGraph(
         )
     }
 
-    composable(Routes.ENTRANT_CAMPSITE_LIST) {
+    roleComposable(requiredRole = UserRole.ENTRANT, navController = navController, route = Routes.ENTRANT_CAMPSITE_LIST) {
         val reservationViewModel: ReservationViewModel = viewModel()
         EntrantCampsiteListScreen(
             reservationViewModel = reservationViewModel
         )
     }
 
-    composable(Routes.ENTRANT_SELECT_CAMPSITE) {
+    roleComposable(requiredRole = UserRole.ENTRANT, navController = navController, route = Routes.ENTRANT_SELECT_CAMPSITE) {
         EntrantSelectCampsiteScreen(navController)
     }
 
-    composable(Routes.ENTRANT_QR_CODE) {
+    roleComposable(requiredRole = UserRole.ENTRANT, navController = navController, route = Routes.ENTRANT_QR_CODE) {
         EntrantQRCodeScreen()
     }
 
-    composable(Routes.ENTRANT_NOTIFICATION) {
+    roleComposable(requiredRole = UserRole.ENTRANT, navController = navController, route = Routes.ENTRANT_NOTIFICATION) {
         val notificationViewModel: NotificationViewModel = viewModel()
         EntrantNotificationScreen(
             notificationViewModel = notificationViewModel
         )
     }
 
-    composable(Routes.ENTRANT_ACCEPT_RESERVATION) {
+    roleComposable(requiredRole = UserRole.ENTRANT, navController = navController, route = Routes.ENTRANT_ACCEPT_RESERVATION) {
         EntrantAcceptReservationScreen(navController)
     }
 }
