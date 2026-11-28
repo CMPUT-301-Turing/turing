@@ -1,14 +1,29 @@
+/*
+ * AI Assistance Disclosure
+ *
+ * Company: DeepSeek
+ * Tool: Deepseek
+ * Date: 2026-11-28
+ * Subject: functionality of slider.
+ *
+ * Scope: AI assist in exploring functionality of slider
+ *
+ *
+ */
 package com.turing.campsite.ui.screens.entrant
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.ArrowOutward
 import androidx.compose.material.icons.outlined.Edit
@@ -17,13 +32,26 @@ import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Terrain
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -40,6 +68,7 @@ import com.turing.campsite.data.model.Lottery
 import com.turing.campsite.data.model.Review
 import com.turing.campsite.ui.viewmodel.CampsiteViewModel
 import com.turing.campsite.ui.viewmodel.LotteryViewModel
+import kotlinx.coroutines.launch
 
 private val PageBackground = Color(0xFFF6F4ED)
 private val CardBackground = Color(0xFFFCFBF7)
@@ -48,6 +77,7 @@ private val ChipBackground = Color(0xFFE8EFE3)
 private val SecondaryText = Color(0xFF7A8079)
 private val StarColor = Color(0xFFC19A49)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EntrantCampsiteDetailsScreen(
         campsiteViewModel: CampsiteViewModel,
@@ -59,6 +89,12 @@ fun EntrantCampsiteDetailsScreen(
         val campsite = campsiteViewModel.selectedCampsite
         val currentEntrantId = LocalCurrentUid.current
         val currentLot = lotteryViewModel.selectedLottery
+        var showLeaveCommentBox by remember { mutableStateOf(false) }
+        var campsite_comment by remember { mutableStateOf("") }
+        var campsite_rating by remember { mutableStateOf(0) }
+        val sheetState = rememberModalBottomSheetState()//
+        val scope = rememberCoroutineScope()//
+        var sliderValue by remember { mutableFloatStateOf(0f) }
 
     LaunchedEffect(campsiteId) {
         campsiteViewModel.select(campsiteId)
@@ -198,19 +234,11 @@ fun EntrantCampsiteDetailsScreen(
                     CampsiteLocationCard(campsite.location)
 
                     CampsiteReviewsSection(
-                        rating = campsite.ratingAverage.toString(),
+                        rating = "%.2f".format(campsite.ratingAverage),
                         reviewCount = campsite.ratingCount,
                         onLeaveReviewClick = {
+                            showLeaveCommentBox=true
 
-                            // connected
-                            campsiteViewModel.addReview(
-                                campsiteId = campsiteId,
-                                review = Review(
-                                    entrantId = currentEntrantId,
-                                    rating = 5,
-                                    comment = "Wow very veery nice campsite!"
-                                )
-                            )
                         }
                     )
                 }
@@ -235,7 +263,106 @@ fun EntrantCampsiteDetailsScreen(
             )
         }
     }
-}
+    if (showLeaveCommentBox){
+        ModalBottomSheet(
+            onDismissRequest = {showLeaveCommentBox=false},
+            sheetState = sheetState,
+            containerColor = PageBackground,
+            contentColor = SecondaryText
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "Leave a review",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(bottom = 16.dp),
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = PrimaryColor
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Rating: $sliderValue")
+
+                    Slider(
+                        value= sliderValue,
+                        onValueChange= {sliderValue = it},
+                        valueRange = 0f..5f,
+                        steps= 4
+                    )
+
+
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Comment: ")
+                    OutlinedTextField(
+                        value = campsite_comment,
+                        onValueChange = { campsite_comment = it },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(56.dp),
+                        placeholder = {
+                            Text(
+                                text = "Enter comment",
+                                fontSize = 12.sp,
+                                color = SecondaryText
+                            )
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp),
+
+                        colors = OutlinedTextFieldDefaults.colors(
+
+                            focusedContainerColor = CardBackground,
+                            unfocusedContainerColor = CardBackground,
+
+                            focusedBorderColor = PrimaryColor,
+                            unfocusedBorderColor = CardBorder
+                        )
+                    )
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Apply Button
+                Button(
+                    onClick = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) {
+                                showLeaveCommentBox = false
+                            }
+                        }
+
+                        campsite_rating= sliderValue.toInt()
+                        // connected
+                        campsiteViewModel.addReview(
+                            campsiteId = campsiteId,
+                            review = Review(
+                                entrantId = currentEntrantId,
+                                rating = campsite_rating,
+                                comment = campsite_comment
+                            )
+                        )
+
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryColor,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Leave Comment")
+                }
+
+            }//end of column
+        }
+    }
+}//end of screen function
 
 @Composable
 private fun CampsitePhotoGallery(
